@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using DArvis.Components;
 using Microsoft.Win32;
 using DArvis.Controls;
 using DArvis.Extensions;
@@ -26,6 +28,8 @@ using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
 using DArvis.Settings;
+using DArvis.Shared;
+using DArvis.Types;
 using DArvis.Win32;
 using Path = System.IO.Path;
 
@@ -34,6 +38,15 @@ namespace DArvis.Views
     public partial class MainWindow : Window, IDisposable
     {
         private const int WM_HOTKEY = 0x312;
+        private const int WM_COPYDATA = 0x004A;
+        private int idx, previd;
+        
+        static TimeSpan UpdateSpan { get; set; }
+        static DateTime LastUpdate { get; set; }
+        static Thread _updatingThread;
+        
+        static List<UpdateableComponent> _components = new();
+        
         private const string DArvisMacroFileExtension = "sh4";
         private const string DArvisMacroFileFilter = "DArvis v4 Macro Files (*.sh4)|*.sh4";
 
@@ -45,7 +58,6 @@ namespace DArvis.Views
         private bool isDisposed;
         private HwndSource windowSource;
 
-        private bool isFirstRun;
         private int recentSettingsTabIndex;
         private MetadataEditorWindow metadataWindow;
         private SettingsWindow settingsWindow;
@@ -88,6 +100,10 @@ namespace DArvis.Views
             RefreshFlowerQueue();
 
             StartUpdateTimers();
+
+            SetupComponents();
+            SetupCleanupHandlers();
+            Loaded += MainWindow_Loaded;
         }
 
         public void Dispose()
@@ -623,8 +639,6 @@ namespace DArvis.Views
                 {
                     UserSettingsManager.Instance.Settings.ResetDefaults();
                     logger.LogInfo("No user settings file was found, using defaults");
-
-                    isFirstRun = true;
                 }
             }
             catch (Exception ex)
@@ -1186,11 +1200,6 @@ namespace DArvis.Views
 
             logger.LogInfo("Application shutdown tasks have completed");
         } 
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            logger.LogInfo("Main window has been closed");
-        }
 
         private void PromptUserToOpenUserManual()
         {
@@ -2374,5 +2383,235 @@ namespace DArvis.Views
             clientListBox.Items.Refresh();
         }
 
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+            hwndSource?.AddHook(WndProcHook);
+        }
+        
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Cleanup();
+        }
+        
+        private static void SetupComponents()
+        {
+            UpdateSpan = TimeSpan.FromSeconds(1.0 / 60.0);
+            _updatingThread = new Thread(DoUpdate) {IsBackground = true};
+            _updatingThread.Start();
+            
+            var monitor = new ProcessMonitor();
+            monitor.Attached += monitor_Attached;
+            monitor.Removed += monitor_Removed;
+        
+            lock (_components)
+            {
+                _components.Add(monitor);
+            }
+        }
+        
+        //DA process was removed, unload all necessary resources.
+        static void monitor_Removed(int pId, EventArgs e)
+        {
+            var client = Collections.AttachedClients[pId];
+            client.CleanUpMememory();
+            client.DestroyResources();
+            Collections.AttachedClients.Remove(pId);
+        }
+
+        //DA Process was attached.
+        static void monitor_Attached(int pId, EventArgs e)
+        {
+            //create a new client class for this DA Process
+            var client = new Client(pId);
+
+            //prepare DAvid.dll and inject it into the process.
+            client.InitializeMemory(
+                Process.GetProcessById(pId),
+                Path.Combine(Environment.CurrentDirectory, "DAvid.dll"));
+
+            //Add to our Global collections dictionary.
+            Collections.AttachedClients[pId] = client;
+
+            InjectCodeStubs(client);
+        
+            Console.WriteLine($"Attached to Dark Ages client with PID: {client.ProcessId}");
+        }
+
+        public static void InjectCodeStubs(GameClient client)
+        {
+            if (!client.Memory.IsRunning)
+                return;
+
+            var mem = client.Memory;
+            var offset = 0x697B;
+            var send = mem.Read<int>(0x85C000, false) + offset;
+            var payload = new byte[] { 0x13, 0x01 };
+            var payloadLengthArg =
+                mem.Memory.Allocate(2);
+            mem.Write(payloadLengthArg.BaseAddress, (short)payload.Length, false);
+            var payloadArg =
+                mem.Memory.Allocate(sizeof(byte) * payload.Length);
+            mem.Write(payloadArg.BaseAddress, payload, false);
+
+            var asm = new []
+            {
+                "mov eax, " + payloadLengthArg.BaseAddress,
+                "push eax",
+                "mov edx, " + payloadArg.BaseAddress,
+                "push edx",
+                "call " + send,
+            };
+
+            mem.Assembly.Inject(asm, 0x006FE000);
+        }
+
+        static void DoUpdate()
+        {
+            while (true)
+            {
+                var delta = (DateTime.Now - LastUpdate);
+                try
+                {
+                    Update(delta);
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine(e.Message);
+                    Console.Error.WriteLine(e.StackTrace);
+                }
+                finally
+                {
+                    LastUpdate = DateTime.Now;
+                    Thread.Sleep(UpdateSpan);
+                }
+            }
+        }
+
+        static void Update(TimeSpan elapsedTime)
+        {
+            lock (_components)
+            {
+                _components.ForEach(i => i.Update(elapsedTime));
+            }
+
+            //Update all attached clients in our collections dictionary, this will allow
+            //any updateable components inside client to also update accordinaly to the elapsed frame.
+
+            //copy memory here is deliberate!
+            List<Client> copy;
+            lock (Collections.AttachedClients)
+                copy = new List<Client>(Collections.AttachedClients.Values);
+
+            var clients = copy.ToArray();
+            foreach (var c in clients)
+                c.Update(elapsedTime);
+        }
+        
+        private IntPtr WndProcHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == WM_COPYDATA)
+            {
+                var ptr = (Copydatastruct)Marshal.PtrToStructure(lParam, typeof(Copydatastruct));
+                if (ptr.CbData <= 0)
+                    return IntPtr.Zero;
+        
+                var buffer = new byte[ptr.CbData];
+                Marshal.Copy(ptr.LpData, buffer, 0, ptr.CbData); // Copy from unmanaged memory
+        
+                var id = CheckTouring(wParam, ref ptr);
+        
+                if (!Collections.AttachedClients.ContainsKey(id))
+                    return IntPtr.Zero;
+        
+                var packet = new Packet
+                {
+                    Date = DateTime.Now,
+                    Data = buffer,
+                    Type = (int)ptr.DwData,
+                    Client = Collections.AttachedClients[id]
+                };
+        
+                // Console.WriteLine packet
+                Console.WriteLine($"Packet received: {BitConverter.ToString(packet.Data)}");
+                
+                if (packet.Type == 1)
+                    Collections.AttachedClients[id].OnPacketRecevied(id, packet);
+                if (packet.Type == 2)
+                    Collections.AttachedClients[id].OnPacketSent(id, packet);
+        
+                Intercept(ptr, packet, id);
+                handled = true;
+            }
+        
+            return IntPtr.Zero;
+        }
+        private int CheckTouring(IntPtr wParam, ref Copydatastruct ptr)
+        {
+            var id = wParam.ToInt32();
+            if (id > 0x7FFFF && idx++%2 == 0)
+            {
+                if (ptr.DwData == 2)
+                    if (Collections.AttachedClients.ContainsKey(previd))
+                        Collections.AttachedClients[previd].SendPointer = id;
+                if (ptr.DwData != 1) return id;
+                if (Collections.AttachedClients.ContainsKey(previd))
+                    Collections.AttachedClients[previd].RecvPointer = id;
+            }
+            else
+            {
+                previd = id;
+            }
+            return id;
+        }
+
+        private static void Intercept(Copydatastruct ptr, Packet packet, int id)
+        {
+            if (packet.Data.Length <= 0 || packet.Data.Length != ptr.CbData)
+                return;
+
+            var c = Collections.AttachedClients[id];
+            EventHandler<Packet>[] packetHandler;
+            
+            switch (packet.Type)
+            {
+                case 2:
+                    packetHandler = c.ClientPacketHandler;
+                    break;
+                case 1:
+                    packetHandler = c.ServerPacketHandler;
+                    break;
+                default:
+                    return;
+            }
+            
+            if (packetHandler[packet.Data[0]] == null)
+            {
+                Console.WriteLine("No handler for client packet type: " + packet.Data[0].ToString("X2"));
+                return;
+            }
+            
+            packetHandler[packet.Data[0]].Invoke(id, packet);
+        }
+    
+        private void SetupCleanupHandlers()
+        {
+            Application.Current.Exit += (s, e) => Cleanup();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => Cleanup();
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            Console.WriteLine("[STUB] Cleaning up resources...");
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Copydatastruct
+        {
+            public IntPtr DwData;
+            public int CbData;
+            public IntPtr LpData;
+        }
     }
 }
