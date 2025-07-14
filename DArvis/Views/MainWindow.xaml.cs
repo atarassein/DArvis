@@ -102,7 +102,6 @@ namespace DArvis.Views
             StartUpdateTimers();
 
             SetupComponents();
-            SetupCleanupHandlers();
             Loaded += MainWindow_Loaded;
         }
 
@@ -771,6 +770,7 @@ namespace DArvis.Views
                 while (ProcessManager.Instance.DeadClientCount > 0)
                 {
                     var deadClient = ProcessManager.Instance.DequeueDeadClient();
+                    // TODO: if client had followers then remove them
                     PlayerManager.Instance.RemovePlayer(deadClient.ProcessId);
                 }
 
@@ -2391,7 +2391,7 @@ namespace DArvis.Views
         
         private void Window_Closed(object sender, EventArgs e)
         {
-            Cleanup();
+            
         }
         
         private static void SetupComponents()
@@ -2594,17 +2594,7 @@ namespace DArvis.Views
             packetHandler[packet.Data[0]].Invoke(id, packet);
         }
     
-        private void SetupCleanupHandlers()
-        {
-            Application.Current.Exit += (s, e) => Cleanup();
-            AppDomain.CurrentDomain.ProcessExit += (s, e) => Cleanup();
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => Cleanup();
-        }
 
-        private void Cleanup()
-        {
-            Console.WriteLine("[STUB] Cleaning up resources...");
-        }
         
         [StructLayout(LayoutKind.Sequential)]
         public struct Copydatastruct

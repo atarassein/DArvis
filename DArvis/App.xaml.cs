@@ -24,6 +24,7 @@ namespace DArvis
             Services = ConfigureServices();
             InitializeComponent();
 
+            SetupCleanupHandlers();
             Current.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
         }
 
@@ -52,6 +53,19 @@ namespace DArvis
             base.OnExit(e);
         }
 
+        private void SetupCleanupHandlers()
+        {
+            Application.Current.Exit += (s, e) => Cleanup();
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => Cleanup();
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            // TODO: release david.dll from all client processes
+            Console.WriteLine("[STUB] Cleaning up resources...");
+        }
+        
         private static IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
