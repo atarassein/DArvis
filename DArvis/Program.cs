@@ -21,10 +21,10 @@ class Program
     static List<UpdateableComponent> _components = new List<UpdateableComponent>();
 
     static Thread _updatingThread = null;
-    static MainWindow _mainWindow = null;
+    static UnMainWindow _mainWindow = null;
 
     [STAThread]
-    static void Main(string[] args)
+    static void _Main(string[] args)
     {
         //Set a tick rate of 60 frames per second.
         UpdateSpan = TimeSpan.FromSeconds(1.0 / 60.0);
@@ -38,7 +38,7 @@ class Program
 
         // Create and run WPF application with MainWindow
         var app = new Application();
-        _mainWindow = new MainWindow();
+        _mainWindow = new UnMainWindow();
         app.Run(_mainWindow);
     }
 

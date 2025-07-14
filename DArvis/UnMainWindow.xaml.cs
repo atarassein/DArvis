@@ -7,11 +7,11 @@ using System;
     
     namespace DArvis
     {
-        public partial class MainWindow : Window
+        public partial class UnMainWindow : Window
         {
             private const int WM_COPYDATA = 0x004A;
             private int idx, previd;
-            public MainWindow()
+            public UnMainWindow()
             {
                 InitializeComponent();
                 SetupCleanupHandlers();
