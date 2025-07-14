@@ -65,8 +65,6 @@ public abstract class UpdateableComponent : IDisposable
         {
             Client = null;
             Timer = null;
-
-            Console.WriteLine("Destroying Component {0} {1}", GetType().Name, ComponentID);
         }
     }
 

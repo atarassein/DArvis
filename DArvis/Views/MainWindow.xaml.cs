@@ -101,7 +101,6 @@ namespace DArvis.Views
 
             StartUpdateTimers();
 
-            SetupComponents();
             Loaded += MainWindow_Loaded;
         }
 
@@ -121,6 +120,7 @@ namespace DArvis.Views
                 processScannerWorker?.Dispose();
                 clientUpdateWorker?.Dispose();
                 flowerUpdateWorker?.Dispose();
+                // TODO: packetScannerWorker?.Dispose();
             }
 
             windowSource?.Dispose();
@@ -742,6 +742,7 @@ namespace DArvis.Views
             StartProcessScanner();
             StartClientUpdate();
             StartFlowerUpdate();
+            PlayerManager.Instance.PlayerAdded += PacketManager.Instance.OnPlayerAdded;
         }
 
         private void StartProcessScanner()
@@ -779,6 +780,7 @@ namespace DArvis.Views
                 {
                     var newClient = ProcessManager.Instance.DequeueNewClient();
                     PlayerManager.Instance.AddNewClient(newClient);
+                    
                 }
 
                 if (clientListBox.SelectedIndex == -1 && clientListBox.Items.Count > 0)
@@ -2394,120 +2396,6 @@ namespace DArvis.Views
             
         }
         
-        private static void SetupComponents()
-        {
-            UpdateSpan = TimeSpan.FromSeconds(1.0 / 60.0);
-            _updatingThread = new Thread(DoUpdate) {IsBackground = true};
-            _updatingThread.Start();
-            
-            var monitor = new ProcessMonitor();
-            monitor.Attached += monitor_Attached;
-            monitor.Removed += monitor_Removed;
-        
-            lock (_components)
-            {
-                _components.Add(monitor);
-            }
-        }
-        
-        //DA process was removed, unload all necessary resources.
-        static void monitor_Removed(int pId, EventArgs e)
-        {
-            var client = Collections.AttachedClients[pId];
-            client.CleanUpMememory();
-            client.DestroyResources();
-            Collections.AttachedClients.Remove(pId);
-        }
-
-        //DA Process was attached.
-        static void monitor_Attached(int pId, EventArgs e)
-        {
-            //create a new client class for this DA Process
-            var client = new Client(pId);
-
-            //prepare DAvid.dll and inject it into the process.
-            client.InitializeMemory(
-                Process.GetProcessById(pId),
-                Path.Combine(Environment.CurrentDirectory, "DAvid.dll"));
-
-            //Add to our Global collections dictionary.
-            Collections.AttachedClients[pId] = client;
-
-            InjectCodeStubs(client);
-        
-            Console.WriteLine($"Attached to Dark Ages client with PID: {client.ProcessId}");
-        }
-
-        public static void InjectCodeStubs(GameClient client)
-        {
-            if (!client.Memory.IsRunning)
-                return;
-
-            var mem = client.Memory;
-            var offset = 0x697B;
-            var send = mem.Read<int>(0x85C000, false) + offset;
-            var payload = new byte[] { 0x13, 0x01 };
-            var payloadLengthArg =
-                mem.Memory.Allocate(2);
-            mem.Write(payloadLengthArg.BaseAddress, (short)payload.Length, false);
-            var payloadArg =
-                mem.Memory.Allocate(sizeof(byte) * payload.Length);
-            mem.Write(payloadArg.BaseAddress, payload, false);
-
-            var asm = new []
-            {
-                "mov eax, " + payloadLengthArg.BaseAddress,
-                "push eax",
-                "mov edx, " + payloadArg.BaseAddress,
-                "push edx",
-                "call " + send,
-            };
-
-            mem.Assembly.Inject(asm, 0x006FE000);
-        }
-
-        static void DoUpdate()
-        {
-            while (true)
-            {
-                var delta = (DateTime.Now - LastUpdate);
-                try
-                {
-                    Update(delta);
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    Console.Error.WriteLine(e.StackTrace);
-                }
-                finally
-                {
-                    LastUpdate = DateTime.Now;
-                    Thread.Sleep(UpdateSpan);
-                }
-            }
-        }
-
-        static void Update(TimeSpan elapsedTime)
-        {
-            lock (_components)
-            {
-                _components.ForEach(i => i.Update(elapsedTime));
-            }
-
-            //Update all attached clients in our collections dictionary, this will allow
-            //any updateable components inside client to also update accordinaly to the elapsed frame.
-
-            //copy memory here is deliberate!
-            List<Client> copy;
-            lock (Collections.AttachedClients)
-                copy = new List<Client>(Collections.AttachedClients.Values);
-
-            var clients = copy.ToArray();
-            foreach (var c in clients)
-                c.Update(elapsedTime);
-        }
-        
         private IntPtr WndProcHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg == WM_COPYDATA)
@@ -2520,7 +2408,9 @@ namespace DArvis.Views
                 Marshal.Copy(ptr.LpData, buffer, 0, ptr.CbData); // Copy from unmanaged memory
         
                 var id = CheckTouring(wParam, ref ptr);
-        
+                Console.WriteLine($"Packet received: {BitConverter.ToString(buffer)}");
+
+                /*
                 if (!Collections.AttachedClients.ContainsKey(id))
                     return IntPtr.Zero;
         
@@ -2533,14 +2423,14 @@ namespace DArvis.Views
                 };
         
                 // Console.WriteLine packet
-                Console.WriteLine($"Packet received: {BitConverter.ToString(packet.Data)}");
                 
                 if (packet.Type == 1)
                     Collections.AttachedClients[id].OnPacketRecevied(id, packet);
                 if (packet.Type == 2)
                     Collections.AttachedClients[id].OnPacketSent(id, packet);
+                    */
         
-                Intercept(ptr, packet, id);
+                //Intercept(ptr, packet, id);
                 handled = true;
             }
         
@@ -2565,7 +2455,7 @@ namespace DArvis.Views
             return id;
         }
 
-        private static void Intercept(Copydatastruct ptr, Packet packet, int id)
+        /*private static void Intercept(Copydatastruct ptr, Packet packet, int id)
         {
             if (packet.Data.Length <= 0 || packet.Data.Length != ptr.CbData)
                 return;
@@ -2592,7 +2482,7 @@ namespace DArvis.Views
             }
             
             packetHandler[packet.Data[0]].Invoke(id, packet);
-        }
+        }*/
     
 
         

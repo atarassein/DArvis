@@ -53,7 +53,7 @@ public abstract class GameClient : UpdateableComponent
         Memory = new MemorySharp(p);
         CleanUpMememory();
 
-        var injected = Memory.Read<byte>((IntPtr)DAStaticPointers.ETDA, false);
+        var injected = Memory.Read<byte>((IntPtr)DAStaticPointers.DAvid, false);
         if (injected == 85)
         {
             try
