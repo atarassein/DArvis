@@ -1,0 +1,62 @@
+﻿<Window x:Class="DArvis.MainWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    Title="DArvis" Height="400" Width="600"
+                    WindowStartupLocation="CenterScreen"
+                    Closed="Window_Closed">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+            
+                    <!-- Process Status -->
+                    <GroupBox Grid.Row="0" Header="Process Status" Margin="0,0,0,10">
+                        <Label Name="ProcessStatusLabel" Content="Process: Not Found" 
+                               Foreground="Red" FontWeight="Bold"/>
+                    </GroupBox>
+            
+                    <!-- Injection Status -->
+                    <GroupBox Grid.Row="1" Header="Injection Status" Margin="0,0,0,10">
+                        <Label Name="InjectionStatusLabel" Content="Status: Not Injected" 
+                               Foreground="Red" FontWeight="Bold"/>
+                    </GroupBox>
+            
+                    <!-- Controls -->
+                    <GroupBox Grid.Row="2" Header="Controls" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Name="InjectButton" Content="Inject DLL" 
+                                    Width="120" Height="30" Margin="5"
+                                    Click="InjectButton_Click" IsEnabled="False"/>
+                            <Button Name="EjectButton" Content="Eject DLL" 
+                                    Width="120" Height="30" Margin="5"
+                                    Click="EjectButton_Click" IsEnabled="False"/>
+                        </StackPanel>
+                    </GroupBox>
+            
+                    <!-- Attached Clients -->
+                    <GroupBox Grid.Row="3" Header="Attached Clients" Margin="0,0,0,10">
+                        <ListBox Name="AttachedClientsListBox" Height="100"/>
+                    </GroupBox>
+            
+                    <!-- Log Output -->
+                    <GroupBox Grid.Row="4" Header="Log Output" Margin="0,0,0,10">
+                        <ScrollViewer>
+                            <TextBox Name="LogTextBox" Height="100" IsReadOnly="True" 
+                                     VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </GroupBox>
+            
+                    <!-- Status Bar -->
+                    <StatusBar Grid.Row="5" VerticalAlignment="Bottom">
+                        <StatusBarItem>
+                            <Label Name="StatusLabel" Content="Ready"/>
+                        </StatusBarItem>
+                    </StatusBar>
+                </Grid>
+            </Window>
