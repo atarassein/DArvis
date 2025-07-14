@@ -1368,6 +1368,43 @@
     </Style>
 
     <!-- Inventory ListBox Style -->
+    <Style x:Key="ObsidianFollowListBoxItem" TargetType="ListBox">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ObsidianInventoryListBoxItem}"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Background" Value="{StaticResource ObsidianControlBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ObsidianForeground}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="Margin" Value="4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Margin="{TemplateBinding Margin}">
+                        <ScrollViewer Margin="0"
+                                      Focusable="False"
+                                      Style="{StaticResource ObsidianScrollViewer}"
+                                      Padding="{TemplateBinding Padding}">
+                            <ItemsControl>
+                                <WrapPanel IsItemsHost="True"
+                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Inventory ListBox Style -->
     <Style x:Key="ObsidianInventoryListBox" TargetType="ListBox">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="OverridesDefaultStyle" Value="True"/>

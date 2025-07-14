@@ -72,7 +72,6 @@ namespace DArvis.Views
 
             LoadVersions();
 
-            UpdateWindowTitle();
             UpdateToolbarState();
 
             LoadSkills();
@@ -84,8 +83,7 @@ namespace DArvis.Views
             ToggleSkills(false);
             ToggleSpells(false);
             ToggleSpellQueue(false);
-            ToggleFeatures(false);
-
+            
             RefreshSpellQueue();
             RefreshFlowerQueue();
 
@@ -356,7 +354,6 @@ namespace DArvis.Views
                 ToggleSkills(selectedPlayer != null);
                 ToggleSpells(selectedPlayer != null);
                 ToggleFlower(supportsFlowering, hasLyliacPlant, hasLyliacVineyard);
-                ToggleFeatures(selectedPlayer?.Version?.HasFeaturesAvailable ?? false);
             }
         }
 
@@ -391,9 +388,7 @@ namespace DArvis.Views
                 logger.LogInfo($"Auto-loading {state.Client.Name} macro state...");
                 AutoLoadMacroState(state);
             }
-
-            UpdateWindowTitle();
-
+            
             // Set default spell queue rotation mode
             if (state.SpellQueueRotation == SpellRotationMode.Default)
                 state.SpellQueueRotation = UserSettingsManager.Instance.Settings.SpellRotationMode;
@@ -426,9 +421,7 @@ namespace DArvis.Views
                 HotkeyManager.Instance.UnregisterHotkey(windowSource.Handle, player.Hotkey);
 
             player.Hotkey = null;
-
-            UpdateWindowTitle();
-
+            
             if (state != null)
             {
                 state.StatusChanged -= HandleMacroStatusChanged;
@@ -493,7 +486,6 @@ namespace DArvis.Views
             {
                 clientListBox.SelectedItem = null;
                 UpdateToolbarState();
-                UpdateWindowTitle();
                 ToggleSpellQueue(false);
                 return;
             }
@@ -533,24 +525,6 @@ namespace DArvis.Views
 
             flowerListBox.ItemsSource = selectedMacro?.FlowerTargets ?? null;
             flowerListBox.Items.Refresh();
-        }
-
-        private async void RefreshFeatures()
-        {
-            await Dispatcher.SwitchToUIThread();
-
-            if (selectedMacro is not PlayerMacroState state)
-                return;
-
-            RefreshUseWaterAndBedsFeature(state);
-        }
-
-        private void RefreshUseWaterAndBedsFeature(PlayerMacroState state)
-        {
-            useWaterAndBedsCheckBox.IsChecked = state.LocalStorage.GetBoolOrDefault(LocalStorageKey.UseWaterAndBeds.IsEnabled, false);
-            useWaterAndBedsThresholdUpDown.Value = state.LocalStorage.GetIntegerOrDefault(LocalStorageKey.UseWaterAndBeds.ManaThreshold, 1000);
-            useWaterAndBedsTileXUpDown.Value = state.LocalStorage.GetIntegerOrDefault(LocalStorageKey.UseWaterAndBeds.TileX, 5);
-            useWaterAndBedsTileYUpDown.Value = state.LocalStorage.GetIntegerOrDefault(LocalStorageKey.UseWaterAndBeds.TileY, 1);
         }
 
         private void LoadVersions()
@@ -1480,7 +1454,6 @@ namespace DArvis.Views
                 UpdateToolbarState();
                 RefreshSpellQueue();
                 RefreshFlowerQueue();
-                RefreshFeatures();
 
                 if (selectedMacro != null && selectedMacro == state)
                     ToggleSpellQueue(state.QueuedSpells.Count > 0);
@@ -1829,12 +1802,10 @@ namespace DArvis.Views
                     selectedMacro.PropertyChanged -= SelectedMacro_PropertyChanged;
 
                 selectedMacro = null;
-                UpdateWindowTitle();
                 ToggleInventory(false);
                 ToggleSkills(false);
                 ToggleSpells(false);
                 ToggleFlower(false);
-                ToggleFeatures(false);
                 UpdateToolbarState();
                 return;
             }
@@ -1846,7 +1817,6 @@ namespace DArvis.Views
             selectedMacro = macroState;
             SubscribeMacroHandlers(selectedMacro);
 
-            UpdateWindowTitle();
             UpdateToolbarState();
 
             if (selectedMacro == null)
@@ -1863,8 +1833,7 @@ namespace DArvis.Views
             ToggleSkills(player.IsLoggedIn);
             ToggleSpells(player.IsLoggedIn);
             ToggleFlower(supportsFlowering, player.HasLyliacPlant, player.HasLyliacVineyard);
-            ToggleFeatures(player.Version?.HasFeaturesAvailable ?? false);
-
+            
             if (selectedMacro != null)
             {
                 RefreshInventory();
@@ -1885,8 +1854,6 @@ namespace DArvis.Views
 
                 foreach (var spell in selectedMacro.QueuedSpells)
                     spell.IsUndefined = !SpellMetadataManager.Instance.ContainsSpell(spell.Name);
-
-                RefreshFeatures();
             }
             else
             {
@@ -2339,16 +2306,6 @@ namespace DArvis.Views
                 selectedMacro.FlowerAlternateCharacters = flowerAlternateCharactersCheckBox.IsChecked.Value;
         }
 
-        private void UpdateWindowTitle()
-        {
-            if (selectedMacro == null || !selectedMacro.Client.IsLoggedIn)
-            {
-                Title = "DArvis";
-                return;
-            }
-
-            Title = $"DArvis - {selectedMacro.Client.Name}";
-        }
 
         private async void UpdateToolbarState()
         {
@@ -2404,11 +2361,6 @@ namespace DArvis.Views
                 flowerVineyardCheckBox.IsChecked = false;
         }
 
-        private void ToggleFeatures(bool show = true)
-        {
-            featuresTab.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-        }
-
         private async void UpdateClientList()
         {
             await Dispatcher.SwitchToUIThread();
@@ -2422,54 +2374,5 @@ namespace DArvis.Views
             clientListBox.Items.Refresh();
         }
 
-        #region Use Water & Beds Feature (Zolian)
-        private void useWaterAndBedsCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not CheckBox checkBox)
-                return;
-            if (selectedMacro is not PlayerMacroState state)
-                return;
-
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.IsEnabled, checkBox.IsChecked ?? false);
-
-            if (checkBox.IsChecked != true)
-                return;
-
-            // Ensure these values are in sync with the key/value store when ENABLED
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.ManaThreshold, (int)useWaterAndBedsThresholdUpDown.Value);
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.TileX, (int)useWaterAndBedsTileXUpDown.Value);
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.TileY, (int)useWaterAndBedsTileYUpDown.Value);
-        }
-
-        private void useWaterAndBedsThresholdUpDown_ValueChanged(object sender, RoutedEventArgs e)
-        {
-            if (sender is not NumericUpDown numericUpDown)
-                return;
-            if (selectedMacro is not PlayerMacroState state)
-                return;
-
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.ManaThreshold, (int)numericUpDown.Value);
-        }
-
-        private void useWaterAndBedsTileXUpDown_ValueChanged(object sender, RoutedEventArgs e)
-        {
-            if (sender is not NumericUpDown numericUpDown)
-                return;
-            if (selectedMacro is not PlayerMacroState state)
-                return;
-
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.TileX, (int)numericUpDown.Value);
-        }
-
-        private void useWaterAndBedsTileYUpDown_ValueChanged(object sender, RoutedEventArgs e)
-        {
-            if (sender is not NumericUpDown numericUpDown)
-                return;
-            if (selectedMacro is not PlayerMacroState state)
-                return;
-
-            state.LocalStorage.Add(LocalStorageKey.UseWaterAndBeds.TileY, (int)numericUpDown.Value);
-        }
-        #endregion
     }
 }
