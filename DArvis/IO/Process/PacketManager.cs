@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
 using Binarysharp.MemoryManagement;
+using DArvis.DTO;
+using DArvis.IO.Process.PacketConsumers;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
@@ -11,40 +16,39 @@ namespace DArvis.IO.Process
 {
     public sealed class PacketManager
     {
-        private static readonly PacketManager instance = new();
+        private static readonly PacketManager instance = new PacketManager();
         public static PacketManager Instance => instance;
 
-        private MemorySharp _memory;
         private readonly ILogger logger;
+        
+        private readonly ConcurrentQueue<Packet> ServerPacketQueue = new();
+        
+        private readonly List<IPacketConsumer> consumers = new();
+        private static readonly object DispatcherLock = new();
+        private static bool IsDispatching = false;
         
         private PacketManager()
         {
             logger = App.Current.Services.GetService<ILogger>();
         }
         
-        private readonly ConcurrentQueue<Packet> packets = new();
-        
-        public event PacketEventHandler PacketSent;
-        public event PacketEventHandler PacketReceived;
-
-        public void EnqueuePacket(Packet packet)
+        public static void RegisterConsumers()
         {
-            packets.Enqueue(packet);
+            Instance.RegisterConsumer(new ChatPacketConsumer());
+            Instance.RegisterConsumer(new PlayerMovementPacketConsumer());
+            Instance.RegisterConsumer(new MapLoadedPacketConsumer());
         }
         
-        public Packet PeekPacket()
+        public void RegisterConsumer(IPacketConsumer consumer)
         {
-            packets.TryPeek(out var packet);
-            return packet;
+            consumers.Add(consumer);
         }
 
-        public Packet DequeuePacket()
+        public void UnregisterConsumer(IPacketConsumer consumer)
         {
-            packets.TryDequeue(out var packet);
-            return packet;
+            consumers.Remove(consumer);
         }
-        
-        public void ClearPackets() => packets.Clear();
+
         
         /// <summary>
         /// Waits for new processes to be added and injects DAvid.dll into them.
@@ -70,31 +74,26 @@ namespace DArvis.IO.Process
                 return;
             
             var pId = playerEventArgs.Player.Process.ProcessId;
-            
             var dllPath = Path.Combine(Environment.CurrentDirectory, "DAvid.dll");
             
-            //prepare DAvid.dll and inject it into the process.
             var process = System.Diagnostics.Process.GetProcessById(pId);
             var memory = new MemorySharp(process);
             memory.Write((IntPtr)DAStaticPointers.SendBuffer, 0, false);
             memory.Write((IntPtr)DAStaticPointers.RecvBuffer, 0, false);
             GC.Collect();
             
-            // TODO: clear queues
-            
             var injected = memory.Read<byte>((IntPtr)DAStaticPointers.DAvid, false);
-            if (injected == 85)
+            if (injected != 85)
+                return;
+            
+            try
             {
-                try
-                {
-                    memory.Modules.Inject(dllPath);
-                    Console.Beep();
-                    logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
-                } catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                    Console.Error.WriteLine(ex.StackTrace);
-                }
+                memory.Modules.Inject(dllPath);
+                logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
+            } catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+                Console.Error.WriteLine(ex.StackTrace);
             }
         }
 
@@ -105,7 +104,7 @@ namespace DArvis.IO.Process
         /// <param name="memory"></param>
         private void SkipCutscene(MemorySharp memory)
         {
-            var targetFunctionAddr = memory.Read<int>(0x85C000, false) + 0x697B;
+            var targetFunctionAddr = memory.Read<int>((IntPtr)0x85C000, false) + 0x697B;
             
             var payload = new byte[] { 0x13, 0x01 };
             
@@ -126,7 +125,101 @@ namespace DArvis.IO.Process
                 "call " + targetFunctionAddr,
             };
 
-            memory.Assembly.Inject(asm, 0x006FE000);
+            memory.Assembly.Inject(asm, (IntPtr)0x006FE000);
         }
+
+        public IntPtr InterceptPacket(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {   
+            const int WM_COPYDATA = 0x004A;
+            
+            if (msg != WM_COPYDATA)
+                return IntPtr.Zero;
+        
+            var ptr = (Copydatastruct)Marshal.PtrToStructure(lParam, typeof(Copydatastruct));
+            if (ptr.CbData <= 0)
+                return IntPtr.Zero;
+    
+            var data = new byte[ptr.CbData];
+            var typeData = (int)ptr.DwData;
+            var source = Packet.PacketSource.Unknown;
+            var id = wParam.ToInt32();
+            
+            Marshal.Copy(ptr.LpData, data, 0, ptr.CbData); // Copy from unmanaged memory
+            var player = PlayerManager.Instance.GetPlayer(id);
+            if (player == null)
+            {
+                return IntPtr.Zero;
+            }
+            
+            if (Enum.IsDefined(typeof(Packet.PacketSource), typeData))
+            {
+                source = (Packet.PacketSource)typeData;
+            }
+            
+            var packet = new Packet(data, source, player);
+            ServerPacketQueue.Enqueue(packet);
+            DispatchPackets();
+
+            handled = true;
+            return IntPtr.Zero;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Copydatastruct
+        {
+            public IntPtr DwData;
+            public int CbData;
+            public IntPtr LpData;
+        }
+        
+        public void DispatchPackets()
+        {
+            lock (DispatcherLock)
+            {
+                if (IsDispatching)
+                    return;
+
+                if (!ServerPacketQueue.TryPeek(out var packet))
+                    return;
+
+                IsDispatching = true;
+            }
+
+            var packetDispatcher = new BackgroundWorker();
+            packetDispatcher.DoWork += (sender, e) =>
+            {
+                while (!ServerPacketQueue.IsEmpty)
+                {
+                    ServerPacketQueue.TryPeek(out var packet);
+                    foreach (var consumer in consumers)
+                    {
+                        if (!consumer.CanConsume(packet)) continue;
+                        
+                        ServerPacketQueue.TryDequeue(out _);
+                        consumer.ProcessPacket(packet);
+                        break;
+                    }
+                    
+                    if (ServerPacketQueue.TryPeek(out var stillThere) && stillThere == packet)
+                    {
+                        ServerPacketQueue.TryDequeue(out _);
+                        logger.LogWarn($"No consumer found for packet type: {packet.Type}");
+                        Console.WriteLine($"[0x{packet.Data[0]:X2}] - Unhandled packet type.");
+                    }
+                }
+            };
+            
+            packetDispatcher.RunWorkerCompleted += (sender, e) =>
+            {
+                lock (DispatcherLock)
+                {
+                    IsDispatching = false;
+                }
+            };
+            
+            packetDispatcher.RunWorkerAsync();
+            
+        }
+
     }
 }
