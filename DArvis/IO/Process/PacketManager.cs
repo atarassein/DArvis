@@ -105,7 +105,7 @@ namespace DArvis.IO.Process
         /// <param name="memory"></param>
         private void SkipCutscene(MemorySharp memory)
         {
-            var targetFunctionAddr = memory.Read<int>(0x85C000, false) + 0x697B;
+            var targetFunctionAddr = memory.Read<int>((IntPtr)0x85C000, false) + 0x697B;
             
             var payload = new byte[] { 0x13, 0x01 };
             
@@ -126,7 +126,7 @@ namespace DArvis.IO.Process
                 "call " + targetFunctionAddr,
             };
 
-            memory.Assembly.Inject(asm, 0x006FE000);
+            memory.Assembly.Inject(asm, (IntPtr)0x006FE000);
         }
     }
 }
