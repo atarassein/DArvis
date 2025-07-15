@@ -15,16 +15,16 @@ A fork of [SleepHunter](https://github.com/ewrogers/SleepHunter4) that integrate
     - Windows x86 - [Download Link](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 
 ## Roadmap to v1.0
-✅ SleepHunter Interface
-✅ Darkages.com DLL Injection
-✅ Packet Hooking/Interception
-✅ Packet Queue Publshing/Consuming
-⌛ Auto-Following
-⬜ Auto-Buffing
-⬜ Auto-Debuffing
-⬜ Auto-Healing
-⬜ Macro Integration
-⬜ v1.0 Release
+    ✅ SleepHunter Interface
+    ✅ Darkages.com DLL Injection
+    ✅ Packet Hooking/Interception
+    ✅ Packet Queue Publshing/Consuming
+    ⌛ Auto-Following
+    ⬜ Auto-Buffing
+    ⬜ Auto-Debuffing
+    ⬜ Auto-Healing
+    ⬜ Macro Integration
+    ⬜ v1.0 Release
 
 ## The Shoulders This Project Stands On
 
