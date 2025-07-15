@@ -72,6 +72,7 @@ namespace DArvis.Views
             macroStateSerializer = App.Current.Services.GetService<IMacroStateSerializer>();
 
             InitializeLogger();
+            InitializePacketManager();
             InitializeComponent();
             InitializeViews();
 
@@ -287,6 +288,10 @@ namespace DArvis.Views
             logger.LogInfo("Logging initialized");
         }
 
+        private void InitializePacketManager()
+        {
+            PacketManager.RegisterConsumers();
+        }
         private void InitializeHotkeyHook()
         {
             var helper = new WindowInteropHelper(this);
