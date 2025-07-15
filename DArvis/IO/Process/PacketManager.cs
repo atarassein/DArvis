@@ -34,9 +34,11 @@ namespace DArvis.IO.Process
         
         public static void RegisterConsumers()
         {
+            Instance.RegisterConsumer(new UnknownPacketConsumer());
+            Instance.RegisterConsumer(new ObjectPacketConsumer());
             Instance.RegisterConsumer(new ChatPacketConsumer());
             Instance.RegisterConsumer(new PlayerMovementPacketConsumer());
-            Instance.RegisterConsumer(new MapLoadedPacketConsumer());
+            Instance.RegisterConsumer(new MapPacketConsumer());
         }
         
         public void RegisterConsumer(IPacketConsumer consumer)
@@ -134,7 +136,7 @@ namespace DArvis.IO.Process
             
             if (msg != WM_COPYDATA)
                 return IntPtr.Zero;
-        
+
             var ptr = (Copydatastruct)Marshal.PtrToStructure(lParam, typeof(Copydatastruct));
             if (ptr.CbData <= 0)
                 return IntPtr.Zero;
@@ -157,7 +159,10 @@ namespace DArvis.IO.Process
             }
             
             var packet = new Packet(data, source, player);
-            ServerPacketQueue.Enqueue(packet);
+            if (packet.Source == Packet.PacketSource.Server)
+            {
+                ServerPacketQueue.Enqueue(packet);
+            }
             DispatchPackets();
 
             handled = true;

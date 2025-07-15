@@ -27,7 +27,7 @@ public class ChatPacketConsumer : PacketConsumer
 
     private void HandleChatMessage(Packet packet)
     {
-        Console.WriteLine("Processing chat message...");
+        // Console.WriteLine("Processing chat message...");
     }
 
     private void HandleWhisperMessage(Packet packet)
