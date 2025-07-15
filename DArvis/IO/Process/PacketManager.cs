@@ -2,7 +2,9 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using Binarysharp.MemoryManagement;
+using DArvis.DTO;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
@@ -24,8 +26,8 @@ namespace DArvis.IO.Process
         
         private readonly ConcurrentQueue<Packet> packets = new();
         
-        public event PacketEventHandler PacketSent;
-        public event PacketEventHandler PacketReceived;
+        // public event PacketEventHandler PacketSent;
+        // public event PacketEventHandler PacketReceived;
 
         public void EnqueuePacket(Packet packet)
         {
@@ -70,7 +72,6 @@ namespace DArvis.IO.Process
                 return;
             
             var pId = playerEventArgs.Player.Process.ProcessId;
-            
             var dllPath = Path.Combine(Environment.CurrentDirectory, "DAvid.dll");
             
             //prepare DAvid.dll and inject it into the process.
@@ -80,21 +81,20 @@ namespace DArvis.IO.Process
             memory.Write((IntPtr)DAStaticPointers.RecvBuffer, 0, false);
             GC.Collect();
             
-            // TODO: clear queues
-            
             var injected = memory.Read<byte>((IntPtr)DAStaticPointers.DAvid, false);
-            if (injected == 85)
+            if (injected != 85)
+                return;
+            
+            try
             {
-                try
-                {
-                    memory.Modules.Inject(dllPath);
-                    Console.Beep();
-                    logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
-                } catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                    Console.Error.WriteLine(ex.StackTrace);
-                }
+                memory.Modules.Inject(dllPath);
+                logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
+                //Console.Beep();
+                //Console.WriteLine($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
+            } catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+                Console.Error.WriteLine(ex.StackTrace);
             }
         }
 
@@ -127,6 +127,49 @@ namespace DArvis.IO.Process
             };
 
             memory.Assembly.Inject(asm, (IntPtr)0x006FE000);
+        }
+
+        public IntPtr InterceptPacket(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {   
+            const int WM_COPYDATA = 0x004A;
+            
+            if (msg != WM_COPYDATA)
+                return IntPtr.Zero;
+        
+            var ptr = (Copydatastruct)Marshal.PtrToStructure(lParam, typeof(Copydatastruct));
+            if (ptr.CbData <= 0)
+                return IntPtr.Zero;
+    
+            var data = new byte[ptr.CbData];
+            var typeData = (int)ptr.DwData;
+            var type = Packet.PacketType.Unknown;
+            var id = wParam.ToInt32();
+            
+            Marshal.Copy(ptr.LpData, data, 0, ptr.CbData); // Copy from unmanaged memory
+            var player = PlayerManager.Instance.GetPlayer(id);
+            if (player == null)
+            {
+                return IntPtr.Zero;
+            }
+            
+            if (Enum.IsDefined(typeof(Packet.PacketType), typeData))
+            {
+                type = (Packet.PacketType)typeData;
+            }
+            
+            var packet = new Packet(data, type, player);
+            // Console.WriteLine($"{packet}");
+
+            handled = true;
+            return IntPtr.Zero;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Copydatastruct
+        {
+            public IntPtr DwData;
+            public int CbData;
+            public IntPtr LpData;
         }
     }
 }

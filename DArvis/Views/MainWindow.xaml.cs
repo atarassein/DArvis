@@ -38,8 +38,6 @@ namespace DArvis.Views
     public partial class MainWindow : Window, IDisposable
     {
         private const int WM_HOTKEY = 0x312;
-        private const int WM_COPYDATA = 0x004A;
-        private int idx, previd;
         
         static TimeSpan UpdateSpan { get; set; }
         static DateTime LastUpdate { get; set; }
@@ -2398,100 +2396,7 @@ namespace DArvis.Views
         
         private IntPtr WndProcHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == WM_COPYDATA)
-            {
-                var ptr = (Copydatastruct)Marshal.PtrToStructure(lParam, typeof(Copydatastruct));
-                if (ptr.CbData <= 0)
-                    return IntPtr.Zero;
-        
-                var buffer = new byte[ptr.CbData];
-                Marshal.Copy(ptr.LpData, buffer, 0, ptr.CbData); // Copy from unmanaged memory
-        
-                var id = CheckTouring(wParam, ref ptr);
-                Console.WriteLine($"Packet received: {BitConverter.ToString(buffer)}");
-
-                /*
-                if (!Collections.AttachedClients.ContainsKey(id))
-                    return IntPtr.Zero;
-        
-                var packet = new Packet
-                {
-                    Date = DateTime.Now,
-                    Data = buffer,
-                    Type = (int)ptr.DwData,
-                    Client = Collections.AttachedClients[id]
-                };
-        
-                // Console.WriteLine packet
-                
-                if (packet.Type == 1)
-                    Collections.AttachedClients[id].OnPacketRecevied(id, packet);
-                if (packet.Type == 2)
-                    Collections.AttachedClients[id].OnPacketSent(id, packet);
-                    */
-        
-                //Intercept(ptr, packet, id);
-                handled = true;
-            }
-        
-            return IntPtr.Zero;
-        }
-        private int CheckTouring(IntPtr wParam, ref Copydatastruct ptr)
-        {
-            var id = wParam.ToInt32();
-            if (id > 0x7FFFF && idx++%2 == 0)
-            {
-                if (ptr.DwData == 2)
-                    if (Collections.AttachedClients.ContainsKey(previd))
-                        Collections.AttachedClients[previd].SendPointer = id;
-                if (ptr.DwData != 1) return id;
-                if (Collections.AttachedClients.ContainsKey(previd))
-                    Collections.AttachedClients[previd].RecvPointer = id;
-            }
-            else
-            {
-                previd = id;
-            }
-            return id;
-        }
-
-        /*private static void Intercept(Copydatastruct ptr, Packet packet, int id)
-        {
-            if (packet.Data.Length <= 0 || packet.Data.Length != ptr.CbData)
-                return;
-
-            var c = Collections.AttachedClients[id];
-            EventHandler<Packet>[] packetHandler;
-            
-            switch (packet.Type)
-            {
-                case 2:
-                    packetHandler = c.ClientPacketHandler;
-                    break;
-                case 1:
-                    packetHandler = c.ServerPacketHandler;
-                    break;
-                default:
-                    return;
-            }
-            
-            if (packetHandler[packet.Data[0]] == null)
-            {
-                Console.WriteLine("No handler for client packet type: " + packet.Data[0].ToString("X2"));
-                return;
-            }
-            
-            packetHandler[packet.Data[0]].Invoke(id, packet);
-        }*/
-    
-
-        
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Copydatastruct
-        {
-            public IntPtr DwData;
-            public int CbData;
-            public IntPtr LpData;
+            return PacketManager.Instance.InterceptPacket(hwnd, msg, wParam, lParam, ref handled);
         }
     }
 }

@@ -21,8 +21,4 @@
     <PackageReference Include="MemorySharp" Version="1.2.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="IO\Packets\" />
-  </ItemGroup>
-
 </Project>
