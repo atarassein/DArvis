@@ -1,5 +1,5 @@
 # DArvis
-A fork of [SleepHunter](https://github.com/ewrogers/SleepHunter4) that integrates features of [EtDA](https://github.com/wren11/ETDA). I wanted to combine the robust polish of SleepHunter with the mad genius of EtDA to create a full-featured healbot free of malware or account-stealing tricks.
+A fork of both [EtDA](https://github.com/wren11/ETDA) and [SleepHunter](https://github.com/ewrogers/SleepHunter4). I wanted to combine the robust polish of SleepHunter with the mad genius of EtDA to create a full-featured healbot free of malware or account-stealing tricks.
 
 ## Requirements
 
