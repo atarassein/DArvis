@@ -11,6 +11,7 @@ namespace DArvis.Models
     public sealed class Player : UpdatableObject, IDisposable
     {
         private const string CharacterNameKey = @"CharacterName";
+        private const string PacketIdKey = @"PacketId";
 
         private readonly ProcessMemoryAccessor accessor;
         private readonly ClientState gameClient;
@@ -28,6 +29,7 @@ namespace DArvis.Models
         private ClientVersion version;
         
         private string name;
+        private int packetId;
         private DateTime? loginTimestamp;
         private bool isLoggedIn;
         private string status;
@@ -62,6 +64,12 @@ namespace DArvis.Models
             set => SetProperty(ref name, value);
         }
 
+        public int PacketId
+        {
+            get => packetId;
+            set => SetProperty(ref packetId, value);
+        }
+        
         public ClientState GameClient => gameClient;
 
         public Inventory Inventory => inventory;
@@ -210,6 +218,7 @@ namespace DArvis.Models
             try
             {
                 UpdateName(accessor);
+                UpdatePacketId(accessor);
             }
             catch { }
 
@@ -242,6 +251,20 @@ namespace DArvis.Models
 
             if (!string.IsNullOrWhiteSpace(name))
                 Name = name;
+        }
+
+        private void UpdatePacketId(ProcessMemoryAccessor accessor)
+        {
+            if (accessor == null)
+                throw new ArgumentNullException(nameof(accessor));
+
+            int packetId = -1;
+
+            if (version != null && version.TryGetVariable(PacketIdKey, out var packetIdVariable))
+                packetIdVariable.TryReadInt32(reader, out packetId);
+
+            if (int.IsPositive(packetId))
+                PacketId = packetId;
         }
 
         private void OnLoggedIn()
