@@ -16,8 +16,8 @@ namespace DArvis.Shared
         UserID = 0x0073D944,
         [Description("DA 7.41 Movement Lock Pointer (Write 0x74 to Lock Movement, 75 to resume movement)")]
         Movement = 0x005F0ADE,
-        [Description("DA 7.41 Pointer where ETDA is injected.")]
-        ETDA = 0x00567FB0,
+        [Description("DA 7.41 Pointer where DAvid is injected.")]
+        DAvid = 0x00567FB0,
         [Description("DA 7.41 Pointer to the clients Send Buffer")]
         SendBuffer = 0x006FD000,
         [Description("DA 7.41 Pointer to the clients Recv Buffer")]
