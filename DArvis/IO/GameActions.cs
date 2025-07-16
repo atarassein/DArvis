@@ -26,14 +26,12 @@ public class GameActions
             PacketManager.InjectPacket(packet);
         }
         
-        public static void UseInventorySlot(GameClient client, byte slot)
+        public static void UseInventorySlot(Player player, byte slot)
         {
-            var packet = new OldPacket();
-            packet.WriteByte(0x1C);
-            packet.WriteByte(slot);
-            packet.WriteByte(0x00);
-
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
+            var data = new byte[] { 0x1C, slot, 0x00 };
+            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            
+            PacketManager.InjectPacket(packet);
         }
 
         public static void BeginSpell(GameClient client, byte SpellLines, 
