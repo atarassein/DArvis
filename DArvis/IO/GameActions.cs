@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Binarysharp.MemoryManagement;
-using DArvis.Components;
 using DArvis.DTO;
 using DArvis.IO.Process;
 using DArvis.Models;
-using DArvis.Types;
 
 namespace DArvis.IO;
 
@@ -20,7 +19,7 @@ public class GameActions
         public static void Refresh(Player player)
         {
             var data = new byte[] { 0x38, 0x00, 0x38 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
             
             PacketManager.InjectPacket(packet);
         }
@@ -28,7 +27,7 @@ public class GameActions
         public static void Assail(Player player)
         {
             var data = new byte[] { 0x13, 0x01 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
             
             PacketManager.InjectPacket(packet);
         }
@@ -36,7 +35,7 @@ public class GameActions
         public static void UseInventorySlot(Player player, byte slot)
         {
             var data = new byte[] { 0x1C, slot, 0x00 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
             
             PacketManager.InjectPacket(packet);
         }
@@ -44,7 +43,7 @@ public class GameActions
         public static void BeginSpell(Player player, byte SpellLines)
         {
             var data = new byte[] { 0x4D, SpellLines, 0x00 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
 
             PacketManager.InjectPacket(packet);
         }
@@ -52,7 +51,7 @@ public class GameActions
         public static void EndSpell(Player player, byte slot)
         {
             var data = new byte[] { 0x0F, slot, 0x00 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
 
             PacketManager.InjectPacket(packet);
         }
@@ -86,7 +85,7 @@ public class GameActions
         public static void RequestProfile(Player player)
         {
             var data = new byte[] { 0x2D, 0x00 };
-            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
 
             PacketManager.InjectPacket(packet);
         }
@@ -191,42 +190,63 @@ public class GameActions
 
         #endregion
 
-        public static void PacketWalk(GameClient Client, Direction dir)
+        public static void PacketWalk(Player player, Direction dir)
         {
-            BeginWalk(Client, dir);
+            BeginWalk(player, dir);
             Thread.Sleep(15);
-            EndWalk(Client, dir, 300);
+            EndWalk(player, dir, 300);
         }
 
-        public static void BeginWalk(GameClient Client, Direction dir)
+        public static void BeginWalk(Player player, Direction dir)
         {
-
-            Client.WalkOrdinal = (Client.WalkOrdinal + 1);
-
-
-            var p = new OldPacket();
-            p.WriteByte(0x06);
-            p.WriteByte((byte)dir);
-            p.WriteByte((byte)(Client.WalkOrdinal));
-            p.WriteByte(0x00);
-            p.WriteByte(0x06);
-            GameClient.InjectPacket<ServerOldPacket>(Client, p);
+            player.WalkOrdinal = (player.WalkOrdinal + 1);
+            var data = new byte[] { 0x06, (byte)dir, (byte)player.WalkOrdinal, 0x00, 0x06 };
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
+            PacketManager.InjectPacket(packet);
         }
 
-        public static void EndWalk(GameClient Client, Direction dir, int WalkSpeed = 50)
+        public static void EndWalk(Player player, Direction dir, int WalkSpeed = 50)
         {
-            short x = 5; //Client.FieldMap.X();
-            short y = 5; //Client.FieldMap.Y();
+            short x = (short)player.Location.X;
+            short y = (short)player.Location.Y;
 
-            var p = new OldPacket();
-            p.WriteByte(0x0C);
-            p.WriteInt32(Client.Attributes.Serial);
-            p.WriteInt16(x);
-            p.WriteInt16(y);
-            p.WriteByte((byte)dir);
-            p.WriteByte(0x00);
-
-            GameClient.InjectPacket<ClientOldPacket>(Client, p);
+            var data = new List<byte> { 0x0C };
+            
+            var byteBuffer = BitConverter.GetBytes(player.PacketId).ToList();
+            if (BitConverter.IsLittleEndian)
+            {
+                byteBuffer.Reverse();
+            }
+            foreach (var b in byteBuffer)
+            {
+                data.Add(b);
+            }
+            
+            byteBuffer = BitConverter.GetBytes(x).ToList();
+            if (BitConverter.IsLittleEndian)
+            {
+                byteBuffer.Reverse();
+            }
+            foreach (var b in byteBuffer)
+            {
+                data.Add(b);
+            }
+            
+            byteBuffer = BitConverter.GetBytes(y).ToList();
+            if (BitConverter.IsLittleEndian)
+            {
+                byteBuffer.Reverse();
+            }
+            foreach (var b in byteBuffer)
+            {
+                data.Add(b);
+            }
+            
+            data.Add((byte)dir);
+            data.Add(0x00);
+            
+            var packet = new Packet(data.ToArray(), Packet.PacketSource.Client, player);
+            PacketManager.InjectPacket(packet);
             Thread.Sleep(WalkSpeed);
         }
 

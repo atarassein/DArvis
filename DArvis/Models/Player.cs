@@ -43,7 +43,7 @@ namespace DArvis.Models
         private bool hasFasSpiorad;
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
-
+        public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
         public event EventHandler LoggedIn;
         public event EventHandler LoggedOut;
 
