@@ -180,9 +180,7 @@ public abstract class GameClient : UpdateableComponent
 
     private void SettingsInterface_OnSettingsUpdated(GameState state)
     {
-        //refresh client anytime settings are changed.
-        if (Client.IsInGame())
-            GameActions._Refresh(Client);
+        
     }
 
     public void CleanUpMememory()

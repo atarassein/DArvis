@@ -26,17 +26,6 @@ public class GameActions
             PacketManager.InjectPacket(packet);
         }
         
-        public static void _Refresh(GameClient client, bool force = false, Func<GameClient, Types.OldPacket, bool> callback = null)
-        {
-            var p = new Types.OldPacket();
-            p.Write(new byte[] { 0x38, 0x00, 0x38 });
-            GameClient.InjectPacket<ServerOldPacket>(client, p, force);
-            GameClient.InjectPacket<ServerOldPacket>(client, p, force);
-
-            client.LastRefreshed = DateTime.Now;
-            callback?.Invoke(client, p);
-        }
-        
         public static void UseInventorySlot(GameClient client, byte slot)
         {
             var packet = new OldPacket();

@@ -72,9 +72,6 @@ public class Client : GameClient
     private void PreparePrelims()
     {
         ClientAttached?.Invoke(this);
-        
-        GameActions._Refresh(Client, true, (a, b) => true);
-        GameActions._Refresh(Client, true, (a, b) => true);
     }
 
     //This is used to manage Auto Logging-In (If Enabled).
