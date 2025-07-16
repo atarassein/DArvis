@@ -95,6 +95,11 @@ namespace DArvis.IO.Process
                 return;
             
             var pId = playerEventArgs.Player.Process.ProcessId;
+            InjectDAvid(pId);
+        }
+
+        public static void InjectDAvid(int pId)
+        {
             var process = System.Diagnostics.Process.GetProcessById(pId);
             var memory = new MemorySharp(process);
             
@@ -103,21 +108,22 @@ namespace DArvis.IO.Process
             GC.Collect();
             
             var injected = memory.Read<byte>((IntPtr)DAStaticPointers.DAvid, false);
-            if (injected != 85)
+            if (injected != 0x55)
                 return;
             
             try
             {
                 var dllPath = Path.Combine(Environment.CurrentDirectory, "DAvid.dll");
                 memory.Modules.Inject(dllPath);
-                logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
+                Instance.logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
+                Console.Beep();
             } catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.Message);
                 Console.Error.WriteLine(ex.StackTrace);
             }
         }
-
+        
         /// <summary>
         /// Not 100% sure what this does, I think it skips the cutscene.
         /// If packet interception works both ways then this could be removed

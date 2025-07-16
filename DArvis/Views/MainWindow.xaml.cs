@@ -14,10 +14,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Threading;
 using DArvis.Components;
 using Microsoft.Win32;
-using DArvis.Controls;
 using DArvis.Extensions;
 using DArvis.IO;
 using DArvis.IO.Process;
@@ -28,8 +26,6 @@ using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
 using DArvis.Settings;
-using DArvis.Shared;
-using DArvis.Types;
 using DArvis.Win32;
 using Path = System.IO.Path;
 
@@ -2321,6 +2317,41 @@ namespace DArvis.Views
         }
 
 
+        private void testButton_Click(object sender, RoutedEventArgs e)
+        {
+            var player = PlayerManager.Instance.AllClients.FirstOrDefault();
+            GameActions.Refresh(player);
+            GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
+            Thread.Sleep(1000);
+            GameActions.Walk(player, Direction.North);
+            Thread.Sleep(500);
+            GameActions.Walk(player, Direction.North);
+            Thread.Sleep(1000);
+            GameActions.Walk(player, Direction.East);
+            Thread.Sleep(500);
+            GameActions.Walk(player, Direction.East);
+            Thread.Sleep(1000);
+            GameActions.Walk(player, Direction.South);
+            Thread.Sleep(500);
+            GameActions.Walk(player, Direction.South);
+            Thread.Sleep(1000);
+            GameActions.Walk(player, Direction.West);
+            Thread.Sleep(500);
+            GameActions.Walk(player, Direction.West);
+
+        }
+        
+        private void injectButton_Click(object sender, RoutedEventArgs e)
+        {
+            var players = PlayerManager.Instance.AllClients;
+            foreach (var player in players)
+            {
+                var pId = player.Process.ProcessId;
+                PacketManager.InjectDAvid(pId);
+            }
+            
+        }
+        
         private async void UpdateToolbarState()
         {
             await Dispatcher.SwitchToUIThread();

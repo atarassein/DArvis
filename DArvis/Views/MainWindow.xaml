@@ -274,7 +274,14 @@
             <!-- Follow Tab -->
             <TabItem Name="followTab" Header="Follow">
                 <DockPanel>
-                    
+                    <Button Name="testButton"
+                            Click="testButton_Click">
+                        Test Injection
+                    </Button>
+                    <Button Name="injectButton"
+                            Click="injectButton_Click">
+                        Inject DLL
+                    </Button>
                 </DockPanel>
             </TabItem>
             

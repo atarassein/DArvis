@@ -172,6 +172,7 @@ public class GameActions
                 Face(player, dir);
                 // TODO: maybe we should wait for the server to respond before sending the walk command?
                 // TODO: maybe we should add a delay before the next walk command?
+                Thread.Sleep(100);
             }
 
             if (dir == Direction.East)
