@@ -28,6 +28,9 @@ public class PlayerMovementPacketConsumer : PacketConsumer
             case Packet.PacketType.PlayerChangedDirection:
                 HandlePlayerDirectionChange(packet);
                 break;
+            case Packet.PacketType.PlayerLocationChanged:
+                HandlePlayerLocationChange(packet);
+                break;
         }
     }
 
@@ -53,6 +56,14 @@ public class PlayerMovementPacketConsumer : PacketConsumer
             Console.WriteLine("" + packet.Player.Name + " changed direction to " + playerChangedDirection.Direction);
         }
         
+        packet.Handled = true;
+    }
+
+    private void HandlePlayerLocationChange(Packet packet)
+    {
+        var playerChangedLocation = new PlayerChangedLocation(packet);
+        packet.Player.Location.X = playerChangedLocation.X;
+        packet.Player.Location.Y = playerChangedLocation.Y;
         packet.Handled = true;
     }
 }

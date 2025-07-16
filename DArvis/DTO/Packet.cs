@@ -34,12 +34,12 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
     
     public Player Player { get; set; } = player;
     
-    public short ReadInt16(int start = 0)
+    public int ReadInt16(int start = 0)
     {
         if (start + 1 > Data.Length)
             throw new IndexOutOfRangeException();
         
-        return (short)(Data[start] << 8 | Data[++start]);
+        return Data[start] << 8 | Data[++start];
     }
     
     public int ReadInt32(int start = 0)

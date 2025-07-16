@@ -91,6 +91,7 @@ namespace DArvis.Models
 
         protected override void OnUpdate()
         {
+            return; // No need to update this object periodically, it will be updated based on packets received.
             var version = Owner.Version;
 
             if (version == null)

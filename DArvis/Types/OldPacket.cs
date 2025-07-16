@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Shared;
 
-public class Packet
+public class OldPacket
     {
         public byte[] Data;
         public int Idx = 1;
@@ -15,18 +15,18 @@ public class Packet
 
         public Client Client { get; set; }
         
-        public Packet()
+        public OldPacket()
         {
             Date = DateTime.Now;
             Data = new byte[0];
         }
 
-        public Packet(byte OpCode) : this()
+        public OldPacket(byte OpCode) : this()
         {
             WriteByte(OpCode);
         }
 
-        public Packet(string hex) : this()
+        public OldPacket(string hex) : this()
         {
             try
             {
@@ -43,12 +43,12 @@ public class Packet
             }
         }
 
-        public Packet(byte[] data) : this()
+        public OldPacket(byte[] data) : this()
         {
             Write(data);
         }
 
-        public Packet(byte OpCode, byte[] bodyData) : this()
+        public OldPacket(byte OpCode, byte[] bodyData) : this()
         {
             WriteByte(OpCode);
             Write(bodyData);

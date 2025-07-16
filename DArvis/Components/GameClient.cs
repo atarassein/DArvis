@@ -1,5 +1,6 @@
-﻿namespace DArvis.Components;
-using Actions;
+﻿using DArvis.IO;
+
+namespace DArvis.Components;
 using Shared;
 using States;
 using Types;
@@ -92,13 +93,13 @@ public abstract class GameClient : UpdateableComponent
         }
     }
 
-    internal void AddClientHandler(byte action, EventHandler<Packet> data)
+    internal void AddClientHandler(byte action, EventHandler<OldPacket> data)
     {
         ClientPacketHandler[action] = data;
     }
 
 
-    internal void AddServerHandler(byte action, EventHandler<Packet> data)
+    internal void AddServerHandler(byte action, EventHandler<OldPacket> data)
     {
         ServerPacketHandler[action] = data;
     }
@@ -181,7 +182,7 @@ public abstract class GameClient : UpdateableComponent
     {
         //refresh client anytime settings are changed.
         if (Client.IsInGame())
-            GameActions.Refresh(Client);
+            GameActions._Refresh(Client);
     }
 
     public void CleanUpMememory()
@@ -210,8 +211,8 @@ public abstract class GameClient : UpdateableComponent
             InstalledComponents.Clear();
         }
         
-        ServerPacketHandler = new EventHandler<Packet>[256];
-        ClientPacketHandler = new EventHandler<Packet>[256];
+        ServerPacketHandler = new EventHandler<OldPacket>[256];
+        ClientPacketHandler = new EventHandler<OldPacket>[256];
         GC.Collect();
     }
 
@@ -297,9 +298,9 @@ public abstract class GameClient : UpdateableComponent
 
     internal bool ShouldUpdate;
 
-    public EventHandler<Packet> OnPacketRecevied = delegate { };
+    public EventHandler<OldPacket> OnPacketRecevied = delegate { };
 
-    public EventHandler<Packet> OnPacketSent = delegate { };
+    public EventHandler<OldPacket> OnPacketSent = delegate { };
 
     public int SendPointer { get; set; }
     public int RecvPointer { get; set; }
@@ -362,8 +363,8 @@ public abstract class GameClient : UpdateableComponent
 
     #region Packet Hooks
 
-    public EventHandler<Packet>[] ClientPacketHandler = new EventHandler<Packet>[256];
-    public EventHandler<Packet>[] ServerPacketHandler = new EventHandler<Packet>[256];
+    public EventHandler<OldPacket>[] ClientPacketHandler = new EventHandler<OldPacket>[256];
+    public EventHandler<OldPacket>[] ServerPacketHandler = new EventHandler<OldPacket>[256];
     internal ConcurrentQueue<byte[]> InjectToServerQueue = new ConcurrentQueue<byte[]>();
     internal ConcurrentQueue<byte[]> InjectToClientQueue = new ConcurrentQueue<byte[]>();
     internal static int _Total;
@@ -448,38 +449,38 @@ public abstract class GameClient : UpdateableComponent
 
     #endregion
 
-    public static void InjectPacket<T>(GameClient client, Packet packet, bool force = false) where T : Packet
+    public static void InjectPacket<T>(GameClient client, OldPacket oldPacket, bool force = false) where T : OldPacket
     {
         if (client == null)
             return;
 
         if (force)
         {
-            if (typeof(T) == typeof(ClientPacket))
-                client.InjectToClientQueue.Enqueue(packet.Data);
-            else if (typeof(T) == typeof(ServerPacket))
-                client.InjectToServerQueue.Enqueue(packet.Data);
+            if (typeof(T) == typeof(ClientOldPacket))
+                client.InjectToClientQueue.Enqueue(oldPacket.Data);
+            else if (typeof(T) == typeof(ServerOldPacket))
+                client.InjectToServerQueue.Enqueue(oldPacket.Data);
 
             return;
         }
 
-        var a = Crc16(packet.Data);
+        var a = Crc16(oldPacket.Data);
         var b = LastCRC;
 
         if (a != b)
         {
-            if (typeof(T) == typeof(ClientPacket))
+            if (typeof(T) == typeof(ClientOldPacket))
             {
                 lock (client.InjectToClientQueue)
                 {
-                    client.InjectToClientQueue.Enqueue(packet.Data);
+                    client.InjectToClientQueue.Enqueue(oldPacket.Data);
                 }
             }
-            else if (typeof(T) == typeof(ServerPacket))
+            else if (typeof(T) == typeof(ServerOldPacket))
             {
                 lock (client.InjectToServerQueue)
                 {
-                    client.InjectToServerQueue.Enqueue(packet.Data);
+                    client.InjectToServerQueue.Enqueue(oldPacket.Data);
                 }
             }
             LastCRC = a;
