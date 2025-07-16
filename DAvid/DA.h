@@ -1,7 +1,5 @@
 #pragma once
 
-#include "dabase.h"
-
 class DA
 {
 public:
@@ -33,6 +31,5 @@ public:
 
 	static void LetsGo(Darkages& obj, Callback cb);
 
-	DABase *base;
 };
 

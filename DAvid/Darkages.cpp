@@ -17,7 +17,6 @@
 #include "Logger.h"
 
 Darkages da;
-DABase base;
 
 typedef void (_stdcall *OnRecvEvent)(BYTE *data, unsigned int Length); OnRecvEvent Receiver = NULL;
 typedef int  (__stdcall *OnSendEvent)(BYTE *data, int arg1, int arg2, char arg3); OnSendEvent Sender = NULL;
@@ -258,7 +257,6 @@ int CallBack(Darkages game)
 {
 	da = game;
 	da.ProcessId = GetCurrentProcessId();
-	da.base = &base;
 	return 1;
 }
 
@@ -267,23 +265,6 @@ void Darkages::Run()
 	Receiver = (OnRecvEvent)DetourFunction((PBYTE)recvPacketin, (PBYTE)OnPacketRecv);
 	Sender = (OnSendEvent)DetourFunction((PBYTE)sendPacketout, (PBYTE)OnPacketSend);
 	oWndProc = (pWNDPROC)DetourFunction((PBYTE)DAPROC, (PBYTE)myWndProc);
-	LetsGo(*this, &CallBack);
-}
-
-void Darkages::LetsGo(Darkages& obj, Callback cb)
-{
-	char *name = { 0 };
-
-	__asm
-	{
-		mov eax, userNameoffset
-		mov name, eax
-	}
-
-	obj.base = new DABase();
-	obj.base->Name = name;
-	obj.ProcessId = GetCurrentProcessId();
-	cb(obj);
 }
 
 void Darkages::CleanUp()
