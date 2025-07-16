@@ -93,17 +93,6 @@ DWORD WINAPI PacketConsumer(LPVOID Args)
 				if (length <= 0)
 					continue;
 
-				if (data[0] == 0x94)
-				{
-					//5EFFE0((void *)v6, v10, v9, a2, 1);
-					//char __thiscall sub_5EFFE0(void *this, int a2, int a3, char a4, char a5);
-
-					char(__thiscall *E)(void*, DAPoint, char steps, char direction) 
-						= (char(__thiscall*)(void*, DAPoint, char steps, char direction))0x005EFFE0;
-
-					int thisptr = *(int*)0x00882E68;
-				}
-
 				std::vector<byte> packet;
 				for (int i = 0; i < length; i++, data++)
 					packet.push_back(*data);

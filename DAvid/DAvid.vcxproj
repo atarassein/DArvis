@@ -108,8 +108,6 @@
     <ClInclude Include="GameFunctions.h" />
     <ClInclude Include="includes\detours\detours.h" />
     <ClInclude Include="Logger.h" />
-    <ClInclude Include="object.h" />
-    <ClInclude Include="PathFinder.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="includes\detours\detours.lib" />
