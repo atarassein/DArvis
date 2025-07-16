@@ -9,22 +9,18 @@ namespace DArvis.IO;
 
 public class GameActions
     {
-          
-        //Base Functions Must be defined in here.
-        //The callback is optional, But must be specified as final constructor.
-
-        public static void Assail(GameClient client, Func<GameClient, Types.OldPacket, bool> callback = null)
-        {
-            var p = new Types.OldPacket();
-            p.Write(new byte[] { 0x13, 0x01 });
-
-            GameClient.InjectPacket<ServerOldPacket>(client, p);
-            callback?.Invoke(client, p);
-        }
 
         public static void Refresh(Player player)
         {
             var data = new byte[] { 0x38, 0x00, 0x38 };
+            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
+            
+            PacketManager.InjectPacket(packet);
+        }
+        
+        public static void Assail(Player player)
+        {
+            var data = new byte[] { 0x13, 0x01 };
             var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
             
             PacketManager.InjectPacket(packet);
