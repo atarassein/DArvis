@@ -2319,25 +2319,34 @@ namespace DArvis.Views
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            var player = PlayerManager.Instance.AllClients.FirstOrDefault();
-            GameActions.Refresh(player);
-            GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
-            Thread.Sleep(1000);
-            GameActions.Walk(player, Direction.North);
-            Thread.Sleep(500);
-            GameActions.Walk(player, Direction.North);
-            Thread.Sleep(1000);
-            GameActions.Walk(player, Direction.East);
-            Thread.Sleep(500);
-            GameActions.Walk(player, Direction.East);
-            Thread.Sleep(1000);
-            GameActions.Walk(player, Direction.South);
-            Thread.Sleep(500);
-            GameActions.Walk(player, Direction.South);
-            Thread.Sleep(1000);
-            GameActions.Walk(player, Direction.West);
-            Thread.Sleep(500);
-            GameActions.Walk(player, Direction.West);
+            var bw = new BackgroundWorker();
+            bw.DoWork += (s, args) =>
+            {
+                try
+                {
+                    var player = PlayerManager.Instance.AllClients.FirstOrDefault();
+                    GameActions.Refresh(player);
+                    GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
+                    Thread.Sleep(2000);
+                    GameActions.Walk(player, Direction.North);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.North);
+                    Thread.Sleep(1000);
+                    GameActions.Walk(player, Direction.East);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.East);
+                    Thread.Sleep(1000);
+                    GameActions.Walk(player, Direction.South);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.South);
+                    Thread.Sleep(1000);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Error during test walk: {ex.Message}");
+                }
+            };
+            bw.RunWorkerAsync();
 
         }
         

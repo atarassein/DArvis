@@ -90,23 +90,7 @@ public class GameActions
         PacketManager.InjectPacket(packet);
     }
 
-    private static Random rnd = new Random();
-
     #region Walk
-    
-    // TODO: refactor this nonsense, this is a mess
-    
-    public enum SyncOperation
-    {
-        [Description("Op.Walk North")]
-        WalkNorth = Direction.North,
-        [Description("Op.Walk East")]
-        WalkEast = Direction.East,
-        [Description("Op.Walk South")]
-        WalkSouth = Direction.South,
-        [Description("Op.Walk West")]
-        WalkWest = Direction.West,
-    }
     
     public struct COPYDATASTRUCT
     {
@@ -119,17 +103,17 @@ public class GameActions
     [DllImport("User32.dll", EntryPoint = "SendMessage")]
     public static extern int SendMessage(int hWnd, int Msg, int wParam, ref COPYDATASTRUCT lParam);
     
-    public static void InjectSyncOperation(Player player, SyncOperation Code)
+    public static void InjectWalk(Player player, Direction direction)
     {
         if (!player.IsLoggedIn)
             return;
 
         const int WM_COPYDATA = 0x004A;
         
-        string msg = GetEnumDescription((SyncOperation)Code) + ";" + player.PacketId + ";" + player.Location.X + ";" + player.Location.Y;
+        string msg = $"OP.Walk {direction};" + player.PacketId + ";" + player.Location.X + ";" + player.Location.Y;
         var cds = new COPYDATASTRUCT
         {
-            dwData = (IntPtr)(int)Code,
+            dwData = (int)direction,
             cbData = msg.Length + 1,
             lpData = msg
         };
@@ -141,50 +125,18 @@ public class GameActions
         SendMessage((int)memory.Windows.MainWindowHandle, WM_COPYDATA, 0, ref cds);
     }
     
-    public static string GetEnumDescription(Enum value)
+    public static void Walk(Player player, Direction dir, int throttleMs = 50)
     {
-        FieldInfo fi = value.GetType().GetField(value.ToString());
-
-        DescriptionAttribute[] attributes =
-            (DescriptionAttribute[])fi.GetCustomAttributes(
-                typeof(DescriptionAttribute),
-                false);
-
-        if (attributes != null &&
-            attributes.Length > 0)
-            return attributes[0].Description;
-        else
-            return value.ToString();
-    }
-    
-    public static void Walk(Player player, Direction dir)
-    {
-        if ((DateTime.Now - player.LastWalkCommand).TotalMilliseconds > 100)
+        if ((DateTime.Now - player.LastWalkCommand).TotalMilliseconds > throttleMs)
         {
-            if (dir == Direction.Random)
-            {
-                var random = (Direction)rnd.Next(0, 3);
-                Walk(player, random);
-            }
-
             if (dir != player.Location.Direction)
             {
-                Face(player, dir);
-                // TODO: maybe we should wait for the server to respond before sending the walk command?
-                // TODO: maybe we should add a delay before the next walk command?
-                Thread.Sleep(100);
+                InjectWalk(player, dir);
+                player.Location.Direction = dir;
+                Thread.Sleep(throttleMs);
             }
-
-            if (dir == Direction.East)
-                InjectSyncOperation(player, SyncOperation.WalkEast);
-            if (dir == Direction.North)
-                InjectSyncOperation(player, SyncOperation.WalkNorth);
-            if (dir == Direction.South)
-                InjectSyncOperation(player, SyncOperation.WalkSouth);
-            if (dir == Direction.West)
-                InjectSyncOperation(player, SyncOperation.WalkWest);
-
-            player.Location.Direction = dir;
+            
+            InjectWalk(player, dir);
             player.LastWalkCommand = DateTime.Now;
         }
     }
