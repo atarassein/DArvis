@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows.Threading;
 using Binarysharp.MemoryManagement;
 using DArvis.DTO;
 using DArvis.IO.Process.PacketConsumers;
@@ -38,6 +37,7 @@ namespace DArvis.IO.Process
             Instance.RegisterConsumer(new ObjectPacketConsumer());
             Instance.RegisterConsumer(new ChatPacketConsumer());
             Instance.RegisterConsumer(new PlayerMovementPacketConsumer());
+            Instance.RegisterConsumer(new PlayerActionPacketConsumer());
             Instance.RegisterConsumer(new MapPacketConsumer());
         }
         
@@ -195,21 +195,17 @@ namespace DArvis.IO.Process
             {
                 while (!ServerPacketQueue.IsEmpty)
                 {
-                    ServerPacketQueue.TryPeek(out var packet);
-                    foreach (var consumer in consumers)
+                    ServerPacketQueue.TryDequeue(out var packet);
+                    var ableConsumers = consumers.FindAll(c => c.CanConsume(packet));
+                    foreach (var consumer in ableConsumers)
                     {
-                        if (!consumer.CanConsume(packet)) continue;
-                        
-                        ServerPacketQueue.TryDequeue(out _);
                         consumer.ProcessPacket(packet);
-                        break;
                     }
                     
-                    if (ServerPacketQueue.TryPeek(out var stillThere) && stillThere == packet)
+                    if (!packet.Handled)
                     {
-                        ServerPacketQueue.TryDequeue(out _);
                         logger.LogWarn($"No consumer found for packet type: {packet.Type}");
-                        Console.WriteLine($"[0x{packet.Data[0]:X2}] - Unhandled packet type.");
+                        Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
                     }
                 }
             };

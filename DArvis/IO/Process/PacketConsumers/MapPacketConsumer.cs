@@ -11,6 +11,7 @@ public class MapPacketConsumer : PacketConsumer
         var objectPacketTypes = new[]
         {
             Packet.PacketType.MapChanged,
+            Packet.PacketType.MapData,
         };
         
         return objectPacketTypes.Contains(packet.Type);
@@ -18,6 +19,10 @@ public class MapPacketConsumer : PacketConsumer
 
     public override void ProcessPacket(Packet packet)
     {
-        Console.WriteLine($">>>[{packet.Type}]");
+        if (packet.Type == Packet.PacketType.MapData) return;
+        
+        Console.WriteLine($">>>[{packet}]");
+        packet.Handled = true;
+        
     }
 }

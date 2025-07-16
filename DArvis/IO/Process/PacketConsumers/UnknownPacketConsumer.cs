@@ -21,7 +21,6 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket09,
             Packet.PacketType.UnknownPacket0F,
             Packet.PacketType.UnknownPacket10,
-            Packet.PacketType.UnknownPacket11,
             Packet.PacketType.UnknownPacket12,
             Packet.PacketType.UnknownPacket13,
             Packet.PacketType.UnknownPacket14,
@@ -29,7 +28,6 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket17,
             Packet.PacketType.UnknownPacket18,
             Packet.PacketType.UnknownPacket19,
-            Packet.PacketType.UnknownPacket1A,
             Packet.PacketType.UnknownPacket1B,
             Packet.PacketType.UnknownPacket1C,
             Packet.PacketType.UnknownPacket1D,
@@ -54,7 +52,6 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket30,
             Packet.PacketType.UnknownPacket31,
             Packet.PacketType.UnknownPacket32,
-            Packet.PacketType.UnknownPacket33,
             Packet.PacketType.UnknownPacket34,
             Packet.PacketType.UnknownPacket35,
             Packet.PacketType.UnknownPacket36,
@@ -67,6 +64,7 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket58,
             Packet.PacketType.UnknownPacket60,
             Packet.PacketType.UnknownPacket66,
+            Packet.PacketType.UnknownPacket67,
             Packet.PacketType.UnknownPacket6F,
             Packet.PacketType.UnknownPacket7E,
         };
@@ -76,6 +74,18 @@ public class UnknownPacketConsumer : PacketConsumer
 
     public override void ProcessPacket(Packet packet)
     {
-        Console.WriteLine($"???[{packet.Type}]: {packet}");
+        if (
+            packet.Type == Packet.PacketType.UnknownPacket08 // Unknown
+            || packet.Type == Packet.PacketType.UnknownPacket1E // Unknown
+            || packet.Type == Packet.PacketType.UnknownPacket1F // Unknown - map change related
+            || packet.Type == Packet.PacketType.UnknownPacket20 // Unknown
+            || packet.Type == Packet.PacketType.UnknownPacket32 // Seems to be a generic response packet
+            || packet.Type == Packet.PacketType.UnknownPacket3B // Seems to be a heartbeat of some type
+            || packet.Type == Packet.PacketType.UnknownPacket58 // Unknown - map change related
+            || packet.Type == Packet.PacketType.UnknownPacket67 // Unknown - map change related
+        )
+        {
+            packet.Handled = true;
+        } 
     }
 }

@@ -13,6 +13,7 @@ public class ObjectPacketConsumer : PacketConsumer
         {
             Packet.PacketType.ObjectMoved,
             Packet.PacketType.ObjectRemoved,
+            Packet.PacketType.AislingAdded
         };
         
         return objectPacketTypes.Contains(packet.Type);
@@ -22,5 +23,6 @@ public class ObjectPacketConsumer : PacketConsumer
     {
         // TODO: Implement object packet processing logic
         // TODO: This might end up in map packet handling, so we might need to refactor this later.
+        packet.Handled = true;
     }
 }

@@ -33,11 +33,26 @@ public class PlayerMovementPacketConsumer : PacketConsumer
 
     private void HandlePlayerMovement(Packet packet)
     {
-        Console.WriteLine("Processing player movement...");
+        var playerMoved = new PlayerMoved(packet);
+        var player = packet.Player;
+        player.Location.X = playerMoved.X;
+        player.Location.Y = playerMoved.Y;
+        player.Location.Direction = playerMoved.Direction;
+        
+        Console.WriteLine(player.Name + " moved to (" + player.Location.X + ", " + player.Location.Y + ") facing " + player.Location.Direction);
+        packet.Handled = true;
     }
 
     private void HandlePlayerDirectionChange(Packet packet)
     {
-        Console.WriteLine("Processing player direction change...");
+        var playerChangedDirection = new PlayerChangedDirection(packet);
+        
+        if (packet.Player.PacketId == playerChangedDirection.PacketId)
+        {
+            packet.Player.Location.Direction = playerChangedDirection.Direction;
+            Console.WriteLine("" + packet.Player.Name + " changed direction to " + playerChangedDirection.Direction);
+        }
+        
+        packet.Handled = true;
     }
 }

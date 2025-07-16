@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using DArvis.Models;
 
 namespace DArvis.Types;
 

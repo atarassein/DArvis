@@ -20,6 +20,7 @@ namespace DArvis.Models
         private int mapNumber;
         private int x;
         private int y;
+        private Direction direction;
         private string mapName;
         private string mapHash;
 
@@ -43,6 +44,12 @@ namespace DArvis.Models
             set => SetProperty(ref y, value);
         }
 
+        public Direction Direction
+        {
+            get => direction;
+            set => SetProperty(ref direction, value);
+        }
+        
         public string MapName
         {
             get => mapName;

@@ -1,4 +1,4 @@
-﻿namespace DArvis.Types;
+﻿namespace DArvis.Models;
 
 public enum Direction
 {
