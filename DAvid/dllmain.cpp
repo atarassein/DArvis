@@ -27,102 +27,39 @@ DWORD WINAPI PacketRecvConsumer(LPVOID Args)
 	while (true)
 	{
 		Sleep(1);
-
-		try
+        
+		if (*reinterpret_cast<int*>(RecvConsumerPacketAvailable) == 1)
 		{
-			if (*reinterpret_cast<int*>(RecvConsumerPacketAvailable) == 1)
+			auto length = *reinterpret_cast<int*>(RecvConsumerPacketLength);
+			auto data = reinterpret_cast<unsigned char*>(RecvConsumerPacketData);
+            
+			if (data && length > 0)
 			{
-				auto target = *reinterpret_cast<int*>(RecvConsumerPacketType);
-				auto length = *reinterpret_cast<int*>(RecvConsumerPacketLength);
-				auto data = reinterpret_cast<unsigned char*>(RecvConsumerPacketData);
-
-				if (data == 0)
-					continue;
-				if (length <= 0)
-					continue;
-
-				std::vector<byte> packet;
-				for (int i = 0; i < length; i++ , data++)
-					packet.push_back(*data);
-
-				if (packet.size() == 0 || packet.size() != length)
-				{
-					packet.clear();
-					*reinterpret_cast<int*>(RecvConsumerPacketAvailable) = 0;
-				}
-				else
-				{
-					GameFunction::SendToClient(&packet[0], length);
-					packet.clear();
-					*reinterpret_cast<int*>(RecvConsumerPacketAvailable) = 0;
-					*reinterpret_cast<int*>(RecvConsumerPacketData) = 0;
-					WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(RecvConsumerPacketData), 0x00, 2048, NULL);
-				}
+				GameFunction::SendToClient(data, length);
+				*reinterpret_cast<int*>(RecvConsumerPacketAvailable) = 0;
 			}
-		}
-		catch (const std::exception& ex)
-		{
-			std::ostringstream oss;
-			oss << "Exception: " << ex.what();
-			logger::message(oss.str());
-		}
-		catch (...)
-		{
-			logger::message("Unknown exception occurred.");
 		}
 	}
 }
 
-
 DWORD WINAPI PacketConsumer(LPVOID Args)
 {
-	while (true)
-	{
-		Sleep(1);
-
-		try
-		{
-			if (*reinterpret_cast<int*>(SendConsumerPacketAvailable) == 1)
-			{
-				auto target = *reinterpret_cast<int*>(SendConsumerPacketType);
-				auto length = *reinterpret_cast<int*>(SendConsumerPacketLength);
-				auto data = reinterpret_cast<unsigned char*>(SendConsumerPacketData);
-
-				if (data == 0)
-					continue;
-				if (length <= 0)
-					continue;
-
-				std::vector<byte> packet;
-				for (int i = 0; i < length; i++, data++)
-					packet.push_back(*data);
-
-				if (packet.size() == 0 || packet.size() != length)
-				{
-					packet.clear();
-					*reinterpret_cast<int*>(SendConsumerPacketAvailable) = 0;
-				}
-				else
-				{
-					GameFunction::SendToServer(&packet[0], length);
-					packet.clear();
-					*reinterpret_cast<int*>(SendConsumerPacketAvailable) = 0;
-					*reinterpret_cast<int*>(SendConsumerPacketData) = 0;
-					WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(SendConsumerPacketData), 0x00, 2048, NULL);
-				}
-			}
-		}
-		catch (const std::exception& ex)
-		{
-			std::ostringstream oss;
-			oss << "Exception: " << ex.what();
-			logger::message(oss.str());
-		}
-		catch (...)
-		{
-			logger::message("Unknown exception occurred.");
-		}
-	}
+    while (true)
+    {
+        Sleep(1);
+        
+        if (*reinterpret_cast<int*>(SendConsumerPacketAvailable) == 1)
+        {
+            auto length = *reinterpret_cast<int*>(SendConsumerPacketLength);
+            auto data = reinterpret_cast<unsigned char*>(SendConsumerPacketData);
+            
+            if (data && length > 0)
+            {
+                GameFunction::SendToServer(data, length);
+                *reinterpret_cast<int*>(SendConsumerPacketAvailable) = 0;
+            }
+        }
+    }
 }
 
 HANDLE a, b, c;
