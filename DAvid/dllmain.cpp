@@ -41,7 +41,7 @@ DWORD WINAPI PacketRecvConsumer(LPVOID Args)
 				if (length <= 0)
 					continue;
 
-				vector<byte> packet;
+				std::vector<byte> packet;
 				for (int i = 0; i < length; i++ , data++)
 					packet.push_back(*data);
 
@@ -104,7 +104,7 @@ DWORD WINAPI PacketConsumer(LPVOID Args)
 					int thisptr = *(int*)0x00882E68;
 				}
 
-				vector<byte> packet;
+				std::vector<byte> packet;
 				for (int i = 0; i < length; i++, data++)
 					packet.push_back(*data);
 
@@ -136,21 +136,6 @@ DWORD WINAPI PacketConsumer(LPVOID Args)
 	}
 }
 
-
-void Login(char* username, char* password)
-{
-	int login = 0x004C1B60;
-
-	/*
-		push    eax             ; char *
-		lea     ecx, [ebp+var_24]
-		push    ecx             ; char *
-		mov     ecx, [ebp+var_2C]
-		call    sub_4C1B60
-	*/
-}
-
-
 HANDLE a, b, c;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -164,7 +149,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 				a = CreateThread(NULL, 0, Setup, 0, 0, &da->ProcessId);
 				b = CreateThread(NULL, 0, PacketConsumer, 0, 0, &da->ProcessId);
 				c = CreateThread(NULL, 0, PacketRecvConsumer, 0, 0, &da->ProcessId);
-				logger::message("DLL_PROCESS_ATTACH: DAvid initialized successfully.");
 			}
 			break;
 		case DLL_PROCESS_DETACH:
@@ -174,7 +158,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 				CloseHandle(b);
 				CloseHandle(c);
 				da->CleanUp();
-				logger::message("DLL_PROCESS_DETACH: DAvid cleaned up successfully.");
 			}
 			break;
 		default:

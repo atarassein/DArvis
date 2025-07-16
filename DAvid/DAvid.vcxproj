@@ -97,10 +97,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Darkages.cpp" />
-    <ClCompile Include="Executor.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Map.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -110,7 +108,6 @@
     <ClInclude Include="GameFunctions.h" />
     <ClInclude Include="includes\detours\detours.h" />
     <ClInclude Include="Logger.h" />
-    <ClInclude Include="map.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="PathFinder.h" />
   </ItemGroup>
