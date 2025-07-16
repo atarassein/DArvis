@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using DArvis.Models;
 
 namespace DArvis.DTO;
@@ -33,12 +34,36 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
     
     public Player Player { get; set; } = player;
     
+    public short ReadInt16(int start = 0)
+    {
+        if (start + 1 > Data.Length)
+            throw new IndexOutOfRangeException();
+        
+        return (short)(Data[start] << 8 | Data[++start]);
+    }
+    
     public int ReadInt32(int start = 0)
     {
         if (start + 3 > Data.Length)
             throw new IndexOutOfRangeException();
         
         return Data[start] << 24 | Data[++start] << 16 | Data[++start] << 8 | Data[++start];
+    }
+    
+    public string ReadString8(int start = 0)
+    {
+        var length = Data[start];
+        return ReadString(++start, length);
+    }
+    
+    public string ReadString(int start = 0, int length = 0)
+    {
+        if (start + length > Data.Length)
+            throw new IndexOutOfRangeException();
+        
+        var buffer = new byte[length];
+        Buffer.BlockCopy(Data, start, buffer, 0, length);
+        return Encoding.GetEncoding(949).GetString(buffer);
     }
     
     public override string ToString()

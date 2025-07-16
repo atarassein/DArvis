@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Binarysharp.MemoryManagement;
 using DArvis.DTO;
 using DArvis.IO.Process.PacketConsumers;
@@ -29,6 +30,9 @@ namespace DArvis.IO.Process
         private PacketManager()
         {
             logger = App.Current.Services.GetService<ILogger>();
+            
+            // Packet data contains Koren encoding, which is not supported by default in .NET Core.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
         
         public static void RegisterConsumers()
