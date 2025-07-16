@@ -1,10 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <algorithm>
-#include <thread>
 #include "dabase.h"
-#include "Constants.h"
 
 class DA
 {

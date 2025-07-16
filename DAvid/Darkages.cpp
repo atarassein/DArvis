@@ -3,14 +3,11 @@
 #include "common.h"
 #include <thread>
 #include <concrt.h>
-#include <iostream>
 #include "Constants.h"
-#include "GameFunctions.h"
 #include <ddraw.h>
 #include <vector>
 #include <chrono>
 #include <future>
-#include <time.h>
 #include <string>
 #include <functional>
 #include <cstdio>
@@ -19,34 +16,8 @@
 
 #include "Logger.h"
 
-class Later
-{
-public:
-	template <class callable, class... arguments>
-	Later(int after, bool async, callable&& f, arguments&&... args)
-	{
-		std::function<typename std::result_of<callable(arguments...)>::type()> task(std::bind(std::forward<callable>(f), std::forward<arguments>(args)...));
-
-		if (async)
-		{
-			std::thread([after, task]() {
-				std::this_thread::sleep_for(std::chrono::milliseconds(after));
-				task();
-			}).detach();
-		}
-		else
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(after));
-			task();
-		}
-	}
-
-};
-
 Darkages da;
 DABase base;
-
-
 
 typedef void (_stdcall *OnRecvEvent)(BYTE *data, unsigned int Length); OnRecvEvent Receiver = NULL;
 typedef int  (__stdcall *OnSendEvent)(BYTE *data, int arg1, int arg2, char arg3); OnSendEvent Sender = NULL;
