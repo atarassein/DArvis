@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using DArvis.Components;
+using DArvis.DTO;
 using DArvis.IO.Process;
 using DArvis.Models;
 using DArvis.Types;
@@ -34,40 +37,35 @@ public class GameActions
             PacketManager.InjectPacket(packet);
         }
 
-        public static void BeginSpell(GameClient client, byte SpellLines, 
-            Func<GameClient, OldPacket, bool> callback = null)
+        public static void BeginSpell(Player player, byte SpellLines)
         {
-            var packet = new OldPacket();
-            packet.WriteByte(0x4D);
-            packet.WriteByte(SpellLines);
-            packet.WriteByte(0x00);
+            var data = new byte[] { 0x4D, SpellLines, 0x00 };
+            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
 
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
-            callback?.Invoke(client, packet);
+            PacketManager.InjectPacket(packet);
         }
 
-        public static void EndSpell(GameClient client, byte slot,
-            Func<GameClient, OldPacket, bool> callback = null)
+        public static void EndSpell(Player player, byte slot)
         {
-            var packet = new OldPacket();
-            packet.WriteByte(0x0F);
-            packet.WriteByte(slot);
-            packet.WriteByte(0x00);
+            var data = new byte[] { 0x0F, slot, 0x00 };
+            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
 
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
-            callback?.Invoke(client, packet);
+            PacketManager.InjectPacket(packet);
         }
 
-        public static void SendSpellLines(GameClient client, string msg,
-            Func<GameClient, OldPacket, bool> callback = null)
+        public static void SendSpellLines(Player player, string msg)
         {
-            var packet = new OldPacket();
-            packet.WriteByte(0x4E);
-            packet.WriteString8(msg);
-            packet.WriteByte(0x00);
+            var buffer = Encoding.GetEncoding(949).GetBytes(msg);
+            var data = new List<byte> { 0x4E, (byte)buffer.Length };
+            foreach (var b in buffer)
+            {
+                data.Add(b);
+            }
+            data.Add(0x00);
+            var byteData = data.ToArray();
+            var packet = new Packet(byteData, Packet.PacketSource.Client, player);
 
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
-            callback?.Invoke(client, packet);
+            PacketManager.InjectPacket(packet);
         }
 
         public static void Face(GameClient client, Direction dir)
@@ -80,15 +78,12 @@ public class GameActions
             client.LastDirectionTurn = DateTime.Now;
         }
 
-        public static void RequestProfile(GameClient client,
-            Func<GameClient, OldPacket, bool> callback = null)
+        public static void RequestProfile(Player player)
         {
-            var packet = new OldPacket();
-            packet.WriteByte(0x2D);
-            packet.WriteByte(0x00);
+            var data = new byte[] { 0x2D, 0x00 };
+            var packet = new DTO.Packet(data, DTO.Packet.PacketSource.Client, player);
 
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
-            callback?.Invoke(client, packet);
+            PacketManager.InjectPacket(packet);
         }
 
         private static Random rnd = new Random();
