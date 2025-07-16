@@ -42,6 +42,7 @@ namespace DArvis.Models
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
         private DateTime lastFlowerTimestamp;
+        public DateTime LastWalkCommand;
 
         public event EventHandler LoggedIn;
         public event EventHandler LoggedOut;

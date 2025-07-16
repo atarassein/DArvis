@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Binarysharp.MemoryManagement;
 using DArvis.Components;
 using DArvis.DTO;
 using DArvis.IO.Process;
@@ -68,14 +72,15 @@ public class GameActions
             PacketManager.InjectPacket(packet);
         }
 
-        public static void Face(GameClient client, Direction dir)
+        public static void Face(Player player, Direction direction)
         {
-            var packet = new OldPacket(0x11);
-            packet.WriteByte((byte)dir);
-            GameClient.InjectPacket<ServerOldPacket>(client, packet);
+            var data = new byte[] { 0x11, (byte)direction, 0x00 };
+            var packet = new Packet(data, Packet.PacketSource.Client, player);
 
-            client.Attributes.ServerPosition.Direction = dir;
-            client.LastDirectionTurn = DateTime.Now;
+            PacketManager.InjectPacket(packet);
+         
+            // TODO: Not sure if it's wise to set this here, maybe this should only be set when the server responds
+            player.Location.Direction = direction;
         }
 
         public static void RequestProfile(Player player)
@@ -88,37 +93,103 @@ public class GameActions
 
         private static Random rnd = new Random();
 
-        public static void Walk(GameClient Client, Direction dir)
+        #region Walk
+        
+        // TODO: refactor this nonsense, this is a mess
+        
+        public enum SyncOperation
         {
-            if ((DateTime.Now - Client.LastMovementUpdate).TotalMilliseconds > 100)
+            [Description("Op.Walk North")]
+            WalkNorth = Direction.North,
+            [Description("Op.Walk East")]
+            WalkEast = Direction.East,
+            [Description("Op.Walk South")]
+            WalkSouth = Direction.South,
+            [Description("Op.Walk West")]
+            WalkWest = Direction.West,
+        }
+        
+        public struct COPYDATASTRUCT
+        {
+            public IntPtr dwData;
+            public int cbData;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string lpData;
+        }
+        
+        [DllImport("User32.dll", EntryPoint = "SendMessage")]
+        public static extern int SendMessage(int hWnd, int Msg, int wParam, ref COPYDATASTRUCT lParam);
+        
+        public static void InjectSyncOperation(Player player, SyncOperation Code)
+        {
+            if (!player.IsLoggedIn)
+                return;
+
+            const int WM_COPYDATA = 0x004A;
+            
+            string msg = GetEnumDescription((SyncOperation)Code) + ";" + player.PacketId + ";" + player.Location.X + ";" + player.Location.Y;
+            var cds = new COPYDATASTRUCT
             {
-                //Console.WriteLine($"Walking {Client.Attributes.Serial} in direction {dir}");
+                dwData = (IntPtr)(int)Code,
+                cbData = msg.Length + 1,
+                lpData = msg
+            };
+            
+            var pId = player.Process.ProcessId;
+            var process = System.Diagnostics.Process.GetProcessById(pId);
+            var memory = new MemorySharp(process);
+            
+            SendMessage((int)memory.Windows.MainWindowHandle, WM_COPYDATA, 0, ref cds);
+        }
+        
+        public static string GetEnumDescription(Enum value)
+        {
+            FieldInfo fi = value.GetType().GetField(value.ToString());
+
+            DescriptionAttribute[] attributes =
+                (DescriptionAttribute[])fi.GetCustomAttributes(
+                    typeof(DescriptionAttribute),
+                    false);
+
+            if (attributes != null &&
+                attributes.Length > 0)
+                return attributes[0].Description;
+            else
+                return value.ToString();
+        }
+        
+        public static void Walk(Player player, Direction dir)
+        {
+            if ((DateTime.Now - player.LastWalkCommand).TotalMilliseconds > 100)
+            {
                 if (dir == Direction.Random)
                 {
                     var random = (Direction)rnd.Next(0, 3);
-                    Walk(Client, random);
+                    Walk(player, random);
                 }
 
-                if (dir != Client.Attributes.ServerPosition.Direction)
+                if (dir != player.Location.Direction)
                 {
-                    Face(Client, dir);
+                    Face(player, dir);
+                    // TODO: maybe we should wait for the server to respond before sending the walk command?
+                    // TODO: maybe we should add a delay before the next walk command?
                 }
 
                 if (dir == Direction.East)
-                    Client.InjectSyncOperation(SyncOperation.WalkEast);
+                    InjectSyncOperation(player, SyncOperation.WalkEast);
                 if (dir == Direction.North)
-                    Client.InjectSyncOperation(SyncOperation.WalkNorth);
+                    InjectSyncOperation(player, SyncOperation.WalkNorth);
                 if (dir == Direction.South)
-                    Client.InjectSyncOperation(SyncOperation.WalkSouth);
+                    InjectSyncOperation(player, SyncOperation.WalkSouth);
                 if (dir == Direction.West)
-                    Client.InjectSyncOperation(SyncOperation.WalkWest);
+                    InjectSyncOperation(player, SyncOperation.WalkWest);
 
-                Client.Attributes.ServerPosition.Direction = dir;
-
-                Client.LastMovementUpdate = DateTime.Now;
+                player.Location.Direction = dir;
+                player.LastWalkCommand = DateTime.Now;
             }
         }
 
+        #endregion
 
         public static void PacketWalk(GameClient Client, Direction dir)
         {
