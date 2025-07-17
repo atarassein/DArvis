@@ -9,7 +9,7 @@ public class MapLoader
     
     private static byte[] sotp = File.ReadAllBytes("sotp.dat");
     
-    private static void LoadMap(int mapNumber, int width, int height)
+    public static int[,] LoadMap(int mapNumber, int width, int height)
     {
         var path = Path.Combine(Environment.CurrentDirectory, "maps") + "\\lod" +
                    mapNumber.ToString(CultureInfo.InvariantCulture) + ".map";
@@ -46,6 +46,8 @@ public class MapLoader
 
             reader.Close();
             stream.Close();
+
+            return grid;
         } catch (Exception ex)
         {
             throw new IOException("Error reading map file: " + path, ex);
