@@ -3,7 +3,7 @@
                     xmlns:local="clr-namespace:DArvis"
                     xmlns:models="clr-namespace:DArvis.Models">
 
-    <DataTemplate x:Key="LeaderDataTemplate" DataType="{x:Type models:Player}">
+    <DataTemplate x:Key="LeaderDataTemplate" DataType="{x:Type models:LeaderSelectionItem}">
         <Grid Height="24" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
@@ -20,14 +20,14 @@
             
             <!-- Player name -->
             <TextBlock Grid.Column="1" 
-                       Text="{Binding Name}" 
+                       Text="{Binding DisplayName}" 
                        VerticalAlignment="Center" 
                        Margin="5,0"
                        FontWeight="Normal"/>
             
             <!-- Process ID -->
             <TextBlock Grid.Column="2" 
-                       Text="{Binding Process.ProcessId, StringFormat='({0})'}" 
+                       Text="{Binding ProcessIdLabel}" 
                        VerticalAlignment="Center" 
                        Margin="5,0"
                        FontSize="10" 

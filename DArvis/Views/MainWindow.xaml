@@ -285,7 +285,7 @@
                              BorderBrush="{StaticResource ObsidianSeparatorColor}"
                              BorderThickness="0,1,0,0"
                              ItemTemplate="{StaticResource LeaderDataTemplate}"
-                             ItemsSource="{Binding Source={x:Static models:PlayerManager.Instance}, Path=VisiblePlayers}"
+                             ItemsSource="{Binding Source={x:Static models:LeaderSelectionManager.Instance}, Path=Leaders}"
                              Style="{StaticResource ObsidianListBox}"
                              Margin="0"
                              SelectionChanged="clientListBox_SelectionChanged"
