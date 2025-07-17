@@ -13,6 +13,8 @@ namespace DArvis.Models
         private static readonly Regex AbilityWithoutLevelRegex = new(@"^(?<name>[ a-z0-9'_-]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex AbilityWithLevelRegex = new(@"^(?<name>[ a-z0-9'_-]+)\s*\(Lev:(?<current>[0-9]{1,})/(?<max>[0-9]{1,})\)$", RegexOptions.IgnoreCase| RegexOptions.Compiled);
 
+        public bool HasBeenLoaded = false;
+        
         private bool isEmpty;
         private int slot;
         private InterfacePanel panel;
