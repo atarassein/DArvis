@@ -1872,6 +1872,32 @@ namespace DArvis.Views
             }
         }
 
+        private void leaderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LeaderListBox.SelectedItem is LeaderSelectionItem selectedItem)
+            {
+                
+                if (selectedItem.IsNone)
+                {
+                    HandlePlayerDeselection();
+                }
+                else
+                {
+                    HandlePlayerSelection(selectedItem.Player);
+                }
+            }
+        }
+        
+        public void HandlePlayerDeselection()
+        {
+            Console.WriteLine(selectedMacro.Client.Name + " has deselected a leader");
+        }
+        
+        public void HandlePlayerSelection(Player player)
+        {
+            Console.WriteLine(selectedMacro.Client.Name + " has selected " + player.Name + " as a leader");
+        }
+        
         private void SubscribeMacroHandlers(PlayerMacroState state)
         {
             if (state != null)

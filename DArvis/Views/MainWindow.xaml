@@ -288,7 +288,7 @@
                              ItemsSource="{Binding Source={x:Static models:LeaderSelectionManager.Instance}, Path=Leaders}"
                              Style="{StaticResource ObsidianListBox}"
                              Margin="0"
-                             SelectionChanged="clientListBox_SelectionChanged"
+                             SelectionChanged="leaderListBox_SelectionChanged"
                              SelectionMode="Single">
                     </ListBox>
                 </Grid>
