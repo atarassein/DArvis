@@ -355,7 +355,8 @@ namespace DArvis.Views
             }
 
             clientListBox.Items.Refresh();
-
+            LeaderListBox.Items.Refresh();
+            
             var selectedPlayer = clientListBox.SelectedItem as Player;
 
             if (player == selectedPlayer)
@@ -2426,6 +2427,9 @@ namespace DArvis.Views
 
             clientListBox.GetBindingExpression(ItemsControl.ItemsSourceProperty)?.UpdateTarget();
             clientListBox.Items.Refresh();
+            LeaderListBox.GetBindingExpression(ItemsControl.ItemsSourceProperty)?.UpdateTarget();
+            LeaderListBox.Items.Refresh();
+            
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)

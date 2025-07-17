@@ -272,10 +272,26 @@
                     Padding="0">
 
             <!-- Follow Tab -->
-            <TabItem Name="followTab" Header="Follow">
-                <DockPanel>
-
-                </DockPanel>
+            <TabItem x:Name="FollowTab" Header="Follow">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Select a leader to follow:" Margin="5"/>
+                    <ListBox Name="LeaderListBox"
+                             
+                             BorderBrush="{StaticResource ObsidianSeparatorColor}"
+                             BorderThickness="0,1,0,0"
+                             ItemTemplate="{StaticResource LeaderDataTemplate}"
+                             ItemsSource="{Binding Source={x:Static models:PlayerManager.Instance}, Path=VisiblePlayers}"
+                             Style="{StaticResource ObsidianListBox}"
+                             Margin="0"
+                             SelectionChanged="clientListBox_SelectionChanged"
+                             SelectionMode="Single">
+                    </ListBox>
+                </Grid>
             </TabItem>
             
             <!-- Inventory Tab -->

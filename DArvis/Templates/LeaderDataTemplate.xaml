@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:DArvis"
+                    xmlns:models="clr-namespace:DArvis.Models">
+
+    <DataTemplate x:Key="LeaderDataTemplate" DataType="{x:Type models:Player}">
+        <Grid Height="24" Margin="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Status indicator -->
+            <Ellipse Grid.Column="0" 
+                     Width="8" Height="8" 
+                     HorizontalAlignment="Center" 
+                     VerticalAlignment="Center"
+                     />
+            
+            <!-- Player name -->
+            <TextBlock Grid.Column="1" 
+                       Text="{Binding Name}" 
+                       VerticalAlignment="Center" 
+                       Margin="5,0"
+                       FontWeight="Normal"/>
+            
+            <!-- Process ID -->
+            <TextBlock Grid.Column="2" 
+                       Text="{Binding Process.ProcessId, StringFormat='({0})'}" 
+                       VerticalAlignment="Center" 
+                       Margin="5,0"
+                       FontSize="10" 
+                       Opacity="0.7"/>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>
