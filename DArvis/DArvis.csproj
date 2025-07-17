@@ -20,9 +20,12 @@
   <ItemGroup>
     <PackageReference Include="MemorySharp" Version="1.2.0" />
   </ItemGroup>
-
   <ItemGroup>
-    <Folder Include="Actions\" />
+    <ResourceFiles Include="Resources\**\*" />
   </ItemGroup>
-
+  <Target Name="CopyResourceContents" AfterTargets="Build">
+    <Copy
+      SourceFiles="@(ResourceFiles)"
+      DestinationFiles="@(ResourceFiles->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 </Project>
