@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using DArvis.Common;
@@ -41,6 +42,8 @@ namespace DArvis.Models
         private bool hasLyliacPlant;
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
+        private Player leader;
+        private Player follower;
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
         public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
@@ -69,6 +72,18 @@ namespace DArvis.Models
         {
             get => packetId;
             set => SetProperty(ref packetId, value);
+        }
+        
+        public Player Leader
+        {
+            get => leader;
+            set => SetProperty(ref leader, value);
+        }
+        
+        public Player Follower
+        {
+            get => follower;
+            set => SetProperty(ref follower, value);
         }
         
         public ClientState GameClient => gameClient;

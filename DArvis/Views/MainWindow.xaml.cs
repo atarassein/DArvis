@@ -1833,6 +1833,8 @@ namespace DArvis.Views
             if (selectedMacro == null)
                 return;
 
+            UpdateLeaderTabContents();
+            
             tabControl.SelectedIndex = Math.Max(0, selectedMacro.Client.SelectedTabIndex);
 
             if (prevSelectedMacro == null && selectedMacro?.QueuedSpells.Count > 0)
@@ -1872,30 +1874,42 @@ namespace DArvis.Views
             }
         }
 
-        private void leaderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void UpdateLeaderTabContents()
         {
-            if (LeaderListBox.SelectedItem is LeaderSelectionItem selectedItem)
+            if (selectedMacro?.Client?.Leader != null)
             {
-                
-                if (selectedItem.IsNone)
+                var leaderItem = LeaderSelectionManager.Instance.Leaders
+                    .FirstOrDefault(item => item.Player == selectedMacro.Client.Leader);
+        
+                if (leaderItem != null)
                 {
-                    HandlePlayerDeselection();
-                }
-                else
-                {
-                    HandlePlayerSelection(selectedItem.Player);
+                    LeaderListBox.SelectedItem = leaderItem;
                 }
             }
+            else
+            {
+                LeaderListBox.SelectedItem =
+                    LeaderSelectionManager.Instance.Leaders.FirstOrDefault(item => item.IsNone);
+            }
+            LeaderListBox.Items.Refresh();
         }
         
-        public void HandlePlayerDeselection()
+        private void leaderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Console.WriteLine(selectedMacro.Client.Name + " has deselected a leader");
-        }
-        
-        public void HandlePlayerSelection(Player player)
-        {
-            Console.WriteLine(selectedMacro.Client.Name + " has selected " + player.Name + " as a leader");
+            if (selectedMacro?.Client == null)
+                return;
+            
+            if (LeaderListBox.SelectedItem is LeaderSelectionItem selectedItem)
+            {
+                if (selectedMacro.Client.Leader == selectedItem.Player)
+                    return;
+
+                if (selectedMacro.Client.Leader == null && selectedItem.IsNone)
+                    return;
+                        
+                selectedMacro.Client.Leader = selectedItem.IsNone ? null : selectedItem.Player;
+                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedItem.DisplayName);
+            }
         }
         
         private void SubscribeMacroHandlers(PlayerMacroState state)

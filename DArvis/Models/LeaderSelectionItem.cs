@@ -14,6 +14,33 @@ public sealed class LeaderSelectionManager
         Leaders.Add(new LeaderSelectionItem());
     }
 
+    public LeaderSelectionItem getBlankLeader()
+    {
+        foreach (var item in Leaders)
+        {
+            if (item.IsNone)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+    
+    public LeaderSelectionItem getLeaderSelectionItem(Player player)
+    {
+        foreach (var item in Leaders)
+        {
+            if (item.Player != null && item.Player == player)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+    
+    private ObservableCollection<LeaderSelectionItem> _leaders = new();
     public ObservableCollection<LeaderSelectionItem> Leaders
     {
         get
@@ -21,16 +48,15 @@ public sealed class LeaderSelectionManager
             var sortedClients = from p in PlayerManager.Instance.LoggedInPlayers orderby p.Name where p.IsLoggedIn select p;
             var visiblePlayers = sortedClients.ToList();
 
-            var leaders = new ObservableCollection<LeaderSelectionItem>();
-            leaders.Add(new LeaderSelectionItem());
-
-            foreach (var p in visiblePlayers)
+            foreach (var player in visiblePlayers)
             {
-                var item = new LeaderSelectionItem(p);
-                leaders.Add(item);
+                if (!_leaders.Any(item => item.Player == player))
+                {
+                    _leaders.Add(new LeaderSelectionItem(player));
+                }
             }
             
-            return leaders;
+            return _leaders;
         }
     }
 }
