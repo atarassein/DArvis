@@ -20,6 +20,7 @@ public class MapEntity
     public Direction Direction;
     public string Name = "Unknown";
     public int Serial;
+    public bool Hidden = false;
         
     public MapEntityType Type { get; set; }
 }

@@ -234,10 +234,12 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         ProfileRequested = 0x39,
         UnknownPacket3A = 0x3A,
         UnknownPacket3B = 0x3B, // Seems to be a heartbeat of some type
+        UnknownPacket3F = 0x3F,
         MapData = 0x3C,
         UnknownPacket49 = 0x49,
         UnknownPacket58 = 0x58, // Unknown - map change related
         UnknownPacket60 = 0x60,
+        GroupRequest = 0x63,
         UnknownPacket66 = 0x66,
         UnknownPacket67 = 0x67, // Unknown - map change related
         UnknownPacket6F = 0x6F,

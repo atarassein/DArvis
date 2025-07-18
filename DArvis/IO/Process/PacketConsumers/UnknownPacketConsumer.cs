@@ -59,9 +59,11 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.ProfileRequested,
             Packet.PacketType.UnknownPacket3A,
             Packet.PacketType.UnknownPacket3B,
+            Packet.PacketType.UnknownPacket3F,
             Packet.PacketType.UnknownPacket49,
             Packet.PacketType.UnknownPacket58,
             Packet.PacketType.UnknownPacket60,
+            Packet.PacketType.GroupRequest,
             Packet.PacketType.UnknownPacket66,
             Packet.PacketType.UnknownPacket67,
             Packet.PacketType.UnknownPacket6F,
@@ -81,11 +83,14 @@ public class UnknownPacketConsumer : PacketConsumer
             || packet.Type == Packet.PacketType.UnknownPacket20 // Unknown
             || packet.Type == Packet.PacketType.UnknownPacket22 // Unknown - empty data
             || packet.Type == Packet.PacketType.Animation // Seems to be particle animation (fireworks)
+            || packet.Type == Packet.PacketType.UnknownPacket30 // Unknown - data has 0A-00
             || packet.Type == Packet.PacketType.UnknownPacket32 // Seems to be a generic response packet
             || packet.Type == Packet.PacketType.ProfileRequested // TODO: add handler for this packet - tells us someone is viewing our profile
             || packet.Type == Packet.PacketType.ProfileData // Data from viewing someone's profile
             || packet.Type == Packet.PacketType.UnknownPacket3B // Seems to be a heartbeat of some type
+            || packet.Type == Packet.PacketType.UnknownPacket3F // Unknown - contains 7 bytes of data
             || packet.Type == Packet.PacketType.UnknownPacket58 // Unknown - map change related
+            || packet.Type == Packet.PacketType.GroupRequest // Player has requested to join your group
             || packet.Type == Packet.PacketType.UnknownPacket67 // Unknown - map change related
         )
         {

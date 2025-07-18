@@ -70,6 +70,27 @@ public class Map: UpdatableObject
         SetGridValue(x, y, 1);
     }
 
+    public void AddEntity(MapEntity entity)
+    {
+        if (entity == null || entity.Serial <= 0)
+            return;
+
+        bool shouldUpdate = false;
+        if (Entities.ContainsKey(entity.Serial))
+        {
+            Entities[entity.Serial] = entity;
+            shouldUpdate = true;
+        }
+        else
+        {
+            Entities.TryAdd(entity.Serial, entity);
+            shouldUpdate = true;
+        }
+
+        if (shouldUpdate)
+            Update();
+    }
+    
     public void AddEntities(MapEntity[] entities)
     {
         bool shouldUpdate = false;

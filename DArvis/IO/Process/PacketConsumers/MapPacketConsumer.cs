@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using DArvis.DTO;
 using DArvis.Extensions;
 using DArvis.Models;
@@ -38,6 +39,12 @@ public class MapPacketConsumer : PacketConsumer
             HandleMapChange(packet);
         }
 
+        if (packet.Player.Location.CurrentMap == null)
+        {
+            packet.Handled = true;
+            return; // No map to process any other packet on
+        }
+        
         if (packet.Type == Packet.PacketType.AislingAdded)
         {
             HandleAislingAdded(packet);
@@ -77,8 +84,16 @@ public class MapPacketConsumer : PacketConsumer
     
     private void HandleAislingAdded(Packet packet)
     {
-        var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
-        Console.WriteLine($"{added}   " + packet);
+        var aisling = new AislingEntityAdded(packet);
+        if (aisling.Entity.Serial == packet.Player.PacketId)
+        {
+            packet.Handled = true;
+            return; // We don't really need to see when the player is added to their own map
+        }
+        
+        // var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
+        // Console.WriteLine($"{added}   " + packet);
+        packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
         packet.Handled = true;
     }
 
