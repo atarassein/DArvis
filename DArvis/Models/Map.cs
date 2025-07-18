@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Net;
 using System.Windows;
 using DArvis.Common;
-using DArvis.DTO;
 using DArvis.IO;
 
 namespace DArvis.Models;
@@ -12,17 +10,19 @@ public class Map: UpdatableObject
 {
     private readonly object _lock = new();
     private int[,] _terrain;
-    // private readonly Dictionary<Point, Player> _players;
-    // private readonly Dictionary<Point, Enemy> _enemies;
-    // private readonly Dictionary<Point, List<Item>> _items;
 
-    public ConcurrentDictionary<int, MapEntity> Entities;
+    public ConcurrentDictionary<int, MapEntity> WallEntities;
+    public ConcurrentDictionary<int, MapEntity> PassableEntities;
+    public ConcurrentDictionary<int, MapEntity> Items;
     
     public MapLocationAttributes Attributes;
     
     private Map(MapLocationAttributes attributes, int[,] terrain)
     {
-        Entities = new ConcurrentDictionary<int, MapEntity>();
+        WallEntities = new ConcurrentDictionary<int, MapEntity>();
+        PassableEntities = new ConcurrentDictionary<int, MapEntity>();
+        Items = new ConcurrentDictionary<int, MapEntity>();
+        
         Attributes = attributes;
         lock (_lock)
         {
@@ -70,46 +70,47 @@ public class Map: UpdatableObject
         SetGridValue(x, y, 1);
     }
 
-    public void AddEntity(MapEntity entity)
+    public bool AddEntityToDict(MapEntity entity, ConcurrentDictionary<int, MapEntity> entities, bool deferUpdate = false)
     {
         if (entity == null || entity.Serial <= 0)
-            return;
+            return false;
 
         bool shouldUpdate = false;
-        if (Entities.ContainsKey(entity.Serial))
+        if (entities.ContainsKey(entity.Serial))
         {
-            Entities[entity.Serial] = entity;
+            entities[entity.Serial] = entity;
             shouldUpdate = true;
         }
         else
         {
-            Entities.TryAdd(entity.Serial, entity);
+            entities.TryAdd(entity.Serial, entity);
             shouldUpdate = true;
         }
 
-        if (shouldUpdate)
+        if (!deferUpdate && shouldUpdate)
             Update();
+        
+        return shouldUpdate;
+    }
+    
+    public bool AddEntity(MapEntity entity, bool deferUpdate = false)
+    {
+        bool shouldUpdate;
+        if (entity.IsItem)
+            shouldUpdate = AddEntityToDict(entity, Items, deferUpdate);
+        else if (!entity.IsPassable)
+            shouldUpdate = AddEntityToDict(entity, WallEntities, deferUpdate);
+        else
+            shouldUpdate = AddEntityToDict(entity, PassableEntities, deferUpdate);
+
+        return shouldUpdate;
     }
     
     public void AddEntities(MapEntity[] entities)
     {
         bool shouldUpdate = false;
         foreach (var entity in entities)
-        {
-            if (entity == null || entity.Serial <= 0)
-                continue;
-
-            if (Entities.ContainsKey(entity.Serial))
-            {
-                Entities[entity.Serial] = entity;
-                shouldUpdate = true;
-            }
-            else
-            {
-                Entities.TryAdd(entity.Serial, entity);
-                shouldUpdate = true;
-            }
-        }
+            shouldUpdate |= AddEntity(entity, true);
         
         if (shouldUpdate)
             Update();
@@ -121,7 +122,8 @@ public class Map: UpdatableObject
             return;
 
         bool shouldUpdate = false;
-        if (Entities.TryGetValue(serial, out var entity))
+        MapEntity entity;
+        if (WallEntities.TryGetValue(serial, out entity) || PassableEntities.TryGetValue(serial, out entity) || Items.TryGetValue(serial, out entity))
         {
             if (entity.Point != newPoint)
             {
@@ -134,10 +136,10 @@ public class Map: UpdatableObject
                 entity.Direction = direction;
                 shouldUpdate = true;
             }
-            
-            if (shouldUpdate)
-                Update();
         }
+        
+        if (shouldUpdate)
+            Update();
     }
     
     public void RemoveEntityBySerial(int serial)
@@ -145,7 +147,8 @@ public class Map: UpdatableObject
         if (serial <= 0)
             return;
 
-        if (Entities.TryRemove(serial, out var entity))
+        MapEntity entity;
+        if (WallEntities.TryRemove(serial, out entity) || PassableEntities.TryRemove(serial, out entity) || Items.TryRemove(serial, out entity))
         {
             Update();
         }

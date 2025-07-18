@@ -23,4 +23,11 @@ public class MapEntity
     public bool Hidden = false;
         
     public MapEntityType Type { get; set; }
+
+    public bool IsItem => Type == MapEntityType.Item;
+    
+    public bool IsPassable =>  Type == MapEntityType.Pet 
+                               || Type == MapEntityType.Item 
+                               || Type == MapEntityType.PassableMonster;
+    
 }
