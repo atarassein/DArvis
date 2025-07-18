@@ -14,6 +14,10 @@ public class EntitiesAdded
         var buffer = packet.Buffer;
         var count = buffer.ReadUInt16();
         Entities = new MapEntity[count];
+
+        int dontTrackLeaders = -1;
+        if (packet.Player.Leader != null)
+            dontTrackLeaders = packet.Player.Leader.PacketId;
         
         for (int i = 0; i < count; i++)
         {
@@ -23,7 +27,12 @@ public class EntitiesAdded
             entity.Y = buffer.ReadInt16();
             
             var serial = buffer.ReadInt32();
+            // Don't track the leader's entity, the leader will track itself for us.
+            if (serial == dontTrackLeaders)
+                continue;
+            
             entity.Serial = serial;
+            
             var sprite = buffer.ReadUInt16();
       
             if (sprite < 0x8000) // Non-NPC sprites begin at 0x8000

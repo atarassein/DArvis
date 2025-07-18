@@ -180,9 +180,13 @@ public class Map: UpdatableObject
                     result += "O";
                     continue;
                 }
+
+                if (Owner.IsOnSameMapAs(Owner.Leader) && Owner.Leader.Location.X == j && Owner.Leader.Location.Y == i)
+                {
+                    result += "L";
+                    continue;
+                }
                 
-                // check if the coordinate has monster flag set
-                // if tile has a monster then print it as "M"
                 if (HasPassableEntity(j, i))
                 {
                     result += "~";
@@ -291,7 +295,11 @@ public class Map: UpdatableObject
                     _terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
                 }
             }
-            
+
+            if (Owner.Leader != null)
+            {
+                Console.WriteLine(this);
+            }
             IsUpdating = false;
         }
     }

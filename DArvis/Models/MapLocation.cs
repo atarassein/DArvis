@@ -134,7 +134,17 @@ namespace DArvis.Models
         
         private void OnPlayerPositionChanged(int newValue)
         {
-            if (CurrentMap != null)
+            if (CurrentMap == null)
+                return;
+            
+            // update our followers map when we move
+            if (Owner.IsOnSameMapAs(Owner.Follower))
+            {
+                Owner.Follower.Location.CurrentMap.Update();
+            }
+            
+            // update our map whenever we move if we're following a leader
+            if (Owner.Leader != null)
             {
                 CurrentMap.Update();
             }

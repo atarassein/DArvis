@@ -1906,9 +1906,19 @@ namespace DArvis.Views
 
                 if (selectedMacro.Client.Leader == null && selectedItem.IsNone)
                     return;
-                        
-                selectedMacro.Client.Leader = selectedItem.IsNone ? null : selectedItem.Player;
-                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedItem.DisplayName);
+
+                if (selectedItem.IsNone)
+                {
+                    selectedMacro.Client.Leader.Follower = null;
+                    selectedMacro.Client.Leader = null;
+                    return;
+                }
+                
+                selectedMacro.Client.Leader = selectedItem.Player;
+                selectedItem.Player.Follower = selectedMacro.Client;
+                
+                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedMacro.Client.Leader.Name);
+                Console.WriteLine(selectedItem.Player + " is leading " + selectedItem.Player.Follower.Name);
             }
         }
         

@@ -287,6 +287,15 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
+        public bool IsOnSameMapAs(Player otherPlayer)
+        {
+            if (otherPlayer == null) return false;
+            if (otherPlayer.Location.CurrentMap == null) return false;
+            if (Location.CurrentMap == null) return false;
+            
+            return Location.CurrentMap.Attributes.MapNumber == otherPlayer.Location.CurrentMap.Attributes.MapNumber;
+        }
+        
         private void OnLoggedIn()
         {
             IsLoggedIn = true;
