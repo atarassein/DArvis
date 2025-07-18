@@ -93,7 +93,7 @@ public class PathFinder
 
                 if (!IsValidCoordinate(newX, newY) ||
                     closedSet.Contains(neighborKey) ||
-                    !_map.IsPassableForPathfinding(newX, newY))
+                    !IsPassableForPathfinding(newX, newY, targetX, targetY))
                     continue;
 
                 int tentativeGCost = currentNode.GCost + 10; // Each step costs 10
@@ -127,6 +127,21 @@ public class PathFinder
     private bool IsValidCoordinate(int x, int y)
     {
         return x >= 0 && x < _map.Attributes.Width && y >= 0 && y < _map.Attributes.Height;
+    }
+
+    private bool IsPassableForPathfinding(int x, int y, int targetX, int targetY)
+    {
+        // Always allow pathfinding to the target tile, even if it's occupied.
+        // This is important because sometimes the leader is marked as an unpassable entity
+        // if there are client sync issues.
+        // Sometimes the leader will drop a breadcrumb on a specific door tile
+        // and the follower MUST follow that exact tile even if monster is standing on it
+        // like in Mileth crypt or any other map with doors that creatures can block.
+        
+        if (x == targetX && y == targetY)
+            return true;
+
+        return _map.IsPassableForPathfinding(x, y);
     }
 
     private int CalculateHeuristic(int x1, int y1, int x2, int y2)
