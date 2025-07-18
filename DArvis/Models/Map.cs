@@ -28,6 +28,17 @@ public class Map: UpdatableObject
     public MapLocationAttributes Attributes;
     public Player Owner;
     
+    private PathFinder _pathFinder;
+    public PathFinder PathFinder
+    {
+        get
+        {
+            if (_pathFinder == null)
+                _pathFinder = new PathFinder(this);
+            return _pathFinder;
+        }
+    }
+    
     private Map(Player player, MapLocationAttributes attributes, int[,] terrain)
     {
         BlockingEntities = new ConcurrentDictionary<int, MapEntity>();
@@ -170,11 +181,20 @@ public class Map: UpdatableObject
     
     public override string ToString()
     {
+        var pathToLeader = PathFinder.FindPathToLeader();
+        
+        int[,] grid = new int[Attributes.Width, Attributes.Height];
+        foreach (var step in pathToLeader)
+        {
+            grid[(int)step.X, (int)step.Y] = 1;
+        }
+        
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
         for (short i = 0; i < Attributes.Height; i++)
         {
             for (short j = 0; j < Attributes.Width; j++)
             {
+                
                 if (Owner.Location.X == j && Owner.Location.Y == i)
                 {
                     result += "O";
@@ -184,6 +204,12 @@ public class Map: UpdatableObject
                 if (Owner.IsOnSameMapAs(Owner.Leader) && Owner.Leader.Location.X == j && Owner.Leader.Location.Y == i)
                 {
                     result += "L";
+                    continue;
+                }
+                
+                if (grid[j, i] == 1)
+                {
+                    result += ".";
                     continue;
                 }
                 
