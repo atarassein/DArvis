@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Net;
+using System.Windows;
 using DArvis.Common;
 using DArvis.DTO;
 using DArvis.IO;
@@ -70,6 +72,7 @@ public class Map: UpdatableObject
 
     public void AddEntities(MapEntity[] entities)
     {
+        bool shouldUpdate = false;
         foreach (var entity in entities)
         {
             if (entity == null || entity.Serial <= 0)
@@ -78,16 +81,44 @@ public class Map: UpdatableObject
             if (Entities.ContainsKey(entity.Serial))
             {
                 Entities[entity.Serial] = entity;
+                shouldUpdate = true;
             }
             else
             {
                 Entities.TryAdd(entity.Serial, entity);
+                shouldUpdate = true;
             }
         }
         
-        Update();
+        if (shouldUpdate)
+            Update();
     }
 
+    public void EntityMoved(int serial, Point oldPoint, Point newPoint, Direction direction)
+    {
+        if (serial <= 0)
+            return;
+
+        bool shouldUpdate = false;
+        if (Entities.TryGetValue(serial, out var entity))
+        {
+            if (entity.Point != newPoint)
+            {
+                entity.Point = newPoint;
+                shouldUpdate = true;
+            }
+
+            if (entity.Direction != direction)
+            {
+                entity.Direction = direction;
+                shouldUpdate = true;
+            }
+            
+            if (shouldUpdate)
+                Update();
+        }
+    }
+    
     public void RemoveEntityBySerial(int serial)
     {
         if (serial <= 0)

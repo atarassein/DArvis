@@ -226,7 +226,7 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         UnknownPacket31 = 0x31,
         UnknownPacket32 = 0x32, // Seems to be a generic response packet
         AislingAdded = 0x33,
-        UnknownPacket34 = 0x34,
+        ProfileData = 0x34,
         UnknownPacket35 = 0x35,
         UnknownPacket36 = 0x36,
         UnknownPacket37 = 0x37,

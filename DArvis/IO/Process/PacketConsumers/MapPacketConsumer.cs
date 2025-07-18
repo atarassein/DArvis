@@ -93,8 +93,15 @@ public class MapPacketConsumer : PacketConsumer
     
     private void HandleEntityMoved(Packet packet)
     {
-        var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
-        Console.WriteLine($"{moved}    " + packet);
+        var entityMoved = new EntityMoved(packet);
+        var previousPoint = entityMoved.PreviousPoint;
+        var newPoint = entityMoved.Point;
+        var direction = entityMoved.Direction;
+        // Console.WriteLine($"ENTITY MOVED: {entityMoved.Serial} ({previousPoint.X}, {previousPoint.Y}) -> ({entityMoved.Point.X}, {entityMoved.Point.Y})");
+        // var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
+        // Console.WriteLine($"{moved}    " + packet);
+        
+        packet.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, previousPoint, newPoint, direction);
         packet.Handled = true;
     }
     
@@ -102,8 +109,8 @@ public class MapPacketConsumer : PacketConsumer
     {
         var entityRemoved = new EntityRemoved(packet);
         packet.Player.Location.CurrentMap.RemoveEntityBySerial(entityRemoved.Serial);
-        var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
-        Console.WriteLine($"{removed}  " + packet);
+        // var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
+        // Console.WriteLine($"{removed}  " + packet);
         packet.Handled = true;
     }
 }
