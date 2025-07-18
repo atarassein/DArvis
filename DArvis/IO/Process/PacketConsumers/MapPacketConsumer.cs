@@ -100,6 +100,8 @@ public class MapPacketConsumer : PacketConsumer
     
     private void HandleEntityRemoved(Packet packet)
     {
+        var entityRemoved = new EntityRemoved(packet);
+        packet.Player.Location.CurrentMap.RemoveEntityBySerial(entityRemoved.Serial);
         var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
         Console.WriteLine($"{removed}  " + packet);
         packet.Handled = true;

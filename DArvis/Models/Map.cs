@@ -87,6 +87,17 @@ public class Map: UpdatableObject
         
         Update();
     }
+
+    public void RemoveEntityBySerial(int serial)
+    {
+        if (serial <= 0)
+            return;
+
+        if (Entities.TryRemove(serial, out var entity))
+        {
+            Update();
+        }
+    }
     
     public override string ToString()
     {
