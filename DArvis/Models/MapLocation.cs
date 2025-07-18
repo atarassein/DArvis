@@ -7,6 +7,14 @@ using DArvis.IO.Process;
 
 namespace DArvis.Models
 {
+    public class MapLocationAttributes
+    {
+        public string MapName { get; set; } = "Unknown";
+        public int MapNumber { get; set; } = -1;
+        public int Width { get; set; } = -1;
+        public int Height { get; set; } = -1;
+    }
+    
     public sealed class MapLocation : UpdatableObject
     {
         private const string MapNumberKey = @"MapNumber";
@@ -17,19 +25,26 @@ namespace DArvis.Models
         private readonly Stream stream;
         private readonly BinaryReader reader;
 
-        private int mapNumber;
+        private MapLocationAttributes attributes;
         private int x;
         private int y;
         private Direction direction;
-        private string mapName;
         private string mapHash;
 
+        private Map currentMap;
+
+        public Map CurrentMap
+        {
+            get => currentMap;
+            private set => SetProperty(ref currentMap, value);
+        }
+        
         public Player Owner { get; init; }
 
-        public int MapNumber
+        public MapLocationAttributes Attributes
         {
-            get => mapNumber;
-            set => SetProperty(ref mapNumber, value);
+            get => attributes;
+            set => SetProperty(ref attributes, value, onChanged: OnMapAttributesChanged);
         }
 
         public int X
@@ -49,12 +64,6 @@ namespace DArvis.Models
             get => direction;
             set => SetProperty(ref direction, value);
         }
-        
-        public string MapName
-        {
-            get => mapName;
-            set => SetProperty(ref mapName, value);
-        }
 
         public string MapHash
         {
@@ -70,12 +79,41 @@ namespace DArvis.Models
             reader = new BinaryReader(stream, Encoding.ASCII);
         }
 
+        public bool FindPathTo(MapLocation target, out string path)
+        {
+            CheckIfDisposed();
+            
+            path = null;
+
+            if (target == null || !IsSameMap(target))
+                return false;
+            
+
+            // Implement pathfinding logic here.
+            // For now, we will just return a dummy path.
+            path = $"Path from ({X}, {Y}) to ({target.X}, {target.Y}) on map {Attributes.MapName}";
+            return true;
+        }
+        
         public bool IsSameMap(MapLocation other)
         {
             CheckIfDisposed();
-            return MapNumber == other.MapNumber && string.Equals(MapName, other.MapName, StringComparison.Ordinal);
+            return Attributes.MapNumber == other.Attributes.MapNumber && string.Equals(Attributes.MapName, other.Attributes.MapName, StringComparison.Ordinal);
         }
 
+        public bool IsNearby(MapLocation other, int maxDistance = 2)
+        {
+            CheckIfDisposed();
+
+            if (!IsSameMap(other))
+                return false;
+
+            var deltaX = Math.Abs(X - other.X);
+            var deltaY = Math.Abs(Y - other.Y);
+
+            return deltaX + deltaY <= maxDistance;
+        }
+        
         public bool IsWithinRange(MapLocation other, int maxX = 10, int maxY = 10)
         {
             CheckIfDisposed();
@@ -89,6 +127,11 @@ namespace DArvis.Models
             return deltaX <= maxX && deltaY <= maxY;
         }
 
+        private void OnMapAttributesChanged(MapLocationAttributes attributes)
+        {
+            CurrentMap = Map.loadFromAttributes(attributes);
+        }
+        
         protected override void OnUpdate()
         {
             return; // No need to update this object periodically, it will be updated based on packets received.
@@ -106,9 +149,9 @@ namespace DArvis.Models
             var mapNameVariable = version.GetVariable(MapNameKey);
 
             if (mapNumberVariable != null && mapNumberVariable.TryReadInt32(reader, out var mapNumber))
-                MapNumber = mapNumber;
+                Attributes.MapNumber = mapNumber;
             else
-                MapNumber = 0;
+                Attributes.MapNumber = 0;
 
             if (mapXVariable != null && mapXVariable.TryReadInt32(reader, out var mapX))
                 X = mapX;
@@ -121,9 +164,9 @@ namespace DArvis.Models
                 Y = 0;
 
             if (mapNameVariable != null && mapNameVariable.TryReadString(reader, out var mapName))
-                MapName = mapName;
+                Attributes.MapName = mapName;
             else
-                MapName = null;
+                Attributes.MapName = null;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -142,17 +185,16 @@ namespace DArvis.Models
 
         private void ResetDefaults()
         {
-            MapNumber = 0;
+            Attributes = new MapLocationAttributes();
             X = 0;
             Y = 0;
-            MapName = null;
             MapHash = null;
         }
 
         public override string ToString()
         {
-            return string.Format("{0} [{1}] @ {2}, {3}", MapName ?? "Unknown Map",
-               MapNumber.ToString(),
+            return string.Format("{0} [{1}] @ {2}, {3}", Attributes.MapName ?? "Unknown Map",
+               Attributes.MapNumber.ToString(),
                X.ToString(),
                Y.ToString());
         }

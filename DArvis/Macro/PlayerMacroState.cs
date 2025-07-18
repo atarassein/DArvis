@@ -406,6 +406,8 @@ namespace DArvis.Macro
             if (preserveUserPanel)
                 currentPanel = client.GameClient.ActivePanel;
 
+            DoFollowMacro();
+            
             if (UserSettingsManager.Instance.Settings.FlowerBeforeSpellMacros)
             {
                 DoFlowerMacro();
@@ -464,6 +466,20 @@ namespace DArvis.Macro
             }
         }
 
+        private bool DoFollowMacro()
+        {
+            if (client.Leader == null)
+                return false;
+            
+            var destination = client.Leader.Location;
+
+            if (client.Location.IsNearby(destination))
+                return true;
+            
+            //var path = client.Location.Path;
+            return true;
+        }
+        
         // Zolian feature!
         private bool DoClickWaterAndBedsIfNeeded()
         {
@@ -1208,10 +1224,10 @@ namespace DArvis.Macro
             if (targetPlayer == null || !targetPlayer.IsLoggedIn)
                 return pt;
 
-            if (targetPlayer.Location.MapNumber != client.Location.MapNumber)
+            if (targetPlayer.Location.Attributes.MapNumber != client.Location.Attributes.MapNumber)
                 return pt;
 
-            if (!string.Equals(targetPlayer.Location.MapName, client.Location.MapName, StringComparison.Ordinal))
+            if (!string.Equals(targetPlayer.Location.Attributes.MapName, client.Location.Attributes.MapName, StringComparison.Ordinal))
                 return pt;
 
             var deltaX = targetPlayer.Location.X - client.Location.X;

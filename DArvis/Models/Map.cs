@@ -1,35 +1,36 @@
 ﻿using System;
+using DArvis.Common;
 using DArvis.IO;
 
 namespace DArvis.Models;
 
-public class Map
+public class Map: UpdatableObject
 {
     private readonly object _lock = new();
-    
     private int[,] _terrain;
     // private readonly Dictionary<Point, Player> _players;
     // private readonly Dictionary<Point, Enemy> _enemies;
     // private readonly Dictionary<Point, List<Item>> _items;
+
+    public MapLocationAttributes Attributes;
     
-    public int MapNumber, Width, Height;
-    
-    private Map(int mapNumber, int width, int height, int[,] terrain)
+    private Map(MapLocationAttributes attributes, int[,] terrain)
     {
-        MapNumber = mapNumber;
-        Width = width;
-        Height = height;
+        Attributes = attributes;
         lock (_lock)
         {
             _terrain = terrain;
         }
     }
-    
-    public static Map loadFromFile(int mapNumber, int width, int height)
+
+    public static Map loadFromAttributes(MapLocationAttributes attributes)
     {
-        var grid = MapLoader.LoadMap(mapNumber, width, height);
-        return new Map(mapNumber, width, height, grid);
-    } 
+        if (attributes == null)
+            throw new ArgumentNullException(nameof(attributes), "MapLocationAttributes cannot be null.");
+        
+        var grid = MapLoader.LoadMapGridFromAttributes(attributes);
+        return new Map(attributes, grid);
+    }
     
     public int GetGridValue(int x, int y)
     {
@@ -64,15 +65,20 @@ public class Map
 
     public override string ToString()
     {
-        var result = "";
-        for (short i = 0; i < Height; i++)
+        var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
+        for (short i = 0; i < Attributes.Height; i++)
         {
-            for (short j = 0; j < Width; j++)
+            for (short j = 0; j < Attributes.Width; j++)
             {
                 result += IsPassable(j, i) ? " " : "X";
             }
             result += Environment.NewLine;
         }
         return result;
+    }
+
+    protected override void OnUpdate()
+    {
+        throw new NotImplementedException();
     }
 }

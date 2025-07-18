@@ -18,4 +18,9 @@ public class MapChanged
         MapHeight = packet.Data[4];
         MapName = packet.ReadString8(10);
     }
+    
+    public override string ToString()
+    {
+        return $"MapChanged: MapNumber={MapNumber}, MapWidth={MapWidth}, MapHeight={MapHeight}, MapName={MapName}";
+    }
 }

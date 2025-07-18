@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using DArvis.Models;
 
 namespace DArvis.IO;
 
@@ -9,8 +10,17 @@ public class MapLoader
     
     private static byte[] sotp = File.ReadAllBytes("sotp.dat");
     
-    public static int[,] LoadMap(int mapNumber, int width, int height)
+    public static int[,] LoadMapGridFromAttributes(MapLocationAttributes attributes)
     {
+        if (attributes == null)
+            throw new ArgumentNullException(nameof(attributes), "MapLocationAttributes cannot be null.");
+        if (attributes.MapNumber < 1 || attributes.Width < 1 || attributes.Height < 1)
+            throw new ArgumentException("Invalid map attributes provided. MapNumber, Width, and Height must be greater than 0.");
+        
+        int mapNumber = attributes.MapNumber; 
+        int width = attributes.Width;
+        int height = attributes.Height;
+        
         var path = Path.Combine(Environment.CurrentDirectory, "maps") + "\\lod" +
                    mapNumber.ToString(CultureInfo.InvariantCulture) + ".map";
 

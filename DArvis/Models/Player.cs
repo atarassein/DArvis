@@ -22,6 +22,7 @@ namespace DArvis.Models
         private readonly Spellbook spellbook;
         private readonly PlayerStats stats;
         private readonly PlayerModifiers modifiers;
+        private readonly Map currentMap;
         private readonly MapLocation location;
 
         private readonly Stream stream;
@@ -100,6 +101,8 @@ namespace DArvis.Models
 
         public PlayerModifiers Modifiers => modifiers;
 
+        public Map CurrentMap => currentMap;
+        
         public MapLocation Location => location;
         
         public bool IsLoggedIn
@@ -200,13 +203,14 @@ namespace DArvis.Models
 
         ~Player() => Dispose(false);
 
-        protected override void Dispose(bool isDisposing)
+        protected override void Dispose(bool shouldDispose)
         {
             if (isDisposed)
                 return;
 
-            if (isDisposing)
+            if (shouldDispose)
             {
+                IsDisposing = true;
                 gameClient.Dispose();
                 inventory.Dispose();
                 equipment.Dispose();
@@ -221,7 +225,7 @@ namespace DArvis.Models
                 accessor.Dispose();
             }
 
-            base.Dispose(isDisposing);
+            base.Dispose(shouldDispose);
         }
 
         protected override void OnUpdate()

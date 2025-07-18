@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using DArvis.DTO;
+using DArvis.Models;
 
 namespace DArvis.IO.Process.PacketConsumers;
 
@@ -30,13 +31,16 @@ public class MapPacketConsumer : PacketConsumer
     private void HandleMapChange(Packet packet)
     {
         // TODO: Drop a breadcrumb at the door of the previous map if player has followers
-        
         var mapChanged = new MapChanged(packet);
-        packet.Player.Location.MapNumber = mapChanged.MapNumber;
-        packet.Player.Location.MapName = mapChanged.MapName;
+        var mapAttributes = new MapLocationAttributes
+        {
+            MapName = mapChanged.MapName,
+            MapNumber = mapChanged.MapNumber,
+            Width = mapChanged.MapWidth,
+            Height = mapChanged.MapHeight
+        };
         
-        // TODO: If player is a follower then process new map for pathfinding purposes
-        
+        packet.Player.Location.Attributes = mapAttributes;
         packet.Handled = true;
     }
 }

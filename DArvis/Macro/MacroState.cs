@@ -247,16 +247,16 @@ namespace DArvis.Macro
 
         protected virtual void SaveKnownState()
         {
-            lastKnownMapName = client.Location.MapName;
-            lastKnownMapNumber = client.Location.MapNumber;
+            lastKnownMapName = client.Location.Attributes.MapName;
+            lastKnownMapNumber = client.Location.Attributes.MapNumber;
             lastKnownXCoordinate = client.Location.X;
             lastKnownYCoordinate = client.Location.Y;
         }
 
         protected virtual void CheckKnownState(bool saveStateAfterCheck = true)
         {
-            if (!string.Equals(client.Location.MapName, lastKnownMapName) ||
-               client.Location.MapNumber != lastKnownMapNumber)
+            if (!string.Equals(client.Location.Attributes.MapName, lastKnownMapName) ||
+               client.Location.Attributes.MapNumber != lastKnownMapNumber)
             {
                 OnMapChanged();
             }
@@ -269,8 +269,8 @@ namespace DArvis.Macro
 
             if (saveStateAfterCheck)
             {
-                lastKnownMapName = client.Location.MapName;
-                lastKnownMapNumber = client.Location.MapNumber;
+                lastKnownMapName = client.Location.Attributes.MapName;
+                lastKnownMapNumber = client.Location.Attributes.MapNumber;
                 lastKnownXCoordinate = client.Location.X;
                 lastKnownYCoordinate = client.Location.Y;
             }
