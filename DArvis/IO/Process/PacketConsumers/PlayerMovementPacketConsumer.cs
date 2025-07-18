@@ -41,8 +41,6 @@ public class PlayerMovementPacketConsumer : PacketConsumer
         player.Location.X = playerMoved.X;
         player.Location.Y = playerMoved.Y;
         player.Location.Direction = playerMoved.Direction;
-        
-        Console.WriteLine(player.Name + " moved to (" + player.Location.X + ", " + player.Location.Y + ") facing " + player.Location.Direction);
         packet.Handled = true;
     }
 
@@ -53,7 +51,6 @@ public class PlayerMovementPacketConsumer : PacketConsumer
         if (packet.Player.PacketId == playerChangedDirection.PacketId)
         {
             packet.Player.Location.Direction = playerChangedDirection.Direction;
-            Console.WriteLine("" + packet.Player.Name + " changed direction to " + playerChangedDirection.Direction);
         }
         
         packet.Handled = true;

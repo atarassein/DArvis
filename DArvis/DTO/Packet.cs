@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
+using DArvis.Extensions;
 using DArvis.Models;
+using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.DTO;
 
@@ -69,7 +72,17 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
     public override string ToString()
     {
         var player = Player.Name == null ? Player.Process.ProcessId.ToString() : Player.Name;
-        return $"[{Source}] ({player}) {BitConverter.ToString(Data)}";
+        var packetIdBytes = BitConverter.GetBytes(Player.PacketId).Reverse().ToArray();
+        var playerId = Player.PacketId == 0 ? "N/A" : BitConverter.ToString(packetIdBytes);
+
+        var packetData = BitConverter.ToString(Data);
+        var packetString = $"[{Source}] ({player} : {playerId}) {packetData}";
+        if (packetData.Contains(playerId))
+        {
+            packetString = packetString.Replace(playerId, ConsoleOutputExtension.ColorText(playerId, ConsoleColor.Blue));
+        }
+
+        return packetString;
     }
     
     public enum PacketSource    
@@ -89,14 +102,14 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         PlayerLocationChanged = 0x04,
         UnknownPacket05 = 0x05,
         UnknownPacket06 = 0x06,
-        UnknownPacket07 = 0x07,
+        EntitiesAdded = 0x07,
         UnknownPacket08 = 0x08, // Unknown
         UnknownPacket09 = 0x09,
         Message = 0x0A,
         PlayerMoved = 0x0B,
-        ObjectMoved = 0x0C,
+        EntityMoved = 0x0C,
         Chat = 0x0D,
-        ObjectRemoved = 0x0E,
+        EntityRemoved = 0x0E,
         UnknownPacket0F = 0x0F,
         UnknownPacket10 = 0x10,
         PlayerChangedDirection = 0x11,
@@ -123,7 +136,7 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         UnknownPacket26 = 0x26,
         UnknownPacket27 = 0x27,
         UnknownPacket28 = 0x28,
-        UnknownPacket29 = 0x29,
+        Animation = 0x29,
         UnknownPacket2A = 0x2A,
         UnknownPacket2B = 0x2B,
         UnknownPacket2C = 0x2C,

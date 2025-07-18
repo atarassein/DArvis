@@ -16,7 +16,6 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket03,
             Packet.PacketType.UnknownPacket05,
             Packet.PacketType.UnknownPacket06,
-            Packet.PacketType.UnknownPacket07,
             Packet.PacketType.UnknownPacket08,
             Packet.PacketType.UnknownPacket09,
             Packet.PacketType.UnknownPacket0F,
@@ -42,7 +41,7 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket26,
             Packet.PacketType.UnknownPacket27,
             Packet.PacketType.UnknownPacket28,
-            Packet.PacketType.UnknownPacket29,
+            Packet.PacketType.Animation,
             Packet.PacketType.UnknownPacket2A,
             Packet.PacketType.UnknownPacket2B,
             Packet.PacketType.UnknownPacket2C,
@@ -78,7 +77,10 @@ public class UnknownPacketConsumer : PacketConsumer
             packet.Type == Packet.PacketType.UnknownPacket08 // Unknown
             || packet.Type == Packet.PacketType.UnknownPacket1E // Unknown
             || packet.Type == Packet.PacketType.UnknownPacket1F // Unknown - map change related
+            || packet.Type == Packet.PacketType.UnknownPacket19 // Unknown - data just has 01
             || packet.Type == Packet.PacketType.UnknownPacket20 // Unknown
+            || packet.Type == Packet.PacketType.UnknownPacket22 // Unknown - empty data
+            || packet.Type == Packet.PacketType.Animation // Seems to be particle animation (fireworks)
             || packet.Type == Packet.PacketType.UnknownPacket32 // Seems to be a generic response packet
             || packet.Type == Packet.PacketType.UnknownPacket3B // Seems to be a heartbeat of some type
             || packet.Type == Packet.PacketType.UnknownPacket58 // Unknown - map change related

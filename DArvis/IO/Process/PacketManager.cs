@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -43,7 +44,6 @@ namespace DArvis.IO.Process
         public static void RegisterConsumers()
         {
             Instance.RegisterConsumer(new UnknownPacketConsumer());
-            Instance.RegisterConsumer(new ObjectPacketConsumer());
             Instance.RegisterConsumer(new ChatPacketConsumer());
             Instance.RegisterConsumer(new PlayerMovementPacketConsumer());
             Instance.RegisterConsumer(new PlayerActionPacketConsumer());
@@ -186,12 +186,13 @@ namespace DArvis.IO.Process
             var packet = new Packet(data, source, player);
             if (packet.Source == Packet.PacketSource.Server)
             {
+                //Console.WriteLine(packet);
                 ServerPacketQueue.Enqueue(packet);
             }
 
             if (packet.Source == Packet.PacketSource.Client)
             {
-                Console.WriteLine(packet);
+                // Console.WriteLine(packet);
             }
             DispatchPackets();
 
@@ -236,6 +237,7 @@ namespace DArvis.IO.Process
                 while (!ServerPacketQueue.IsEmpty)
                 {
                     ServerPacketQueue.TryDequeue(out var packet);
+                    //Console.WriteLine(packet);
                     var ableConsumers = consumers.FindAll(c => c.CanConsume(packet));
                     foreach (var consumer in ableConsumers)
                     {

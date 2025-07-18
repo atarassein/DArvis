@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using DArvis.DTO;
+using DArvis.Extensions;
 using DArvis.Models;
+using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.IO.Process.PacketConsumers;
 
@@ -13,6 +15,10 @@ public class MapPacketConsumer : PacketConsumer
         {
             Packet.PacketType.MapChanged,
             Packet.PacketType.MapData,
+            Packet.PacketType.AislingAdded,
+            Packet.PacketType.EntitiesAdded,
+            Packet.PacketType.EntityMoved,
+            Packet.PacketType.EntityRemoved,
         };
         
         return objectPacketTypes.Contains(packet.Type);
@@ -25,6 +31,26 @@ public class MapPacketConsumer : PacketConsumer
         if (packet.Type == Packet.PacketType.MapChanged)
         {
             HandleMapChange(packet);
+        }
+
+        if (packet.Type == Packet.PacketType.AislingAdded)
+        {
+            HandleAislingAdded(packet);
+        }
+
+        if (packet.Type == Packet.PacketType.EntitiesAdded)
+        {
+            HandleEntitiesAdded(packet);
+        }
+        
+        if (packet.Type == Packet.PacketType.EntityMoved)
+        {
+            HandleEntityMoved(packet);
+        }
+
+        if (packet.Type == Packet.PacketType.EntityRemoved)
+        {
+            HandleEntityRemoved(packet);
         }
     }
     
@@ -41,6 +67,34 @@ public class MapPacketConsumer : PacketConsumer
         };
         
         packet.Player.Location.Attributes = mapAttributes;
+        packet.Handled = true;
+    }
+    
+    private void HandleAislingAdded(Packet packet)
+    {
+        var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
+        Console.WriteLine($"{added}   " + packet);
+        packet.Handled = true;
+    }
+
+    private void HandleEntitiesAdded(Packet packet)
+    {
+        var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
+        Console.WriteLine($"{added}    " + packet);
+        packet.Handled = true;
+    }
+    
+    private void HandleEntityMoved(Packet packet)
+    {
+        var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
+        Console.WriteLine($"{moved}    " + packet);
+        packet.Handled = true;
+    }
+    
+    private void HandleEntityRemoved(Packet packet)
+    {
+        var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
+        Console.WriteLine($"{removed}  " + packet);
         packet.Handled = true;
     }
 }
