@@ -241,9 +241,15 @@ public class Map: UpdatableObject
     {
         return (GetGridValue(x, y) & (int)TileFlags.Item) != 0;
     }
-    
+
+    private bool IsUpdating = false;
     protected override void OnUpdate()
     {
+        if (IsUpdating)
+            return;
+        
+        IsUpdating = true;
+        
         var width = Attributes.Width;
         var height = Attributes.Height;
         lock (_lock)
@@ -285,7 +291,8 @@ public class Map: UpdatableObject
                     _terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
                 }
             }
+            
+            IsUpdating = false;
         }
-        
     }
 }

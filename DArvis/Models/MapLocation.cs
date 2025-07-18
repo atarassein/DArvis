@@ -50,13 +50,13 @@ namespace DArvis.Models
         public int X
         {
             get => x;
-            set => SetProperty(ref x, value);
+            set => SetProperty(ref x, value, onChanged: OnPlayerPositionChanged);
         }
 
         public int Y
         {
             get => y;
-            set => SetProperty(ref y, value);
+            set => SetProperty(ref y, value, onChanged: OnPlayerPositionChanged);
         }
 
         public Direction Direction
@@ -130,6 +130,14 @@ namespace DArvis.Models
         private void OnMapAttributesChanged(MapLocationAttributes attributes)
         {
             CurrentMap = Map.loadFromAttributes(Owner, attributes);
+        }
+        
+        private void OnPlayerPositionChanged(int newValue)
+        {
+            if (CurrentMap != null)
+            {
+                CurrentMap.Update();
+            }
         }
         
         protected override void OnUpdate()
