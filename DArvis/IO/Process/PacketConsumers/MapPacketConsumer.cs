@@ -109,14 +109,16 @@ public class MapPacketConsumer : PacketConsumer
     private void HandleEntityMoved(Packet packet)
     {
         var entityMoved = new EntityMoved(packet);
-        var previousPoint = entityMoved.PreviousPoint;
-        var newPoint = entityMoved.Point;
+        var prevX = entityMoved.PreviousX;
+        var prevY = entityMoved.PreviousY;
+        var newX = entityMoved.X;
+        var newY = entityMoved.Y;
         var direction = entityMoved.Direction;
-        // Console.WriteLine($"ENTITY MOVED: {entityMoved.Serial} ({previousPoint.X}, {previousPoint.Y}) -> ({entityMoved.Point.X}, {entityMoved.Point.Y})");
+        // Console.WriteLine($"ENTITY MOVED: {entityMoved.Serial} ({newX}, {newY})");
         // var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
         // Console.WriteLine($"{moved}    " + packet);
         
-        packet.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, previousPoint, newPoint, direction);
+        packet.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, prevX, prevY, newX, newY, direction);
         packet.Handled = true;
     }
     

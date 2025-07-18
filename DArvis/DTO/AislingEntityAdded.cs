@@ -1,6 +1,4 @@
-﻿using System;
-using System.Windows;
-using DArvis.Models;
+﻿using DArvis.Models;
 
 namespace DArvis.DTO;
 
@@ -15,9 +13,8 @@ public class AislingEntityAdded
         Entity.Type = MapEntity.MapEntityType.Aisling;
         
         var buffer = packet.Buffer;
-        var x = buffer.ReadInt16();
-        var y = buffer.ReadInt16();
-        Entity.Point = new Point(x, y);
+        Entity.X = buffer.ReadInt16();
+        Entity.Y = buffer.ReadInt16();
         Entity.Direction = (Direction)buffer.ReadByte();
         Entity.Serial = buffer.ReadInt32();
         

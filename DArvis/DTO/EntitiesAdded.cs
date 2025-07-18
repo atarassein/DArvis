@@ -19,9 +19,8 @@ public class EntitiesAdded
         {
             var entity = new MapEntity();
             
-            var x = buffer.ReadInt16();
-            var y = buffer.ReadInt16();
-            entity.Point = new Point(x, y);
+            entity.X = buffer.ReadInt16();
+            entity.Y = buffer.ReadInt16();
             
             var serial = buffer.ReadInt32();
             entity.Serial = serial;

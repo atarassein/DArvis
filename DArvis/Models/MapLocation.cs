@@ -129,8 +129,7 @@ namespace DArvis.Models
 
         private void OnMapAttributesChanged(MapLocationAttributes attributes)
         {
-            Console.WriteLine("LOADING NEW MAP");
-            CurrentMap = Map.loadFromAttributes(attributes);
+            CurrentMap = Map.loadFromAttributes(Owner, attributes);
         }
         
         protected override void OnUpdate()

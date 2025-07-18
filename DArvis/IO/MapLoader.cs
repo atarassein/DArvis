@@ -50,7 +50,7 @@ public class MapLoader
                 for (int x = 0; x < width; x++)
                 {
                     reader.BaseStream.Seek(2, SeekOrigin.Current);
-                    grid[x, y] = isWall(reader.ReadInt16(), reader.ReadInt16()) ? 1 : 0;
+                    grid[x, y] = isWall(reader.ReadInt16(), reader.ReadInt16()) ? (int)TileFlags.Wall : (int)TileFlags.None;
                 }
             }
 

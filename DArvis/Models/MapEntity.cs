@@ -16,7 +16,8 @@ public class MapEntity
     }
 
     public ushort Sprite;
-    public Point Point;
+    public int X;
+    public int Y;
     public Direction Direction;
     public string Name = "Unknown";
     public int Serial;
