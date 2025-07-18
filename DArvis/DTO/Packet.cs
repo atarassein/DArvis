@@ -9,7 +9,86 @@ namespace DArvis.DTO;
 
 public class Packet(byte[] data, Packet.PacketSource source, Player player)
 {
+    public class PacketBuffer
+    {
+        public byte[] Data;
+        public int bufferIndex = 1; // Start at 1 to skip the packet type byte
+        
+        public PacketBuffer(byte[] data)
+        {
+            Data = data;
+        }
+
+        public void resetBuffer()
+        {
+            bufferIndex = 1;
+        }
+        
+        public byte ReadByte()
+        {
+            if (bufferIndex < Data.Length)
+            {
+                return Data[bufferIndex++];
+            }
+            throw new IndexOutOfRangeException("Packet does not contain expected byte");
+        }
+        
+        public short ReadInt16()
+        {
+            if (bufferIndex + 1 < Data.Length)
+            {
+                return (short)(Data[bufferIndex++] << 8 | Data[bufferIndex++]);
+            }
+            throw new IndexOutOfRangeException("Packet does not contain expected Int16");
+        }
+        
+        public ushort ReadUInt16()
+        {
+            if (bufferIndex + 1 < Data.Length)
+            {
+                return (ushort)(Data[bufferIndex++] << 8 | Data[bufferIndex++]);
+            }
+            throw new IndexOutOfRangeException("Packet does not contain expected UInt16");
+        }
+        
+        public int ReadInt32()
+        {
+            if (bufferIndex + 3 < Data.Length)
+            {
+                return Data[bufferIndex++] << 24 | Data[bufferIndex++] << 16 | Data[bufferIndex++] << 8 |
+                       Data[bufferIndex++];
+            }
+            throw new IndexOutOfRangeException("Packet does not contain expected Int32");
+        }
+        
+        public string ReadString(int length)
+        {
+            if (bufferIndex + (length - 1) < Data.Length)
+            {
+                var buffer = new byte[length];
+                System.Buffer.BlockCopy(Data, bufferIndex, buffer, 0, length);
+                bufferIndex += length;
+                return Encoding.GetEncoding(949).GetString(buffer);
+            }
+            throw new IndexOutOfRangeException("Packet does not contain expected string of length " + length);
+        }
+        
+        public string ReadString8()
+        {
+            var length = ReadByte();
+            return ReadString(length);
+        }
+    }
+    
     public byte[] Data { get; set; } = data;
+
+    public PacketBuffer Buffer
+    {
+        get
+        {
+            return new PacketBuffer(data);
+        }
+    }
 
     public PacketSource Source { get; set; } = source;
 
@@ -65,7 +144,7 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
             throw new IndexOutOfRangeException();
         
         var buffer = new byte[length];
-        Buffer.BlockCopy(Data, start, buffer, 0, length);
+        System.Buffer.BlockCopy(Data, start, buffer, 0, length);
         return Encoding.GetEncoding(949).GetString(buffer);
     }
     
@@ -152,7 +231,7 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         UnknownPacket36 = 0x36,
         UnknownPacket37 = 0x37,
         UnknownPacket38 = 0x38,
-        UnknownPacket39 = 0x39,
+        ProfileRequested = 0x39,
         UnknownPacket3A = 0x3A,
         UnknownPacket3B = 0x3B, // Seems to be a heartbeat of some type
         MapData = 0x3C,

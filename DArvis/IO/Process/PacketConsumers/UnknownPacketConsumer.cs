@@ -56,7 +56,7 @@ public class UnknownPacketConsumer : PacketConsumer
             Packet.PacketType.UnknownPacket36,
             Packet.PacketType.UnknownPacket37,
             Packet.PacketType.UnknownPacket38,
-            Packet.PacketType.UnknownPacket39,
+            Packet.PacketType.ProfileRequested,
             Packet.PacketType.UnknownPacket3A,
             Packet.PacketType.UnknownPacket3B,
             Packet.PacketType.UnknownPacket49,
@@ -82,6 +82,7 @@ public class UnknownPacketConsumer : PacketConsumer
             || packet.Type == Packet.PacketType.UnknownPacket22 // Unknown - empty data
             || packet.Type == Packet.PacketType.Animation // Seems to be particle animation (fireworks)
             || packet.Type == Packet.PacketType.UnknownPacket32 // Seems to be a generic response packet
+            || packet.Type == Packet.PacketType.ProfileRequested // TODO: add handler for this packet
             || packet.Type == Packet.PacketType.UnknownPacket3B // Seems to be a heartbeat of some type
             || packet.Type == Packet.PacketType.UnknownPacket58 // Unknown - map change related
             || packet.Type == Packet.PacketType.UnknownPacket67 // Unknown - map change related

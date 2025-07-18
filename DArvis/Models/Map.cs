@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using DArvis.Common;
+using DArvis.DTO;
 using DArvis.IO;
 
 namespace DArvis.Models;
@@ -12,10 +14,13 @@ public class Map: UpdatableObject
     // private readonly Dictionary<Point, Enemy> _enemies;
     // private readonly Dictionary<Point, List<Item>> _items;
 
+    public ConcurrentDictionary<int, MapEntity> Entities;
+    
     public MapLocationAttributes Attributes;
     
     private Map(MapLocationAttributes attributes, int[,] terrain)
     {
+        Entities = new ConcurrentDictionary<int, MapEntity>();
         Attributes = attributes;
         lock (_lock)
         {
@@ -63,6 +68,26 @@ public class Map: UpdatableObject
         SetGridValue(x, y, 1);
     }
 
+    public void AddEntities(MapEntity[] entities)
+    {
+        foreach (var entity in entities)
+        {
+            if (entity == null || entity.Serial <= 0)
+                continue;
+
+            if (Entities.ContainsKey(entity.Serial))
+            {
+                Entities[entity.Serial] = entity;
+            }
+            else
+            {
+                Entities.TryAdd(entity.Serial, entity);
+            }
+        }
+        
+        Update();
+    }
+    
     public override string ToString()
     {
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
@@ -79,6 +104,6 @@ public class Map: UpdatableObject
 
     protected override void OnUpdate()
     {
-        throw new NotImplementedException();
+        // TODO: entities were added, removed, or updated - refresh accordingly
     }
 }

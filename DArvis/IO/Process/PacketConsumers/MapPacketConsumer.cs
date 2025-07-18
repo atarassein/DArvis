@@ -26,7 +26,12 @@ public class MapPacketConsumer : PacketConsumer
 
     public override void ProcessPacket(Packet packet)
     {
-        if (packet.Type == Packet.PacketType.MapData) return;
+        if (packet.Type == Packet.PacketType.MapData)
+        {
+            // We don't need to do anything with MapData packets since we get map data from files
+            packet.Handled = true;
+            return;
+        }
 
         if (packet.Type == Packet.PacketType.MapChanged)
         {
@@ -79,8 +84,10 @@ public class MapPacketConsumer : PacketConsumer
 
     private void HandleEntitiesAdded(Packet packet)
     {
-        var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
-        Console.WriteLine($"{added}    " + packet);
+        // var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
+        // Console.WriteLine($"{added}    " + packet);
+        var entities = new EntitiesAdded(packet);
+        packet.Player.Location.CurrentMap.AddEntities(entities.Entities);
         packet.Handled = true;
     }
     
