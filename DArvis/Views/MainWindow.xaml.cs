@@ -14,10 +14,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Threading;
 using DArvis.Components;
 using Microsoft.Win32;
-using DArvis.Controls;
 using DArvis.Extensions;
 using DArvis.IO;
 using DArvis.IO.Process;
@@ -28,8 +26,6 @@ using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
 using DArvis.Settings;
-using DArvis.Shared;
-using DArvis.Types;
 using DArvis.Win32;
 using Path = System.IO.Path;
 
@@ -359,7 +355,8 @@ namespace DArvis.Views
             }
 
             clientListBox.Items.Refresh();
-
+            LeaderListBox.Items.Refresh();
+            
             var selectedPlayer = clientListBox.SelectedItem as Player;
 
             if (player == selectedPlayer)
@@ -1836,6 +1833,8 @@ namespace DArvis.Views
             if (selectedMacro == null)
                 return;
 
+            UpdateLeaderTabContents();
+            
             tabControl.SelectedIndex = Math.Max(0, selectedMacro.Client.SelectedTabIndex);
 
             if (prevSelectedMacro == null && selectedMacro?.QueuedSpells.Count > 0)
@@ -1875,6 +1874,44 @@ namespace DArvis.Views
             }
         }
 
+        private void UpdateLeaderTabContents()
+        {
+            if (selectedMacro?.Client?.Leader != null)
+            {
+                var leaderItem = LeaderSelectionManager.Instance.Leaders
+                    .FirstOrDefault(item => item.Player == selectedMacro.Client.Leader);
+        
+                if (leaderItem != null)
+                {
+                    LeaderListBox.SelectedItem = leaderItem;
+                }
+            }
+            else
+            {
+                LeaderListBox.SelectedItem =
+                    LeaderSelectionManager.Instance.Leaders.FirstOrDefault(item => item.IsNone);
+            }
+            LeaderListBox.Items.Refresh();
+        }
+        
+        private void leaderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (selectedMacro?.Client == null)
+                return;
+            
+            if (LeaderListBox.SelectedItem is LeaderSelectionItem selectedItem)
+            {
+                if (selectedMacro.Client.Leader == selectedItem.Player)
+                    return;
+
+                if (selectedMacro.Client.Leader == null && selectedItem.IsNone)
+                    return;
+                        
+                selectedMacro.Client.Leader = selectedItem.IsNone ? null : selectedItem.Player;
+                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedItem.DisplayName);
+            }
+        }
+        
         private void SubscribeMacroHandlers(PlayerMacroState state)
         {
             if (state != null)
@@ -2321,6 +2358,50 @@ namespace DArvis.Views
         }
 
 
+        private void testButton_Click(object sender, RoutedEventArgs e)
+        {
+            var bw = new BackgroundWorker();
+            bw.DoWork += (s, args) =>
+            {
+                try
+                {
+                    var player = PlayerManager.Instance.AllClients.FirstOrDefault();
+                    GameActions.Refresh(player);
+                    GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
+                    Thread.Sleep(2000);
+                    GameActions.Walk(player, Direction.North);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.North);
+                    Thread.Sleep(1000);
+                    GameActions.Walk(player, Direction.East);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.East);
+                    Thread.Sleep(1000);
+                    GameActions.Walk(player, Direction.South);
+                    Thread.Sleep(500);
+                    GameActions.Walk(player, Direction.South);
+                    Thread.Sleep(1000);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Error during test walk: {ex.Message}");
+                }
+            };
+            bw.RunWorkerAsync();
+
+        }
+        
+        private void injectButton_Click(object sender, RoutedEventArgs e)
+        {
+            var players = PlayerManager.Instance.AllClients;
+            foreach (var player in players)
+            {
+                var pId = player.Process.ProcessId;
+                PacketManager.InjectDAvid(pId);
+            }
+            
+        }
+        
         private async void UpdateToolbarState()
         {
             await Dispatcher.SwitchToUIThread();
@@ -2386,6 +2467,9 @@ namespace DArvis.Views
 
             clientListBox.GetBindingExpression(ItemsControl.ItemsSourceProperty)?.UpdateTarget();
             clientListBox.Items.Refresh();
+            LeaderListBox.GetBindingExpression(ItemsControl.ItemsSourceProperty)?.UpdateTarget();
+            LeaderListBox.Items.Refresh();
+            
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)

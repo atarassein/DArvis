@@ -39,15 +39,3 @@ const int SendConsumerPacketType      = 0x006FD004;
 const int SendConsumerPacketLength    = 0x006FD008;
 const int SendConsumerPacketData      = 0x006FD012;
 const int DAPROC				      = 0x004A9C30;
-
-struct c_walk
-{
-	DAPoint CurrentPos;
-	DAPoint TargetPos;
-	void   *A;
-};
-
-char __fastcall MySubWalk(int ecx, char dir);
-char __fastcall MySetCommand(int thisptr, int command);
-
-void WalkTowards();

@@ -62,8 +62,6 @@ namespace DArvis
 
         private void Cleanup()
         {
-            // TODO: release david.dll from all client processes
-            Console.WriteLine("[STUB] Cleaning up resources...");
         }
         
         private static IServiceProvider ConfigureServices()

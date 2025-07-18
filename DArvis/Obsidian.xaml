@@ -28,6 +28,7 @@
 
     <!-- Neutral 900 -->
     <SolidColorBrush x:Key="ObsidianControlBackground" Color="#171717"/>
+    <SolidColorBrush x:Key="ObsidianSelectedListItemBackground" Color="#262626"/>
 
     <VisualBrush x:Key="ScanlineBrush"
                  TileMode="Tile"
@@ -1583,6 +1584,13 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- Trigger for selected state -->
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource ObsidianSelectedListItemBackground}" /> <!-- Highlight color -->
+                <Setter Property="FontWeight" Value="Bold" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ListBox Style -->

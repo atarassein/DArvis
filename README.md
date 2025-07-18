@@ -19,6 +19,7 @@ A fork of both [EtDA](https://github.com/wren11/ETDA) and [SleepHunter](https://
     ✅ Darkages.com DLL Injection
     ✅ Packet Hooking/Interception
     ✅ Packet Queue Publshing/Consuming
+    ✅ Mapping
     ⌛ Auto-Following
     ⬜ Auto-Buffing
     ⬜ Auto-Debuffing

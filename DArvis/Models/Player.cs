@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
 using DArvis.Common;
@@ -11,6 +12,7 @@ namespace DArvis.Models
     public sealed class Player : UpdatableObject, IDisposable
     {
         private const string CharacterNameKey = @"CharacterName";
+        private const string PacketIdKey = @"PacketId";
 
         private readonly ProcessMemoryAccessor accessor;
         private readonly ClientState gameClient;
@@ -20,6 +22,7 @@ namespace DArvis.Models
         private readonly Spellbook spellbook;
         private readonly PlayerStats stats;
         private readonly PlayerModifiers modifiers;
+        private readonly Map currentMap;
         private readonly MapLocation location;
 
         private readonly Stream stream;
@@ -28,6 +31,7 @@ namespace DArvis.Models
         private ClientVersion version;
         
         private string name;
+        private int packetId;
         private DateTime? loginTimestamp;
         private bool isLoggedIn;
         private string status;
@@ -39,8 +43,11 @@ namespace DArvis.Models
         private bool hasLyliacPlant;
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
+        private Player leader;
+        private Player follower;
         private DateTime lastFlowerTimestamp;
-
+        public DateTime LastWalkCommand;
+        public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
         public event EventHandler LoggedIn;
         public event EventHandler LoggedOut;
 
@@ -62,6 +69,24 @@ namespace DArvis.Models
             set => SetProperty(ref name, value);
         }
 
+        public int PacketId
+        {
+            get => packetId;
+            set => SetProperty(ref packetId, value);
+        }
+        
+        public Player Leader
+        {
+            get => leader;
+            set => SetProperty(ref leader, value);
+        }
+        
+        public Player Follower
+        {
+            get => follower;
+            set => SetProperty(ref follower, value);
+        }
+        
         public ClientState GameClient => gameClient;
 
         public Inventory Inventory => inventory;
@@ -76,6 +101,8 @@ namespace DArvis.Models
 
         public PlayerModifiers Modifiers => modifiers;
 
+        public Map CurrentMap => currentMap;
+        
         public MapLocation Location => location;
         
         public bool IsLoggedIn
@@ -176,13 +203,14 @@ namespace DArvis.Models
 
         ~Player() => Dispose(false);
 
-        protected override void Dispose(bool isDisposing)
+        protected override void Dispose(bool shouldDispose)
         {
             if (isDisposed)
                 return;
 
-            if (isDisposing)
+            if (shouldDispose)
             {
+                IsDisposing = true;
                 gameClient.Dispose();
                 inventory.Dispose();
                 equipment.Dispose();
@@ -197,7 +225,7 @@ namespace DArvis.Models
                 accessor.Dispose();
             }
 
-            base.Dispose(isDisposing);
+            base.Dispose(shouldDispose);
         }
 
         protected override void OnUpdate()
@@ -210,6 +238,7 @@ namespace DArvis.Models
             try
             {
                 UpdateName(accessor);
+                UpdatePacketId(accessor);
             }
             catch { }
 
@@ -242,6 +271,20 @@ namespace DArvis.Models
 
             if (!string.IsNullOrWhiteSpace(name))
                 Name = name;
+        }
+
+        private void UpdatePacketId(ProcessMemoryAccessor accessor)
+        {
+            if (accessor == null)
+                throw new ArgumentNullException(nameof(accessor));
+
+            int packetId = -1;
+
+            if (version != null && version.TryGetVariable(PacketIdKey, out var packetIdVariable))
+                packetIdVariable.TryReadInt32(reader, out packetId);
+
+            if (int.IsPositive(packetId))
+                PacketId = packetId;
         }
 
         private void OnLoggedIn()

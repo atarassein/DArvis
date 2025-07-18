@@ -151,6 +151,9 @@ namespace DArvis.Models
                 try
                 {
                     var hasSkill = reader.ReadInt16() != 0;
+                    skills[i].IsEmpty = !hasSkill;
+                    if (!hasSkill) continue;
+                    
                     var iconIndex = reader.ReadUInt16();
                     var name = reader.ReadFixedString(skillbookVariable.MaxLength);
 
@@ -160,13 +163,20 @@ namespace DArvis.Models
                             skills[i].Name = name.Trim();
                     }
 
-                    skills[i].IsEmpty = !hasSkill;
-                    skills[i].IconIndex = iconIndex;
-                    skills[i].Icon = IconManager.Instance.GetSkillIcon(iconIndex);
                     skills[i].Name = name;
                     skills[i].CurrentLevel = currentLevel;
                     skills[i].MaximumLevel = maximumLevel;
-
+                    skills[i].IsOnCooldown = IsSkillOnCooldown(i, version, reader, Owner.Accessor.ProcessHandle);
+                    
+                    // I really don't see the need to refresh skill data on every update cycle
+                    // The only things that change are cooldown and levels
+                    // Maybe things will go haywire if the player moves skills around in the skillbook but so be it
+                    if (skills[i].HasBeenLoaded)
+                        continue;
+                    
+                    skills[i].IconIndex = iconIndex;
+                    skills[i].Icon = IconManager.Instance.GetSkillIcon(iconIndex);
+                    
                     if (!skills[i].IsEmpty && !string.IsNullOrWhiteSpace(skills[i].Name))
                         metadata = SkillMetadataManager.Instance.GetSkill(name);
 
@@ -196,7 +206,6 @@ namespace DArvis.Models
                         skills[i].MaxHealthPercent = null;
                     }
 
-                    skills[i].IsOnCooldown = IsSkillOnCooldown(i, version, reader, Owner.Accessor.ProcessHandle);
                 }
                 catch { }
             }

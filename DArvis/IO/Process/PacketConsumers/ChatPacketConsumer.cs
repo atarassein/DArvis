@@ -27,11 +27,13 @@ public class ChatPacketConsumer : PacketConsumer
 
     private void HandleChatMessage(Packet packet)
     {
-        Console.WriteLine("Processing chat message...");
+        // Console.WriteLine("Processing chat message...");
+        packet.Handled = true;
     }
 
     private void HandleWhisperMessage(Packet packet)
     {
         // Process whisper message
+        packet.Handled = true;
     }
 }

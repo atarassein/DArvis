@@ -1,13 +1,10 @@
 ﻿using DArvis.Components;
+using DArvis.IO;
 
 namespace DArvis.Shared;
 
 using System.Collections.Generic;
-using DArvis.Actions;
-using DArvis.DataHandlers;
-using DArvis.States;
-
-using Types;
+using DataHandlers;
 using System;
 
 [Serializable]
@@ -75,9 +72,6 @@ public class Client : GameClient
     private void PreparePrelims()
     {
         ClientAttached?.Invoke(this);
-        
-        GameActions.Refresh(Client, true, (a, b) => true);
-        GameActions.Refresh(Client, true, (a, b) => true);
     }
 
     //This is used to manage Auto Logging-In (If Enabled).

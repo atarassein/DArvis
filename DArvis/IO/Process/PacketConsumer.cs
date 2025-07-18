@@ -16,9 +16,6 @@ public abstract class PacketConsumer : IPacketConsumer
     protected PacketConsumer()
     {
         logger = App.Current.Services.GetService<ILogger>();
-        
-        // Auto-register with the packet manager
-        PacketManager.Instance.RegisterConsumer(this);
     }
 
     public abstract bool CanConsume(Packet packet);

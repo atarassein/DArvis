@@ -43,6 +43,7 @@
                 <ResourceDictionary Source="Templates\InventoryItemDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\MetadataDataTemplates.xaml"/>
                 <ResourceDictionary Source="Templates\PlayerDataTemplate.xaml"/>
+                <ResourceDictionary Source="Templates\LeaderDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\SpellQueueDataTemplate.xaml"/>
                 
             </ResourceDictionary.MergedDictionaries>

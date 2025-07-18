@@ -6,6 +6,8 @@ namespace DArvis.Common
     {
         protected bool isDisposed;
 
+        public bool IsDisposing;
+        
         public event EventHandler Updated;
 
         public void Update()
