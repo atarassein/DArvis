@@ -22,7 +22,6 @@ namespace DArvis.Models
         private readonly Spellbook spellbook;
         private readonly PlayerStats stats;
         private readonly PlayerModifiers modifiers;
-        private readonly Map currentMap;
         private readonly MapLocation location;
 
         private readonly Stream stream;
@@ -35,6 +34,7 @@ namespace DArvis.Models
         private DateTime? loginTimestamp;
         private bool isLoggedIn;
         private string status;
+        private bool isWalking;
         private bool isMacroRunning;
         private bool isMacroPaused;
         private bool isMacroStopped;
@@ -100,8 +100,6 @@ namespace DArvis.Models
         public PlayerStats Stats => stats;
 
         public PlayerModifiers Modifiers => modifiers;
-
-        public Map CurrentMap => currentMap;
         
         public MapLocation Location => location;
         
@@ -123,6 +121,12 @@ namespace DArvis.Models
             set => SetProperty(ref status, value);
         }
 
+        public bool IsWalking
+        {
+            get => isWalking;
+            set => SetProperty(ref isWalking, value);
+        }
+        
         public bool IsMacroRunning
         {
             get => isMacroRunning;

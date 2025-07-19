@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using DArvis.Common;
+using DArvis.IO;
 using DArvis.Metadata;
 using DArvis.Models;
 using DArvis.Settings;
@@ -24,6 +25,9 @@ namespace DArvis.Macro
         private List<FlowerQueueItem> flowerQueue = new();
         private PlayerMacroStatus playerStatus;
 
+        private Point[] _currentPath;
+        private int _currentPathIndex;
+        
         private int spellQueueIndex;
         private int flowerQueueIndex;
 
@@ -468,16 +472,109 @@ namespace DArvis.Macro
 
         private bool DoFollowMacro()
         {
-            if (client.Leader == null)
+            if (client.Leader == null || client.IsWalking)
                 return false;
             
-            var destination = client.Leader.Location;
-
-            if (client.Location.IsNearby(destination))
+            // Only recalculate path if we don't have one or if it's invalid
+            if (_currentPath == null || _currentPath.Length < 2 || IsPathInvalid())
+            {
+                _currentPath = client.Location?.CurrentMap?.PathFinder?.FindPathToLeader();
+                _currentPathIndex = 0;
+                
+                if (_currentPath == null || _currentPath.Length <= 1)
+                {
+                    client.IsWalking = false;
+                    return true;
+                }
+            }
+        
+            // Get the next step from our existing path
+            if (_currentPathIndex >= _currentPath.Length)
+            {
+                Console.WriteLine("Reached end of path, recalculating");
+                _currentPath = null;
                 return true;
+            }
+        
+            var step = _currentPath[_currentPathIndex];
             
-            //var path = client.Location.Path;
+            // Check if we've already reached this step
+            if (client.Location.X == step.X && client.Location.Y == step.Y)
+            {
+                _currentPathIndex++;
+                return true; // Let next cycle handle the next step
+            }
+        
+            Console.WriteLine("Following path step {0}/{1} to ({2}, {3})", 
+                _currentPathIndex + 1, _currentPath.Length, step.X, step.Y);
+        
+            // Send the walk command based on step direction
+            var direction = Direction.None;
+            if (step.X < client.Location.X)
+                direction = Direction.West;
+            else if (step.X > client.Location.X)
+                direction = Direction.East;
+            else if (step.Y < client.Location.Y)
+                direction = Direction.North;
+            else if (step.Y > client.Location.Y)
+                direction = Direction.South;
+            else
+            {
+                // Already at step, advance to next
+                _currentPathIndex++;
+                return true;
+            }
+        
+            // Wait for the client to take the step or timeout after 1 second
+            var waiting = DateTime.Now;
+            while ((client.Location.X != step.X || client.Location.Y != step.Y)
+                   && (DateTime.Now - waiting < TimeSpan.FromSeconds(1)))
+            {
+                GameActions.Walk(client, direction);
+                Thread.Sleep(5);
+            }
+        
+            // Check if we actually moved or timed out
+            if (client.Location.X == step.X && client.Location.Y == step.Y)
+            {
+                _currentPathIndex++; // Successfully moved to this step
+            }
+            else
+            {
+                Console.WriteLine("Step timeout - invalidating path for recalculation");
+                _currentPath = null; // Force recalculation on next cycle
+            }
+        
+            client.IsWalking = false;
             return true;
+        }
+        
+        private bool IsPathInvalid()
+        {
+            if (_currentPath == null || _currentPathIndex >= _currentPath.Length)
+                return true;
+        
+            // Check if the leader has moved significantly from where our path was targeting
+            var pathTarget = _currentPath[_currentPath.Length - 1];
+            var leaderLocation = client.Leader.Location;
+            
+            // If leader moved more than 2 tiles from our path target, recalculate
+            if (Math.Abs(pathTarget.X - leaderLocation.X) > 2 || 
+                Math.Abs(pathTarget.Y - leaderLocation.Y) > 2)
+            {
+                Console.WriteLine("Leader moved, invalidating path");
+                return true;
+            }
+        
+            // Check if our current target step is blocked (optional additional safety)
+            var currentStep = _currentPath[_currentPathIndex];
+            if (!client.Location.CurrentMap.IsPassableForPathfinding((int)currentStep.X, (int)currentStep.Y))
+            {
+                Console.WriteLine("Current step blocked, invalidating path");
+                return true;
+            }
+        
+            return false;
         }
         
         // Zolian feature!
@@ -1315,6 +1412,8 @@ namespace DArvis.Macro
             spellQueueIndex = 0;
             spellCastTimestamp = DateTime.Now;
             spellCastDuration = TimeSpan.Zero;
+            _currentPath = null;
+            _currentPathIndex = 0;
 
             foreach (var spell in QueuedSpells)
                 spell.Target.RadiusIndex = 0;

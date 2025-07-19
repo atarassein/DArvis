@@ -324,7 +324,7 @@ public class Map: UpdatableObject
 
             if (Owner.Leader != null)
             {
-                Console.WriteLine(this);
+                //Console.WriteLine(this);
             }
             IsUpdating = false;
         }

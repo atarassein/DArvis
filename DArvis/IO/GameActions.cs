@@ -131,11 +131,13 @@ public class GameActions
         {
             if (dir != player.Location.Direction)
             {
+                Console.WriteLine("turning " + dir);
                 InjectWalk(player, dir);
                 player.Location.Direction = dir;
                 Thread.Sleep(throttleMs);
             }
             
+            Console.WriteLine("walking " + dir);
             InjectWalk(player, dir);
             player.LastWalkCommand = DateTime.Now;
         }
