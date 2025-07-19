@@ -117,6 +117,9 @@ public class Map: UpdatableObject
         else
             shouldUpdate = AddEntityToDict(entity, PassableEntities, deferUpdate);
 
+        if (!deferUpdate && shouldUpdate)
+            Update();
+        
         return shouldUpdate;
     }
     
@@ -173,27 +176,36 @@ public class Map: UpdatableObject
             Update();
         }
     }
-    
-    public override string ToString()
+
+    public int[,] calculatePathFindingNodes()
     {
-        var start = new PointVector
+        var start = new PathNode
         {
             Position = new Point(Owner.Location.X, Owner.Location.Y),
             Direction = Owner.Location.Direction
         };
-        var end = new PointVector
+        var end = new PathNode
         {
             Position = Owner.Leader.Breadcrumb ?? new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
             Direction = Owner.Leader.Location.Direction
         };
         var pathToLeader = PathFinder.FindPath(start, end, _terrain);
         
-        int[,] grid = new int[Attributes.Width, Attributes.Height];
+        int[,] pathGrid = new int[Attributes.Width, Attributes.Height];
         foreach (var step in pathToLeader)
         {
-            grid[(int)step.Position.X, (int)step.Position.Y] = 1;
+            pathGrid[(int)step.Position.X, (int)step.Position.Y] = 1;
         }
-        
+
+        return pathGrid;
+    }
+    public override string ToString()
+    {
+        var pathGrid = new int[Attributes.Width,Attributes.Height];
+        if (Owner.Leader != null)
+        {
+            pathGrid = calculatePathFindingNodes();
+        }
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
         for (short i = 0; i < Attributes.Height; i++)
         {
@@ -212,7 +224,7 @@ public class Map: UpdatableObject
                     continue;
                 }
                 
-                if (grid[j, i] == 1)
+                if (pathGrid[j, i] == 1)
                 {
                     result += ".";
                     continue;
@@ -332,6 +344,11 @@ public class Map: UpdatableObject
             if (Owner.Leader != null)
             {
                 //Console.WriteLine(this);
+            }
+
+            if (Owner.Name == "AmorFati")
+            {
+                Console.WriteLine(this);
             }
             IsUpdating = false;
         }

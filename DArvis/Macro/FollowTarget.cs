@@ -38,10 +38,10 @@ public class FollowTarget(PlayerMacroState macro)
       
       if (player.IsOnSameMapAs(target))
       {
-         Console.WriteLine("Walking to " + macro.Client.Leader.Location.X + " " + macro.Client.Leader.Location.Y);
+         //Console.WriteLine("Walking to " + macro.Client.Leader.Location.X + " " + macro.Client.Leader.Location.Y);
       } else if (macro.Client.Leader.Breadcrumb != null)
       {
-         Console.WriteLine("Walking to breadcrumb " + macro.Client.Leader.Breadcrumb.Value);
+         //Console.WriteLine("Walking to breadcrumb " + macro.Client.Leader.Breadcrumb.Value);
       }
    }
 

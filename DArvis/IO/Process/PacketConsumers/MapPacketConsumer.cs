@@ -39,10 +39,10 @@ public class MapPacketConsumer : PacketConsumer
             HandleMapChange(packet);
         }
 
-        if (packet.Player.Location.CurrentMap == null)
+        if (!packet.Player.NeedsMapData())
         {
             packet.Handled = true;
-            return; // No map to process any other packet on
+            return;
         }
         
         if (packet.Type == Packet.PacketType.AislingAdded)

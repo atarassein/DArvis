@@ -45,7 +45,7 @@ namespace DArvis.Models
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
         
-        private Player leader;
+        private Player? _leader;
         private Player follower;
         
         private DateTime lastFlowerTimestamp;
@@ -78,10 +78,10 @@ namespace DArvis.Models
             set => SetProperty(ref packetId, value);
         }
         
-        public Player Leader
+        public Player? Leader
         {
-            get => leader;
-            set => SetProperty(ref leader, value);
+            get => _leader;
+            set => SetProperty(ref _leader, value, onChanged: leader => Location.Update());
         }
         
         public Player Follower
@@ -89,7 +89,26 @@ namespace DArvis.Models
             get => follower;
             set => SetProperty(ref follower, value);
         }
-                
+
+        /// <summary>
+        /// Checks if the player needs map data to be loaded.
+        /// Current use cases: following a leader
+        /// </summary>
+        /// <returns></returns>
+        public bool NeedsMapData()
+        {
+            if (Location?.CurrentMap == null)
+            {
+                return false; // No map to populate with data
+            }
+            
+            if (Leader != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
         private ConcurrentDictionary<int, Point> _breadcrumbs = new();
         public Point? Breadcrumb
         {
@@ -320,10 +339,9 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
-        public bool IsOnSameMapAs(Player otherPlayer)
+        public bool IsOnSameMapAs(Player? otherPlayer)
         {
-            if (otherPlayer == null) return false;
-            if (otherPlayer.Location.CurrentMap == null) return false;
+            if (otherPlayer?.Location.CurrentMap == null) return false;
             if (Location.CurrentMap == null) return false;
             
             return Location.CurrentMap.Attributes.MapNumber == otherPlayer.Location.CurrentMap.Attributes.MapNumber;
