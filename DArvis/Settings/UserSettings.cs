@@ -561,7 +561,7 @@ namespace DArvis.Settings
             SkipIntroVideo = true;
             NoWalls = false;
 
-            MapChangeAction = MacroAction.Stop;
+            MapChangeAction = MacroAction.None;
             CoordsChangeAction = MacroAction.None;
             UseShiftForMedeniaPane = true;
             PreserveUserPanel = true;
