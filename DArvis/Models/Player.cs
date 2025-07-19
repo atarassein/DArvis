@@ -47,7 +47,6 @@ namespace DArvis.Models
         
         private Player leader;
         private Player follower;
-        private ConcurrentDictionary<int, Point> breadCrumbs;
         
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
@@ -90,11 +89,31 @@ namespace DArvis.Models
             get => follower;
             set => SetProperty(ref follower, value);
         }
-
-        public ConcurrentDictionary<int, Point> BreadCrumbs
+                
+        private ConcurrentDictionary<int, Point> _breadcrumbs = new();
+        public Point? Breadcrumb
         {
-            get => breadCrumbs;
-            set => SetProperty(ref breadCrumbs, value);
+            get
+            {
+                if (Follower?.Location?.CurrentMap?.Attributes?.MapNumber == null) return null;
+                
+                var followerMapNumber = Follower.Location.CurrentMap.Attributes.MapNumber;
+                
+                if (_breadcrumbs.TryGetValue(followerMapNumber, out var breadCrumb))
+                    return breadCrumb;
+
+                return null;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    _breadcrumbs = new ConcurrentDictionary<int, Point>();
+                    
+                }
+                
+                _breadcrumbs.AddOrUpdate(Location.Attributes.MapNumber, value.Value, (_, _) => value.Value);
+            }
         }
         
         public ClientState GameClient => gameClient;
@@ -213,7 +232,6 @@ namespace DArvis.Models
             stats = new PlayerStats(this);
             modifiers = new PlayerModifiers(this);
             location = new MapLocation(this);
-            breadCrumbs = new ConcurrentDictionary<int, Point>();
         }
 
         ~Player() => Dispose(false);

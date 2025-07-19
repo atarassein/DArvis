@@ -28,15 +28,10 @@ public class Map: UpdatableObject
     public MapLocationAttributes Attributes;
     public Player Owner;
     
-    private PathFinder _pathFinder;
+    private PathFinder? _pathFinder;
     public PathFinder PathFinder
     {
-        get
-        {
-            if (_pathFinder == null)
-                _pathFinder = new PathFinder(this);
-            return _pathFinder;
-        }
+        get { return _pathFinder ??= new PathFinder(); }
     }
     
     private Map(Player player, MapLocationAttributes attributes, int[,] terrain)
@@ -181,12 +176,22 @@ public class Map: UpdatableObject
     
     public override string ToString()
     {
-        var pathToLeader = PathFinder.FindPathToLeader();
+        var start = new PointVector
+        {
+            Position = new Point(Owner.Location.X, Owner.Location.Y),
+            Direction = Owner.Location.Direction
+        };
+        var end = new PointVector
+        {
+            Position = Owner.Leader.Breadcrumb ?? new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
+            Direction = Owner.Leader.Location.Direction
+        };
+        var pathToLeader = PathFinder.FindPath(start, end, _terrain);
         
         int[,] grid = new int[Attributes.Width, Attributes.Height];
         foreach (var step in pathToLeader)
         {
-            grid[(int)step.X, (int)step.Y] = 1;
+            grid[(int)step.Position.X, (int)step.Position.Y] = 1;
         }
         
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
@@ -272,6 +277,8 @@ public class Map: UpdatableObject
         return (GetGridValue(x, y) & (int)TileFlags.Item) != 0;
     }
 
+
+    
     private bool IsUpdating = false;
     protected override void OnUpdate()
     {

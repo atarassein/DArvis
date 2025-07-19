@@ -31,7 +31,6 @@ namespace DArvis.Models
         private int y;
         private Direction direction;
         private string mapHash;
-
         private Map currentMap;
 
         public Map CurrentMap
@@ -86,7 +85,7 @@ namespace DArvis.Models
                 }
                 
                 // Drop a breadcrumb at the previous map location
-                Owner.BreadCrumbs[Attributes.MapNumber] = new Point(oldX, oldY);
+                Owner.Breadcrumb = new Point(oldX, oldY);
                 
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
@@ -147,7 +146,7 @@ namespace DArvis.Models
             return Attributes.MapNumber == other.Attributes.MapNumber && string.Equals(Attributes.MapName, other.Attributes.MapName, StringComparison.Ordinal);
         }
 
-        public bool IsNearby(MapLocation other, int maxDistance = 2)
+        public bool IsNearby(MapLocation other, int maxDistance = 1)
         {
             CheckIfDisposed();
 
