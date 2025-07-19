@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using System.Windows;
 using DArvis.Common;
 using DArvis.IO.Process;
 using DArvis.Macro;
@@ -43,8 +44,11 @@ namespace DArvis.Models
         private bool hasLyliacPlant;
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
+        
         private Player leader;
         private Player follower;
+        private ConcurrentDictionary<int, Point> breadCrumbs;
+        
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
         public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
@@ -85,6 +89,12 @@ namespace DArvis.Models
         {
             get => follower;
             set => SetProperty(ref follower, value);
+        }
+
+        public ConcurrentDictionary<int, Point> BreadCrumbs
+        {
+            get => breadCrumbs;
+            set => SetProperty(ref breadCrumbs, value);
         }
         
         public ClientState GameClient => gameClient;
@@ -203,6 +213,7 @@ namespace DArvis.Models
             stats = new PlayerStats(this);
             modifiers = new PlayerModifiers(this);
             location = new MapLocation(this);
+            breadCrumbs = new ConcurrentDictionary<int, Point>();
         }
 
         ~Player() => Dispose(false);

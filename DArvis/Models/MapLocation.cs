@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-
+using System.Windows;
 using DArvis.Common;
 using DArvis.IO.Process;
 
@@ -44,9 +45,54 @@ namespace DArvis.Models
         public MapLocationAttributes Attributes
         {
             get => attributes;
-            set => SetProperty(ref attributes, value, onChanged: OnMapAttributesChanged);
+            set => SetProperty(ref attributes, value, onChanging: OnAttributesChanging, onChanged: OnMapAttributesChanged);
         }
 
+        public void OnAttributesChanging(MapLocationAttributes newLocation)
+        {
+            // When the current map changes the Player object location coordinates are still at their
+            // previous values. We can take advantage of the delay between the map change and the 
+            // Player position update to drop a breadcrumb at the previous map so followers know where to go.
+            
+            if (Owner.Follower != null && Owner.Follower?.Location?.Attributes?.MapNumber != null
+                                       && newLocation.MapNumber != Owner.Follower.Location.Attributes.MapNumber)
+            {
+                var oldX = Owner.Location.X;
+                var oldY = Owner.Location.Y;
+                var oldDir = Owner.Location.Direction;
+
+                switch (oldDir)
+                {
+                    case Direction.North:
+                    {
+                        oldY -= 1;
+                        break;
+                    }
+                    case Direction.East:
+                    {
+                        oldX += 1;
+                        break;
+                    }
+                    case Direction.South:
+                    {
+                        oldY += 1;
+                        break;
+                    }
+                    case Direction.West:
+                    {
+                        oldX -= 1;
+                        break;
+                    }
+                }
+                
+                // Drop a breadcrumb at the previous map location
+                Owner.BreadCrumbs[Attributes.MapNumber] = new Point(oldX, oldY);
+                
+                // Update the follower's map
+                Owner.Follower.Location.CurrentMap.Update();
+            }
+        }
+        
         public int X
         {
             get => x;
