@@ -102,7 +102,7 @@ namespace DArvis.Models
 
         public bool ContainsPlayer(int processId) => players.ContainsKey(processId);
 
-        public Player GetPlayer(int processId)
+        public Player? GetPlayer(int processId)
         {
             players.TryGetValue(processId, out var player);
             return player;

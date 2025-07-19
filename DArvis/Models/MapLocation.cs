@@ -31,12 +31,12 @@ namespace DArvis.Models
         private int y;
         private Direction direction;
         private string mapHash;
-        private Map currentMap;
+        private Map? _currentMap;
 
-        public Map CurrentMap
+        public Map? CurrentMap
         {
-            get => currentMap;
-            private set => SetProperty(ref currentMap, value);
+            get => _currentMap;
+            private set => SetProperty(ref _currentMap, value);
         }
         
         public Player Owner { get; init; }
