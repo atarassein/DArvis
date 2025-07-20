@@ -183,7 +183,7 @@ public class FollowTarget(PlayerMacroState macro)
 
                 try
                 {
-                    GameActions.Walk(player, nextNode.Direction);
+                    await GameActions.WalkAsync(player, nextNode.Direction);
 
                     // Wait for the move to complete with a timeout
                     var timeoutTask = Task.Delay(500, cancellationToken);

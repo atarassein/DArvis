@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Binarysharp.MemoryManagement;
 using DArvis.DTO;
 using DArvis.IO.Process;
@@ -71,14 +72,13 @@ public class GameActions
         PacketManager.InjectPacket(packet);
     }
 
-    public static void Face(Player player, Direction direction)
+    public static async Task Face(Player player, Direction direction)
     {
         var data = new byte[] { 0x11, (byte)direction, 0x00 };
         var packet = new Packet(data, Packet.PacketSource.Client, player);
 
         PacketManager.InjectPacket(packet);
-     
-        // TODO: Not sure if it's wise to set this here, maybe this should only be set when the server responds
+
         player.Location.Direction = direction;
     }
 
@@ -124,6 +124,19 @@ public class GameActions
         
         SendMessage((int)memory.Windows.MainWindowHandle, WM_COPYDATA, 0, ref cds);
     }
+    
+    public static async Task WalkAsync(Player player, Direction dir)
+    {
+        if (dir != player.Location.Direction)
+        {
+            Console.WriteLine("FACING NEW DIRECTION: " + dir);
+            InjectWalk(player, dir);
+            player.Location.Direction = dir;
+            await Task.Delay(1);
+        }
+            
+        InjectWalk(player, dir);
+    }    
     
     public static void Walk(Player player, Direction dir)
     {
