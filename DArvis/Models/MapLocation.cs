@@ -132,7 +132,7 @@ namespace DArvis.Models
 
         public Point Point => new(X, Y);
 
-        public PathNode PathNode => new PathNode
+        public PathNode PathNode => new()
         {
             Position = Point,
             Direction = Direction,

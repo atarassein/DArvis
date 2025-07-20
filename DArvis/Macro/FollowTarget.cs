@@ -89,18 +89,16 @@ public class FollowTarget(PlayerMacroState macro)
             player.IsWalking = false;
             return;
          }
+         
          var node = path[0];
-         GameActions.Walk(player, node.Direction);
-         var startTime = DateTime.Now;
-         while(player.Location.X != node.Position.X && player.Location.Y != node.Position.Y && player.Location.Direction != node.Direction)
+         Console.WriteLine($"({player.Location.PathNode.Position.X}, {player.Location.PathNode.Position.Y}) -> [{node.Direction}] -> ({node.Position.X}, {node.Position.Y})");
+         if (player.Location.X == node.Position.X && player.Location.Y == node.Position.Y)
          {
-            if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(10))
-            {
-               player.IsWalking = false;
-               return;
-            }
-            Thread.Sleep(1);
+            player.IsWalking = false;
+            return;
          }
+         GameActions.Walk(player, node.Direction);
+         Thread.Sleep(50);
       } else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumbNode))
       {
          var path = PathFinder.FindPath(
@@ -108,20 +106,13 @@ public class FollowTarget(PlayerMacroState macro)
             breadcrumbNode,
             player.Location.CurrentMap.Terrain);
          
-         var index = 0;
-         var startTime = DateTime.Now;
-         while (player.Location.CurrentMap.IsValidNodePath(path, index))
+         while (player.Location.CurrentMap.IsValidNodePath(path, 0))
          {
-            GameActions.Walk(player, path[index].Direction);
-            while(player.Location.X != path[index].Position.X && player.Location.Y != path[index].Position.Y && player.Location.Direction != path[index].Direction)
-            {
-               if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(10))
-               {
-                  player.IsWalking = false;
-                  break;
-               }
-               Thread.Sleep(1);
-            }
+            GameActions.Walk(player, path[0].Direction);
+            path = PathFinder.FindPath(
+               player.Location.PathNode,
+               breadcrumbNode,
+               player.Location.CurrentMap.Terrain);
          }
       }
       

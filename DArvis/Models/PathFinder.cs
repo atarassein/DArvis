@@ -12,6 +12,10 @@ public class PathFinder
         if (start?.Position == null || end?.Position == null || terrain == null)
             return Array.Empty<PathNode>();
 
+        if (start.Position.X == end.Position.X && start.Position.Y == end.Position.Y)
+        {
+            return Array.Empty<PathNode>();
+        }
         var mapWidth = terrain.GetLength(0);
         var mapHeight = terrain.GetLength(1);
 
