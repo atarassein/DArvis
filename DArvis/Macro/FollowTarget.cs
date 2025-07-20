@@ -153,8 +153,8 @@ public class FollowTarget(PlayerMacroState macro)
 
                 // Wait for position update or timeout
                 var waitTime = 0;
-                const int maxWaitTime = 2000; // 2 seconds timeout
-                const int pollInterval = 50;
+                const int maxWaitTime = 460;
+                const int pollInterval = 5;
 
                 while (waitTime < maxWaitTime && !cancellationToken.IsCancellationRequested)
                 {
@@ -194,7 +194,6 @@ public class FollowTarget(PlayerMacroState macro)
         if (e.PropertyName != nameof(MapLocation.Point))
             return;
 
-        Console.WriteLine("hooking into position change");
         var player = macro.Client;
         
         // Check if we've deviated from the expected path
@@ -204,7 +203,7 @@ public class FollowTarget(PlayerMacroState macro)
             var currentPos = player.Location.Point;
 
             // If we're not where we expected to be, recalculate the path
-            if (currentPos.X != expectedNode.Position.X || currentPos.Y != expectedNode.Position.Y)
+            if ((int)currentPos.X != (int)expectedNode.Position.X || (int)currentPos.Y != (int)expectedNode.Position.Y)
             {
                 // Check if we've moved to an unexpected position (could be due to lag or other factors)
                 var distanceFromExpected = Math.Abs(currentPos.X - expectedNode.Position.X) + 
