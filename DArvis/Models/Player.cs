@@ -330,8 +330,8 @@ namespace DArvis.Models
 
         public bool IsNearby(Player otherPlayer, int distance = 2)
         {
-            if (!otherPlayer.IsDisposing && otherPlayer == null)
-                throw new ArgumentNullException(nameof(otherPlayer));
+            if (otherPlayer == null || otherPlayer.IsDisposing)
+                return false;
 
             return Location.IsNearby(otherPlayer.Location, distance);
         }
