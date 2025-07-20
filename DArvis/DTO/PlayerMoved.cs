@@ -13,13 +13,13 @@ public class PlayerMoved
     
     public int Y { get; set; }
     
-    public PlayerMoved(Packet packet)
+    public PlayerMoved(ServerPacket serverPacket)
     {
-        var direction = (int)packet.Data[1];
-        var x = BinaryPrimitives.ReadInt16BigEndian(packet.Data.AsSpan(2, 2));
-        var y = BinaryPrimitives.ReadInt16BigEndian(packet.Data.AsSpan(4, 2));
+        var direction = (int)serverPacket.Data[1];
+        var x = BinaryPrimitives.ReadInt16BigEndian(serverPacket.Data.AsSpan(2, 2));
+        var y = BinaryPrimitives.ReadInt16BigEndian(serverPacket.Data.AsSpan(4, 2));
         
-        if (packet.Data.Length < 5)
+        if (serverPacket.Data.Length < 5)
             throw new ArgumentException("Packet data is too short to contain player movement information.");
 
         if (Enum.IsDefined(typeof(Direction), direction))

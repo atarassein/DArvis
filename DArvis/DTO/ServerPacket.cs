@@ -7,7 +7,7 @@ using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.DTO;
 
-public class Packet(byte[] data, Packet.PacketSource source, Player player)
+public class ServerPacket(byte[] data, ServerPacket.PacketSource source, Player player)
 {
     public class PacketBuffer
     {
@@ -232,7 +232,7 @@ public class Packet(byte[] data, Packet.PacketSource source, Player player)
         UnknownPacket37 = 0x37,
         UnknownPacket38 = 0x38,
         ProfileRequested = 0x39,
-        UnknownPacket3A = 0x3A,
+        SpellBuffExpiration = 0x3A, // Spell buff expiration
         UnknownPacket3B = 0x3B, // Seems to be a heartbeat of some type
         UnknownPacket3F = 0x3F,
         MapData = 0x3C,

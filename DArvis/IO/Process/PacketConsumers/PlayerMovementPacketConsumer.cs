@@ -6,63 +6,63 @@ namespace DArvis.IO.Process.PacketConsumers;
 
 public class PlayerMovementPacketConsumer : PacketConsumer
 {
-    public override bool CanConsume(Packet packet)
+    public override bool CanConsume(ServerPacket serverPacket)
     {
         var playerMovementPacketTypes = new[]
         {
-            Packet.PacketType.PlayerMoved,
-            Packet.PacketType.PlayerChangedDirection,
-            Packet.PacketType.PlayerLocationChanged
+            ServerPacket.PacketType.PlayerMoved,
+            ServerPacket.PacketType.PlayerChangedDirection,
+            ServerPacket.PacketType.PlayerLocationChanged
         };
         
-        return playerMovementPacketTypes.Contains(packet.Type);
+        return playerMovementPacketTypes.Contains(serverPacket.Type);
     }
 
-    public override void ProcessPacket(Packet packet)
+    public override void ProcessPacket(ServerPacket serverPacket)
     {
-        switch (packet.Type)
+        switch (serverPacket.Type)
         {
-            case Packet.PacketType.PlayerMoved:
-                HandlePlayerMovement(packet);
+            case ServerPacket.PacketType.PlayerMoved:
+                HandlePlayerMovement(serverPacket);
                 break;
-            case Packet.PacketType.PlayerChangedDirection:
-                HandlePlayerDirectionChange(packet);
+            case ServerPacket.PacketType.PlayerChangedDirection:
+                HandlePlayerDirectionChange(serverPacket);
                 break;
-            case Packet.PacketType.PlayerLocationChanged:
-                HandlePlayerLocationChange(packet);
+            case ServerPacket.PacketType.PlayerLocationChanged:
+                HandlePlayerLocationChange(serverPacket);
                 break;
         }
     }
 
-    private void HandlePlayerMovement(Packet packet)
+    private void HandlePlayerMovement(ServerPacket serverPacket)
     {
-        var playerMoved = new PlayerMoved(packet);
-        var player = packet.Player;
+        var playerMoved = new PlayerMoved(serverPacket);
+        var player = serverPacket.Player;
         // these values will be updated from memory
         //player.Location.X = playerMoved.X;
         //player.Location.Y = playerMoved.Y;
         player.Location.Direction = playerMoved.Direction;
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 
-    private void HandlePlayerDirectionChange(Packet packet)
+    private void HandlePlayerDirectionChange(ServerPacket serverPacket)
     {
-        var playerChangedDirection = new PlayerChangedDirection(packet);
+        var playerChangedDirection = new PlayerChangedDirection(serverPacket);
         
-        if (packet.Player.PacketId == playerChangedDirection.PacketId)
+        if (serverPacket.Player.PacketId == playerChangedDirection.PacketId)
         {
-            packet.Player.Location.Direction = playerChangedDirection.Direction;
+            serverPacket.Player.Location.Direction = playerChangedDirection.Direction;
         }
         
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 
-    private void HandlePlayerLocationChange(Packet packet)
+    private void HandlePlayerLocationChange(ServerPacket serverPacket)
     {
         //var playerChangedLocation = new PlayerChangedLocation(packet);
         // these values will be updated from memory
         //packet.Player.Location.X = playerChangedLocation.X;
         //packet.Player.Location.Y = playerChangedLocation.Y;
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 }

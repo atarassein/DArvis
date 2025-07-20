@@ -10,66 +10,66 @@ namespace DArvis.IO.Process.PacketConsumers;
 
 public class MapPacketConsumer : PacketConsumer
 {
-    public override bool CanConsume(Packet packet)
+    public override bool CanConsume(ServerPacket serverPacket)
     {
         var objectPacketTypes = new[]
         {
-            Packet.PacketType.MapChanged,
-            Packet.PacketType.MapData,
-            Packet.PacketType.AislingAdded,
-            Packet.PacketType.EntitiesAdded,
-            Packet.PacketType.EntityMoved,
-            Packet.PacketType.EntityRemoved,
+            ServerPacket.PacketType.MapChanged,
+            ServerPacket.PacketType.MapData,
+            ServerPacket.PacketType.AislingAdded,
+            ServerPacket.PacketType.EntitiesAdded,
+            ServerPacket.PacketType.EntityMoved,
+            ServerPacket.PacketType.EntityRemoved,
         };
         
-        return objectPacketTypes.Contains(packet.Type);
+        return objectPacketTypes.Contains(serverPacket.Type);
     }
 
-    public override void ProcessPacket(Packet packet)
+    public override void ProcessPacket(ServerPacket serverPacket)
     {
-        if (packet.Type == Packet.PacketType.MapData)
+        if (serverPacket.Type == ServerPacket.PacketType.MapData)
         {
             // We don't need to do anything with MapData packets since we get map data from files
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return;
         }
 
-        if (packet.Type == Packet.PacketType.MapChanged)
+        if (serverPacket.Type == ServerPacket.PacketType.MapChanged)
         {
-            HandleMapChange(packet);
+            HandleMapChange(serverPacket);
         }
 
-        if (!packet.Player.NeedsMapData())
+        if (!serverPacket.Player.NeedsMapData())
         {
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return;
         }
         
-        if (packet.Type == Packet.PacketType.AislingAdded)
+        if (serverPacket.Type == ServerPacket.PacketType.AislingAdded)
         {
-            HandleAislingAdded(packet);
+            HandleAislingAdded(serverPacket);
         }
 
-        if (packet.Type == Packet.PacketType.EntitiesAdded)
+        if (serverPacket.Type == ServerPacket.PacketType.EntitiesAdded)
         {
-            HandleEntitiesAdded(packet);
+            HandleEntitiesAdded(serverPacket);
         }
         
-        if (packet.Type == Packet.PacketType.EntityMoved)
+        if (serverPacket.Type == ServerPacket.PacketType.EntityMoved)
         {
-            HandleEntityMoved(packet);
+            HandleEntityMoved(serverPacket);
         }
 
-        if (packet.Type == Packet.PacketType.EntityRemoved)
+        if (serverPacket.Type == ServerPacket.PacketType.EntityRemoved)
         {
-            HandleEntityRemoved(packet);
+            HandleEntityRemoved(serverPacket);
         }
     }
     
-    private void HandleMapChange(Packet packet)
+    private void HandleMapChange(ServerPacket serverPacket)
     {
         // TODO: Drop a breadcrumb at the door of the previous map if player has followers
-        var mapChanged = new MapChanged(packet);
+        var mapChanged = new MapChanged(serverPacket);
         var mapAttributes = new MapLocationAttributes
         {
             MapName = mapChanged.MapName,
@@ -78,49 +78,49 @@ public class MapPacketConsumer : PacketConsumer
             Height = mapChanged.MapHeight
         };
         
-        packet.Player.Location.Attributes = mapAttributes;
-        packet.Handled = true;
+        serverPacket.Player.Location.Attributes = mapAttributes;
+        serverPacket.Handled = true;
     }
     
-    private void HandleAislingAdded(Packet packet)
+    private void HandleAislingAdded(ServerPacket serverPacket)
     {
-        var aisling = new AislingEntityAdded(packet);
-        if (packet.Player.Leader != null && aisling.Entity.Serial == packet.Player.Leader.PacketId)
+        var aisling = new AislingEntityAdded(serverPacket);
+        if (serverPacket.Player.Leader != null && aisling.Entity.Serial == serverPacket.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return;
         }
         
-        if (aisling.Entity.Serial == packet.Player.PacketId)
+        if (aisling.Entity.Serial == serverPacket.Player.PacketId)
         {
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return; // We don't really need to see when the player is added to their own map
         }
         
         // var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
         // Console.WriteLine($"{added}   " + packet);
-        packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
-        packet.Handled = true;
+        serverPacket.Player.Location.CurrentMap.AddEntity(aisling.Entity);
+        serverPacket.Handled = true;
     }
 
-    private void HandleEntitiesAdded(Packet packet)
+    private void HandleEntitiesAdded(ServerPacket serverPacket)
     {
         // var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
         // Console.WriteLine($"{added}    " + packet);
-        var entities = new EntitiesAdded(packet);
+        var entities = new EntitiesAdded(serverPacket);
         
-        packet.Player.Location.CurrentMap.AddEntities(entities.Entities);
-        packet.Handled = true;
+        serverPacket.Player.Location.CurrentMap.AddEntities(entities.Entities);
+        serverPacket.Handled = true;
     }
     
-    private void HandleEntityMoved(Packet packet)
+    private void HandleEntityMoved(ServerPacket serverPacket)
     {
-        var entityMoved = new EntityMoved(packet);
-        if (packet.Player.Leader != null && entityMoved.Serial == packet.Player.Leader.PacketId)
+        var entityMoved = new EntityMoved(serverPacket);
+        if (serverPacket.Player.Leader != null && entityMoved.Serial == serverPacket.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return;
         }
         
@@ -133,23 +133,23 @@ public class MapPacketConsumer : PacketConsumer
         // var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
         // Console.WriteLine($"{moved}    " + packet);
         
-        packet.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, prevX, prevY, newX, newY, direction);
-        packet.Handled = true;
+        serverPacket.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, prevX, prevY, newX, newY, direction);
+        serverPacket.Handled = true;
     }
     
-    private void HandleEntityRemoved(Packet packet)
+    private void HandleEntityRemoved(ServerPacket serverPacket)
     {
-        var entityRemoved = new EntityRemoved(packet);
-        if (packet.Player.Leader != null && entityRemoved.Serial == packet.Player.Leader.PacketId)
+        var entityRemoved = new EntityRemoved(serverPacket);
+        if (serverPacket.Player.Leader != null && entityRemoved.Serial == serverPacket.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.
-            packet.Handled = true;
+            serverPacket.Handled = true;
             return;
         }
         
-        packet.Player.Location.CurrentMap.RemoveEntityBySerial(entityRemoved.Serial);
+        serverPacket.Player.Location.CurrentMap.RemoveEntityBySerial(entityRemoved.Serial);
         // var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
         // Console.WriteLine($"{removed}  " + packet);
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 }

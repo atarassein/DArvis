@@ -11,12 +11,12 @@ public class MapChanged
     
     public string MapName { get; set; }
     
-    public MapChanged(Packet packet)
+    public MapChanged(ServerPacket serverPacket)
     {
-        MapNumber = packet.ReadInt16(1);
-        MapWidth = packet.Data[3];
-        MapHeight = packet.Data[4];
-        MapName = packet.ReadString8(10);
+        MapNumber = serverPacket.ReadInt16(1);
+        MapWidth = serverPacket.Data[3];
+        MapHeight = serverPacket.Data[4];
+        MapName = serverPacket.ReadString8(10);
     }
     
     public override string ToString()

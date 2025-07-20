@@ -5,8 +5,8 @@ public class EntityRemoved
     
     public int Serial { get; set; }
     
-    public EntityRemoved(Packet packet)
+    public EntityRemoved(ServerPacket serverPacket)
     {
-        Serial = packet.Buffer.ReadInt32();
+        Serial = serverPacket.Buffer.ReadInt32();
     }
 }

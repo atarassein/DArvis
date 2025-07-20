@@ -9,15 +9,15 @@ public class EntitiesAdded
 
     public MapEntity[] Entities { get; set; }
     
-    public EntitiesAdded(Packet packet)
+    public EntitiesAdded(ServerPacket serverPacket)
     {
-        var buffer = packet.Buffer;
+        var buffer = serverPacket.Buffer;
         var count = buffer.ReadUInt16();
         Entities = new MapEntity[count];
 
         int dontTrackLeaders = -1;
-        if (packet.Player.Leader != null)
-            dontTrackLeaders = packet.Player.Leader.PacketId;
+        if (serverPacket.Player.Leader != null)
+            dontTrackLeaders = serverPacket.Player.Leader.PacketId;
         
         for (int i = 0; i < count; i++)
         {

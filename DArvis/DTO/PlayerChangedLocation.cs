@@ -11,13 +11,13 @@ public class PlayerChangedLocation
     
     public int Y { get; set; }
     
-    public PlayerChangedLocation(Packet packet)
+    public PlayerChangedLocation(ServerPacket serverPacket)
     {
-        if (packet.Data.Length < 5)
+        if (serverPacket.Data.Length < 5)
             throw new ArgumentException("Packet data is too short to contain player location information.");
 
-        X = packet.ReadInt16(1);
-        Y = packet.ReadInt16(3);
+        X = serverPacket.ReadInt16(1);
+        Y = serverPacket.ReadInt16(3);
         
     }
 }

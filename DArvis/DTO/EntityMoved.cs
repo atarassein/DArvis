@@ -12,9 +12,9 @@ public class EntityMoved
     public int Y;
     public Direction Direction;
     
-    public EntityMoved(Packet packet)
+    public EntityMoved(ServerPacket serverPacket)
     {
-        var buffer = packet.Buffer;
+        var buffer = serverPacket.Buffer;
         Serial = buffer.ReadInt32();
         X = PreviousX = buffer.ReadInt16();
         Y = PreviousY = buffer.ReadInt16();

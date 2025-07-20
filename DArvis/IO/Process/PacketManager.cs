@@ -26,11 +26,11 @@ namespace DArvis.IO.Process
         
         private readonly List<IPacketConsumer> consumers = new();
         
-        private readonly ConcurrentQueue<DTO.Packet> ServerPacketQueue = new();
+        private readonly ConcurrentQueue<DTO.ServerPacket> ServerPacketQueue = new();
         private static readonly object DispatcherLock = new();
         private static bool IsDispatching = false;
         
-        private readonly ConcurrentQueue<Packet> ServerPacketInjectionQueue = new();
+        private readonly ConcurrentQueue<ServerPacket> ServerPacketInjectionQueue = new();
         private static readonly object ServerInjectionLock = new();
         private static bool IsInjectingToServer = false;
         
@@ -169,7 +169,7 @@ namespace DArvis.IO.Process
     
             var data = new byte[ptr.CbData];
             var typeData = (int)ptr.DwData;
-            var source = Packet.PacketSource.Unknown;
+            var source = ServerPacket.PacketSource.Unknown;
             var id = wParam.ToInt32();
             
             Marshal.Copy(ptr.LpData, data, 0, ptr.CbData); // Copy from unmanaged memory
@@ -179,21 +179,21 @@ namespace DArvis.IO.Process
                 return IntPtr.Zero;
             }
             
-            if (Enum.IsDefined(typeof(Packet.PacketSource), typeData))
+            if (Enum.IsDefined(typeof(ServerPacket.PacketSource), typeData))
             {
-                source = (Packet.PacketSource)typeData;
+                source = (ServerPacket.PacketSource)typeData;
             }
             
-            var packet = new Packet(data, source, player);
-            if (packet.Source == Packet.PacketSource.Server)
+            var packet = new ServerPacket(data, source, player);
+            if (packet.Source == ServerPacket.PacketSource.Server)
             {
                 //Console.WriteLine(packet);
                 ServerPacketQueue.Enqueue(packet);
             }
 
-            if (packet.Source == Packet.PacketSource.Client)
+            if (packet.Source == ServerPacket.PacketSource.Client)
             {
-                // Console.WriteLine(packet);
+                 Console.WriteLine(packet);
             }
             DispatchPackets();
 
@@ -201,11 +201,11 @@ namespace DArvis.IO.Process
             return IntPtr.Zero;
         }
 
-        public static void InjectPacket(DTO.Packet packet)
+        public static void InjectPacket(DTO.ServerPacket serverPacket)
         {
-            if (packet.Source == DTO.Packet.PacketSource.Client)
+            if (serverPacket.Source == DTO.ServerPacket.PacketSource.Client)
             {
-                Instance.ServerPacketInjectionQueue.Enqueue(packet);
+                Instance.ServerPacketInjectionQueue.Enqueue(serverPacket);
             }
 
             Instance.ProcessOutgoingPackets();

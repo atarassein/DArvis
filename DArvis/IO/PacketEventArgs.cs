@@ -7,12 +7,12 @@ public delegate void PacketEventHandler(object sender, PacketEventArgs e);
 
 public sealed class PacketEventArgs : EventArgs
 {
-    public Packet Packet { get; }
+    public ServerPacket ServerPacket { get; }
 
-    public PacketEventArgs(Packet packet)
+    public PacketEventArgs(ServerPacket serverPacket)
     {
-        Packet = packet ?? throw new ArgumentNullException(nameof(packet));
+        ServerPacket = serverPacket ?? throw new ArgumentNullException(nameof(serverPacket));
     }
 
-    public override string ToString() => "Packet Event: " + Packet.GetType().Name;
+    public override string ToString() => "Packet Event: " + ServerPacket.GetType().Name;
 }

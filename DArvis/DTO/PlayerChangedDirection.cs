@@ -11,13 +11,13 @@ public class PlayerChangedDirection
     
     public int PacketId { get; set; }
     
-    public PlayerChangedDirection(Packet packet)
+    public PlayerChangedDirection(ServerPacket serverPacket)
     {
-        if (packet.Data.Length < 6)
+        if (serverPacket.Data.Length < 6)
             throw new ArgumentException("Packet data is too short to contain player movement information.");
 
-        PacketId = packet.ReadInt32(1);
-        var direction = (int)packet.Data[5];
+        PacketId = serverPacket.ReadInt32(1);
+        var direction = (int)serverPacket.Data[5];
         
         if (Enum.IsDefined(typeof(Direction), direction))
         {

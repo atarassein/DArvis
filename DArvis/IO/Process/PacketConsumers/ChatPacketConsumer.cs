@@ -6,34 +6,34 @@ namespace DArvis.IO.Process.PacketConsumers;
 
 public class ChatPacketConsumer : PacketConsumer
 {
-    public override bool CanConsume(Packet packet)
+    public override bool CanConsume(ServerPacket serverPacket)
     {
-        return packet.Type == Packet.PacketType.Chat ||
-               packet.Type == Packet.PacketType.Message;
+        return serverPacket.Type == ServerPacket.PacketType.Chat ||
+               serverPacket.Type == ServerPacket.PacketType.Message;
     }
 
-    public override void ProcessPacket(Packet packet)
+    public override void ProcessPacket(ServerPacket serverPacket)
     {
-        switch (packet.Type)
+        switch (serverPacket.Type)
         {
-            case Packet.PacketType.Chat:
-                HandleChatMessage(packet);
+            case ServerPacket.PacketType.Chat:
+                HandleChatMessage(serverPacket);
                 break;
-            case Packet.PacketType.Message:
-                HandleWhisperMessage(packet);
+            case ServerPacket.PacketType.Message:
+                HandleWhisperMessage(serverPacket);
                 break;
         }
     }
 
-    private void HandleChatMessage(Packet packet)
+    private void HandleChatMessage(ServerPacket serverPacket)
     {
         // Console.WriteLine("Processing chat message...");
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 
-    private void HandleWhisperMessage(Packet packet)
+    private void HandleWhisperMessage(ServerPacket serverPacket)
     {
         // Process whisper message
-        packet.Handled = true;
+        serverPacket.Handled = true;
     }
 }

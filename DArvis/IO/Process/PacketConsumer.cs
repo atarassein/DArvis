@@ -5,8 +5,8 @@ namespace DArvis.IO.Process;
 
 public interface IPacketConsumer
 {
-    bool CanConsume(Packet packet);
-    void ProcessPacket(Packet packet);
+    bool CanConsume(ServerPacket serverPacket);
+    void ProcessPacket(ServerPacket serverPacket);
 }
 
 public abstract class PacketConsumer : IPacketConsumer
@@ -18,7 +18,7 @@ public abstract class PacketConsumer : IPacketConsumer
         logger = App.Current.Services.GetService<ILogger>();
     }
 
-    public abstract bool CanConsume(Packet packet);
-    public abstract void ProcessPacket(Packet packet);
+    public abstract bool CanConsume(ServerPacket serverPacket);
+    public abstract void ProcessPacket(ServerPacket serverPacket);
 
 }
