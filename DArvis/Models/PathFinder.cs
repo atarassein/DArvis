@@ -12,7 +12,7 @@ public class PathFinder
         if (start?.Position == null || end?.Position == null || terrain == null)
             return Array.Empty<PathNode>();
 
-        if (start.Position.X == end.Position.X && start.Position.Y == end.Position.Y)
+        if ((int)start.Position.X == (int)end.Position.X && (int)start.Position.Y == (int)end.Position.Y)
         {
             return Array.Empty<PathNode>();
         }
@@ -144,10 +144,10 @@ public class PathFinder
     {
         return direction switch
         {
-            Direction.North => new Point(position.X, position.Y - 1),
-            Direction.South => new Point(position.X, position.Y + 1),
-            Direction.East => new Point(position.X + 1, position.Y),
-            Direction.West => new Point(position.X - 1, position.Y),
+            Direction.North => new Point((int)position.X, (int)(position.Y - 1)),
+            Direction.South => new Point((int)position.X, (int)(position.Y + 1)),
+            Direction.East => new Point((int)(position.X + 1), (int)position.Y),
+            Direction.West => new Point((int)(position.X - 1), (int)position.Y),
             _ => position
         };
     }
