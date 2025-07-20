@@ -7,7 +7,7 @@ namespace DArvis.Models;
 
 public class PathFinder
 {
-    public static PathNode[] FindPath(PathNode start, PathNode end, int[,] terrain)
+    public static PathNode[] FindPath(PathNode start, PathNode end, int[,] terrain, bool isBreadcrumbTarget = false)
     {
         if (start?.Position == null || end?.Position == null || terrain == null)
             return Array.Empty<PathNode>();
@@ -62,8 +62,16 @@ public class PathFinder
                 var neighborPos = GetNeighborPosition(current.Position, direction);
 
                 if (closedSet.Contains(neighborPos) ||
-                    !IsValidPosition(neighborPos, mapWidth, mapHeight) ||
-                    !IsPassable(neighborPos, terrain))
+                    !IsValidPosition(neighborPos, mapWidth, mapHeight))
+                    continue;
+    
+                // For breadcrumb targets, allow movement to the target even if terrain says it's blocked
+                bool isTargetPosition = neighborPos.Equals(end.Position);
+                bool canMoveTo = isTargetPosition && isBreadcrumbTarget 
+                    ? true 
+                    : IsPassable(neighborPos, terrain);
+    
+                if (!canMoveTo)
                     continue;
 
                 var movementCost = CalculateMovementCost(current.Direction, direction);

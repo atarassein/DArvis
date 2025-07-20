@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,6 +14,10 @@ public class FollowTarget(PlayerMacroState macro)
     private PathNode[]? _currentPath;
     private int _currentPathIndex;
     private readonly object _walkLock = new object();
+    private TaskCompletionSource<bool>? _moveCompletionSource;
+
+    // Cache the last known position to avoid redundant UI updates
+    private Point _lastKnownPosition = new Point(-1, -1);
 
     private PathNode NodeBehindPlayer(Player target)
     {
@@ -76,16 +78,12 @@ public class FollowTarget(PlayerMacroState macro)
 
         lock (_walkLock)
         {
-            // Cancel any existing walk operation
             _walkCancellationSource?.Cancel();
             _walkCancellationSource = new CancellationTokenSource();
 
             player.IsWalking = true;
 
-            // Subscribe to position changes
-            player.Location.PropertyChanged += OnPlayerPositionChanged;
-
-            // Start walking on a separate thread
+            // Use throttled position monitoring instead of every property change
             Task.Run(() => ExecuteWalk(_walkCancellationSource.Token));
         }
     }
@@ -106,6 +104,7 @@ public class FollowTarget(PlayerMacroState macro)
             var playerMap = player.Location.MapNumber;
             PathNode? targetNode = null;
             bool isBreadcrumb = false;
+            
             if (player.IsOnSameMapAs(leader))
             {
                 targetNode = NodeBehindPlayer(leader);
@@ -125,18 +124,19 @@ public class FollowTarget(PlayerMacroState macro)
             _currentPath = PathFinder.FindPath(
                 player.Location.PathNode,
                 targetNode,
-                player.Location.CurrentMap.Terrain);
+                player.Location.CurrentMap.Terrain,
+                isBreadcrumb);
 
             if (isBreadcrumb && (_currentPath == null || _currentPath.Length == 0))
             {
-                // if we're following an invalid breadcrumb then try last position
                 if (leader.LastPosition.TryGetValue(playerMap, out var lastPosition) && lastPosition != null)
                 {
                     targetNode = lastPosition;
                     _currentPath = PathFinder.FindPath(
                         player.Location.PathNode,
                         targetNode,
-                        player.Location.CurrentMap.Terrain);
+                        player.Location.CurrentMap.Terrain, 
+                        isBreadcrumb);
                 }
             }
             
@@ -147,6 +147,7 @@ public class FollowTarget(PlayerMacroState macro)
             }
 
             _currentPathIndex = 0;
+            _lastKnownPosition = player.Location.Point;
 
             // Execute the path step by step
             while (_currentPathIndex < _currentPath.Length && !cancellationToken.IsCancellationRequested)
@@ -155,6 +156,7 @@ public class FollowTarget(PlayerMacroState macro)
                 {
                     break; // break early
                 }
+                
                 var nextNode = _currentPath[_currentPathIndex];
                 
                 Console.WriteLine($"Walking to step {_currentPathIndex + 1}/{_currentPath.Length}: " +
@@ -165,51 +167,37 @@ public class FollowTarget(PlayerMacroState macro)
                 if ((int)player.Location.X == (int)nextNode.Position.X && (int)player.Location.Y == (int)nextNode.Position.Y)
                 {
                     _currentPathIndex++;
+                    _lastKnownPosition = nextNode.Position;
                     continue;
                 }
-    
-                // Create a task completion source for this movement
-                var moveCompletionSource = new TaskCompletionSource<bool>();
-                
-                // Subscribe to position changes for this specific move
-                void OnMoveCompleted(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-                {
-                    if (e.PropertyName == nameof(MapLocation.Point))
-                    {
-                        var currentPos = player.Location.Point;
-                        if ((int)currentPos.X == (int)nextNode.Position.X && (int)currentPos.Y == (int)nextNode.Position.Y)
-                        {
-                            moveCompletionSource.TrySetResult(true);
-                        }
-                    }
-                }
-    
-                player.Location.PropertyChanged += OnMoveCompleted;
-    
+
+                _moveCompletionSource = new TaskCompletionSource<bool>();
+
+                // Start position monitoring task
+                var monitoringTask = Task.Run(() => MonitorPositionChange(nextNode.Position, cancellationToken), cancellationToken);
+
                 try
                 {
                     GameActions.Walk(player, nextNode.Direction);
-    
+
                     // Wait for the move to complete with a timeout
-                    var moveTask = moveCompletionSource.Task;
-                    var timeoutTask = Task.Delay(500, cancellationToken); // 500ms timeout
-    
-                    var completedTask = await Task.WhenAny(moveTask, timeoutTask);
-    
-                    if (completedTask == moveTask && await moveTask)
+                    var timeoutTask = Task.Delay(500, cancellationToken);
+                    var completedTask = await Task.WhenAny(_moveCompletionSource.Task, timeoutTask);
+
+                    if (completedTask == _moveCompletionSource.Task && await _moveCompletionSource.Task)
                     {
                         _currentPathIndex++;
+                        _lastKnownPosition = nextNode.Position;
                     }
                     else
                     {
                         Console.WriteLine("Walk timeout - recalculating path");
-                        break; // Will trigger path recalculation
+                        break;
                     }
                 }
                 finally
                 {
-                    // Always unsubscribe from the event
-                    player.Location.PropertyChanged -= OnMoveCompleted;
+                    _moveCompletionSource = null;
                 }
             }
         }
@@ -227,38 +215,53 @@ public class FollowTarget(PlayerMacroState macro)
         }
     }
 
-    private void OnPlayerPositionChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private async Task MonitorPositionChange(Point expectedPosition, CancellationToken cancellationToken)
     {
-        if (e.PropertyName != nameof(MapLocation.Point))
-            return;
-
         var player = macro.Client;
         
-        // Check if we've deviated from the expected path
-        if (_currentPath != null && _currentPathIndex < _currentPath.Length)
+        try
         {
-            var expectedNode = _currentPath[_currentPathIndex];
-            var currentPos = player.Location.Point;
-
-            // If we're not where we expected to be, recalculate the path
-            if ((int)currentPos.X != (int)expectedNode.Position.X || (int)currentPos.Y != (int)expectedNode.Position.Y)
+            while (!cancellationToken.IsCancellationRequested && _moveCompletionSource != null)
             {
-                // Check if we've moved to an unexpected position (could be due to lag or other factors)
-                var distanceFromExpected = Math.Abs(currentPos.X - expectedNode.Position.X) + 
-                                         Math.Abs(currentPos.Y - expectedNode.Position.Y);
-
-                if (distanceFromExpected > 1)
+                // Poll position directly instead of relying on property change events
+                var currentPos = player.Location.Point;
+                
+                // Only check if position actually changed to reduce overhead
+                if (currentPos != _lastKnownPosition)
                 {
-                    Console.WriteLine($"Position deviation detected. Expected: ({expectedNode.Position.X}, {expectedNode.Position.Y}), " +
-                                    $"Actual: ({currentPos.X}, {currentPos.Y}). Recalculating path...");
-                    
-                    // Cancel current walk and restart
-                    lock (_walkLock)
+                    if ((int)currentPos.X == (int)expectedPosition.X && (int)currentPos.Y == (int)expectedPosition.Y)
                     {
-                        _walkCancellationSource?.Cancel();
+                        _moveCompletionSource?.TrySetResult(true);
+                        return;
                     }
+                    
+                    // Check for unexpected deviation
+                    var distanceFromExpected = Math.Abs(currentPos.X - expectedPosition.X) + 
+                                             Math.Abs(currentPos.Y - expectedPosition.Y);
+                    
+                    if (distanceFromExpected > 1.5) // Allow slight tolerance for floating point
+                    {
+                        Console.WriteLine($"Position deviation detected. Expected: ({expectedPosition.X}, {expectedPosition.Y}), " +
+                                        $"Actual: ({currentPos.X}, {currentPos.Y}). Recalculating path...");
+                        
+                        // Cancel current walk operation to trigger recalculation
+                        lock (_walkLock)
+                        {
+                            _walkCancellationSource?.Cancel();
+                        }
+                        return;
+                    }
+                    
+                    _lastKnownPosition = currentPos;
                 }
+
+                // Use a longer polling interval to reduce CPU usage
+                await Task.Delay(50, cancellationToken); // 50ms polling instead of property change events
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when cancellation is requested
         }
     }
 
@@ -267,11 +270,10 @@ public class FollowTarget(PlayerMacroState macro)
         var player = macro.Client;
         player.IsWalking = false;
         
-        // Unsubscribe from position changes
-        player.Location.PropertyChanged -= OnPlayerPositionChanged;
-        
         _currentPath = null;
         _currentPathIndex = 0;
+        _moveCompletionSource?.TrySetResult(false);
+        _moveCompletionSource = null;
     }
 
     public void DoneWalking()

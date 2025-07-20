@@ -821,6 +821,7 @@ namespace DArvis.Views
                     player.Location.Point = new Point(playerX, playerY);
                     player.Location.X = playerX;
                     player.Location.Y = playerY;
+                    Thread.Sleep(20);
                 }
 
             };
