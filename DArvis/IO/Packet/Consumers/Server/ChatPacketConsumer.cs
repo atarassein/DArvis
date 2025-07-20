@@ -4,24 +4,24 @@ using DArvis.DTO;
 
 namespace DArvis.IO.Packet.Consumers.Server;
 
-public class ChatPacketConsumer : PacketConsumer
+public class ChatPacketConsumer : PacketConsumer<ServerPacket>
 {
-    public override bool CanConsume(ServerPacket serverPacket)
+    public override bool CanConsume(ServerPacket packet)
     {
-        
+        var serverPacket = (ServerPacket)packet;
         return serverPacket.EventType == ServerPacket.ServerEvent.Chat ||
                serverPacket.EventType == ServerPacket.ServerEvent.Message;
     }
 
-    public override void ProcessPacket(ServerPacket serverPacket)
+    public override void ProcessPacket(ServerPacket packet)
     {
-        switch (serverPacket.EventType)
+        switch (packet.EventType)
         {
             case ServerPacket.ServerEvent.Chat:
-                HandleChatMessage(serverPacket);
+                HandleChatMessage(packet);
                 break;
             case ServerPacket.ServerEvent.Message:
-                HandleWhisperMessage(serverPacket);
+                HandleWhisperMessage(packet);
                 break;
         }
     }

@@ -28,6 +28,8 @@ public abstract class Packet<TEventType>(byte[] data, Player player) : Packet(da
 
 public abstract class Packet(byte[] data, Player player)
 {
+    public bool Handled = false;
+    
     public class PacketBuffer
     {
         public byte[] Data;

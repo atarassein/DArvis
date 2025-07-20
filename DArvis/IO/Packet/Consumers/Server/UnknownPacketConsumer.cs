@@ -2,7 +2,7 @@
 
 namespace DArvis.IO.Packet.Consumers.Server;
 
-public class UnknownPacketConsumer : PacketConsumer
+public class UnknownPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

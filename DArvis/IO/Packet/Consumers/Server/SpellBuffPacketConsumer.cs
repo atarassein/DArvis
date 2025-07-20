@@ -3,7 +3,7 @@ using DArvis.DTO;
 
 namespace DArvis.IO.Packet.Consumers.Server;
 
-public class SpellBuffPacketConsumer : PacketConsumer
+public class SpellBuffPacketConsumer : PacketConsumer<ServerPacket>
 {
     //Packet.Event.SpellBuffExpiration;
     public override bool CanConsume(ServerPacket serverPacket)

@@ -9,10 +9,6 @@ namespace DArvis.IO.Packet;
 
 public class ServerPacket(byte[] data, Player player) : Packet<ServerPacket.ServerEvent>(data, player)
 {
-    
-    public bool Handled = false;
-    
-    
     public Player Player { get; set; } = player;
     protected override ServerEvent GetUnknownEvent() => ServerEvent.Unknown;
 

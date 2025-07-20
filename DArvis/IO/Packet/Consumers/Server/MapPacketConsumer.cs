@@ -5,7 +5,7 @@ using DArvis.Models;
 
 namespace DArvis.IO.Packet.Consumers.Server;
 
-public class MapPacketConsumer : PacketConsumer
+public class MapPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

@@ -5,7 +5,7 @@ using DArvis.DTO.ServerPackets;
 
 namespace DArvis.IO.Packet.Consumers.Server;
 
-public class PlayerMovementPacketConsumer : PacketConsumer
+public class PlayerMovementPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

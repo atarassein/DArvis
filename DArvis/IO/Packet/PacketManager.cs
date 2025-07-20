@@ -31,8 +31,12 @@ namespace DArvis.IO.Packet
         private readonly List<IPacketConsumer> consumers = new();
         
         private readonly ConcurrentQueue<ServerPacket> ServerPacketQueue = new();
-        private static readonly object DispatcherLock = new();
-        private static bool IsDispatching = false;
+        private static readonly object ServerDispatcherLock = new();
+        private static bool IsDispatchingServer = false;
+        
+        private readonly ConcurrentQueue<ClientPacket> ClientPacketQueue = new();
+        private static readonly object ClientDispatcherLock = new();
+        private static bool IsDispatchingClient = false;
         
         // private readonly ConcurrentQueue<ServerPacket> ServerPacketInjectionQueue = new();
         
@@ -194,9 +198,16 @@ namespace DArvis.IO.Packet
             {
                 var packet = new ServerPacket(data, player);
                 ServerPacketQueue.Enqueue(packet);
+                DispatchServerPackets();
+            }
+            
+            if (source == PacketSource.Client)
+            {
+                var packet = new ClientPacket(data, player);
+                ClientPacketQueue.Enqueue(packet);
+                DispatchClientPackets();
             }
 
-            DispatchPackets();
 
             handled = true;
             return IntPtr.Zero;
@@ -227,17 +238,17 @@ namespace DArvis.IO.Packet
             public IntPtr LpData;
         }
         
-        public void DispatchPackets()
+        public void DispatchServerPackets()
         {
-            lock (DispatcherLock)
+            lock (ServerDispatcherLock)
             {
-                if (IsDispatching)
+                if (IsDispatchingServer)
                     return;
 
                 if (!ServerPacketQueue.TryPeek(out var packet))
                     return;
 
-                IsDispatching = true;
+                IsDispatchingServer = true;
             }
 
             var packetDispatcher = new BackgroundWorker();
@@ -263,9 +274,9 @@ namespace DArvis.IO.Packet
             
             packetDispatcher.RunWorkerCompleted += (sender, e) =>
             {
-                lock (DispatcherLock)
+                lock (ServerDispatcherLock)
                 {
-                    IsDispatching = false;
+                    IsDispatchingServer = false;
                 }
             };
             
@@ -273,6 +284,52 @@ namespace DArvis.IO.Packet
             
         }
         
+        public void DispatchClientPackets()
+        {
+            lock (ClientDispatcherLock)
+            {
+                if (IsDispatchingClient)
+                    return;
+
+                if (!ClientPacketQueue.TryPeek(out var packet))
+                    return;
+
+                IsDispatchingClient = true;
+            }
+
+            var packetDispatcher = new BackgroundWorker();
+            packetDispatcher.DoWork += (sender, e) =>
+            {
+                while (!ClientPacketQueue.IsEmpty)
+                {
+                    ClientPacketQueue.TryDequeue(out var packet);
+                    //Console.WriteLine(packet);
+                    var ableConsumers = consumers.FindAll(c => c.CanConsume(packet));
+                    foreach (var consumer in ableConsumers)
+                    {
+                        consumer.ProcessPacket(packet);
+                    }
+                    
+                    if (!packet.Handled)
+                    {
+                        logger.LogWarn($"No consumer found for packet type: {packet.EventType}");
+                        Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
+                    }
+                }
+            };
+            
+            packetDispatcher.RunWorkerCompleted += (sender, e) =>
+            {
+                lock (ClientDispatcherLock)
+                {
+                    IsDispatchingClient = false;
+                }
+            };
+            
+            packetDispatcher.RunWorkerAsync();
+            
+        }
+
         public void ProcessOutgoingPackets()
         {
             lock (ServerInjectionLock)
