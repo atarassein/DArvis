@@ -822,7 +822,7 @@ namespace DArvis.Views
                     player.Location.X = playerX;
                     player.Location.Y = playerY;
                 }
-                Thread.Sleep(50);
+                Thread.Sleep(10);
 
             };
             positionUpdateWorker.RunWorkerCompleted += (sender, e) =>
