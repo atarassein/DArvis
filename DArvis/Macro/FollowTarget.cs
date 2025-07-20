@@ -48,13 +48,17 @@ public class FollowTarget(PlayerMacroState macro)
         };
     }
 
-    public bool ShouldWalk()
+    public async Task<bool> ShouldWalk()
     {
         var player = macro.Client;
-        if (player.IsWalking) return false;
+        var leader = player.Leader;
+        if (player.IsWalking || player.IsNearby(leader))
+        {
+            await Task.Delay(100);
+            return false;
+        }
 
         var playerMap = player.Location.MapNumber;
-        var leader = player.Leader;
         var leaderMap = leader.Location.MapNumber;
 
         if (playerMap == leaderMap)
@@ -68,10 +72,11 @@ public class FollowTarget(PlayerMacroState macro)
         }
 
         Console.WriteLine("Player is lost.");
+        await Task.Delay(100);
         return false;
     }
 
-    public void Walk()
+    public async Task Walk()
     {
         var player = macro.Client;
         if (player.IsWalking) return;

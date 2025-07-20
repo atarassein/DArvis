@@ -328,6 +328,14 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
+        public bool IsNearby(Player otherPlayer, int distance = 2)
+        {
+            if (otherPlayer == null)
+                throw new ArgumentNullException(nameof(otherPlayer));
+
+            return Location.IsNearby(otherPlayer.Location, distance);
+        }
+        
         public bool IsOnSameMapAs(Player otherPlayer)
         {
             return Location.MapNumber == otherPlayer.Location.MapNumber;

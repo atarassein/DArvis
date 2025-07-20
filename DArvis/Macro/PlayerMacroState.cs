@@ -484,11 +484,11 @@ namespace DArvis.Macro
             }
         }
 
-        private void DoFollowMacro()
+        private async void DoFollowMacro()
         {
-            if (_followTarget.ShouldWalk())
+            if (await _followTarget.ShouldWalk())
             {
-                _followTarget.Walk();
+                await _followTarget.Walk();
             }
         }
         
