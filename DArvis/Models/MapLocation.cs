@@ -41,6 +41,33 @@ namespace DArvis.Models
             private set => SetProperty(ref _currentMap, value);
         }
         
+        private Point _point;
+        public Point Point
+        {
+            get => _point;
+            set => SetProperty(ref _point, value, onChanged: OnPlayerPointChanged);
+        }
+        
+        public void OnPlayerPointChanged(Point point)
+        {
+            if (CurrentMap == null)
+                return;
+            
+            // update our followers map when we move
+            if (Owner.Follower != null && Owner.IsOnSameMapAs(Owner.Follower) && Owner.Follower.Location.CurrentMap != null)
+            {
+                Owner.Follower.Location.CurrentMap.Update();
+            }
+            
+            // update our map whenever we move if we're following a leader
+            if (Owner.Leader != null)
+            {
+                CurrentMap.Update();
+            }
+        }
+
+        public PathNode PathNode => new() { Position = Point, Direction = Direction };
+
         public Player Owner { get; init; }
 
         public MapLocationAttributes Attributes
@@ -52,13 +79,13 @@ namespace DArvis.Models
         public int X
         {
             get => x;
-            set => SetProperty(ref x, value, onChanged: OnPlayerPositionChanged);
+            set => SetProperty(ref x, value);
         }
 
         public int Y
         {
             get => y;
-            set => SetProperty(ref y, value, onChanged: OnPlayerPositionChanged);
+            set => SetProperty(ref y, value);
         }
 
         public int MapNumber
@@ -129,14 +156,6 @@ namespace DArvis.Models
             get => direction;
             set => SetProperty(ref direction, value);
         }
-
-        public Point Point => new(X, Y);
-
-        public PathNode PathNode => new()
-        {
-            Position = Point,
-            Direction = Direction,
-        };
         
         public string MapHash
         {
@@ -203,32 +222,6 @@ namespace DArvis.Models
         private void OnMapAttributesChanged(MapLocationAttributes attributes)
         {
             CurrentMap = Map.loadFromAttributes(Owner, attributes);
-        }
-        
-        private DateTime lastUpdate = DateTime.MinValue;
-        private void OnPlayerPositionChanged(int newValue)
-        {
-            if (lastUpdate == DateTime.MinValue)
-            {
-                lastUpdate = DateTime.Now;
-            }
-            Console.WriteLine($"{(DateTime.Now - lastUpdate).TotalMilliseconds}ms since last walk update");
-            lastUpdate = DateTime.Now;
-            Console.WriteLine($"{Owner.Name} @ ({X}, {Y}) on map ({MapNumber})");
-            if (CurrentMap == null)
-                return;
-            
-            // update our followers map when we move
-            if (Owner.IsOnSameMapAs(Owner.Follower))
-            {
-                Owner.Follower.Location.CurrentMap.Update();
-            }
-            
-            // update our map whenever we move if we're following a leader
-            if (Owner.Leader != null)
-            {
-                CurrentMap.Update();
-            }
         }
         
         protected override void OnUpdate()

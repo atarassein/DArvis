@@ -815,10 +815,11 @@ namespace DArvis.Views
 
                     var x = new DynamicMemoryVariable("MapX", 0x882E68, 0, 0, 0, [0x23C]);
                     x.TryReadInt32(reader, out var playerX);
-                    player.Location.X = playerX;
                     
                     var y = new DynamicMemoryVariable("MapY", 0x882E68, 0, 0, 0, [0x238]);
                     y.TryReadInt32(reader, out var playerY);
+                    player.Location.Point = new Point(playerX, playerY);
+                    player.Location.X = playerX;
                     player.Location.Y = playerY;
                 }
 
