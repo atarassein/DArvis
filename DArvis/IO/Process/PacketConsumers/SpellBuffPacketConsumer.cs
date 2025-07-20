@@ -5,15 +5,15 @@ namespace DArvis.IO.Process.PacketConsumers;
 
 public class SpellBuffPacketConsumer : PacketConsumer
 {
-    //Packet.PacketType.SpellBuffExpiration;
+    //Packet.Event.SpellBuffExpiration;
     public override bool CanConsume(ServerPacket serverPacket)
     {
-        var objectPacketTypes = new[]
+        var objectEvents = new[]
         {
-            ServerPacket.PacketType.SpellBuffExpiration,
+            ServerPacket.ServerEvent.SpellBuffExpiration,
         };
         
-        return objectPacketTypes.Contains(serverPacket.Type);
+        return objectEvents.Contains(serverPacket.EventType);
     }
 
     public override void ProcessPacket(ServerPacket serverPacket)

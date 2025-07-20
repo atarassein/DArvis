@@ -9,10 +9,10 @@ public class PlayerActionPacketConsumer : PacketConsumer
     {
         var types = new[]
         {
-            ServerPacket.PacketType.PlayerAnimation,
+            ServerPacket.ServerEvent.PlayerAnimation,
         };
         
-        return types.Contains(serverPacket.Type);
+        return types.Contains(serverPacket.EventType);
     }
 
     public override void ProcessPacket(ServerPacket serverPacket)

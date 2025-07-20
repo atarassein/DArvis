@@ -8,27 +8,27 @@ public class PlayerMovementPacketConsumer : PacketConsumer
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {
-        var playerMovementPacketTypes = new[]
+        var playerMovementEvents = new[]
         {
-            ServerPacket.PacketType.PlayerMoved,
-            ServerPacket.PacketType.PlayerChangedDirection,
-            ServerPacket.PacketType.PlayerLocationChanged
+            ServerPacket.ServerEvent.PlayerMoved,
+            ServerPacket.ServerEvent.PlayerChangedDirection,
+            ServerPacket.ServerEvent.PlayerLocationChanged
         };
         
-        return playerMovementPacketTypes.Contains(serverPacket.Type);
+        return playerMovementEvents.Contains(serverPacket.EventType);
     }
 
     public override void ProcessPacket(ServerPacket serverPacket)
     {
-        switch (serverPacket.Type)
+        switch (serverPacket.EventType)
         {
-            case ServerPacket.PacketType.PlayerMoved:
+            case ServerPacket.ServerEvent.PlayerMoved:
                 HandlePlayerMovement(serverPacket);
                 break;
-            case ServerPacket.PacketType.PlayerChangedDirection:
+            case ServerPacket.ServerEvent.PlayerChangedDirection:
                 HandlePlayerDirectionChange(serverPacket);
                 break;
-            case ServerPacket.PacketType.PlayerLocationChanged:
+            case ServerPacket.ServerEvent.PlayerLocationChanged:
                 HandlePlayerLocationChange(serverPacket);
                 break;
         }

@@ -20,7 +20,7 @@ public class GameActions
     public static void Refresh(Player player)
     {
         var data = new byte[] { 0x38, 0x00, 0x38 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
         
         PacketManager.InjectPacket(packet);
     }
@@ -28,7 +28,7 @@ public class GameActions
     public static void Assail(Player player)
     {
         var data = new byte[] { 0x13, 0x01 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
         
         PacketManager.InjectPacket(packet);
     }
@@ -36,7 +36,7 @@ public class GameActions
     public static void UseInventorySlot(Player player, byte slot)
     {
         var data = new byte[] { 0x1C, slot, 0x00 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
         
         PacketManager.InjectPacket(packet);
     }
@@ -44,7 +44,7 @@ public class GameActions
     public static void BeginSpell(Player player, byte SpellLines)
     {
         var data = new byte[] { 0x4D, SpellLines, 0x00 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
 
         PacketManager.InjectPacket(packet);
     }
@@ -52,7 +52,7 @@ public class GameActions
     public static void EndSpell(Player player, byte slot)
     {
         var data = new byte[] { 0x0F, slot, 0x00 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
 
         PacketManager.InjectPacket(packet);
     }
@@ -67,7 +67,7 @@ public class GameActions
         }
         data.Add(0x00);
         var byteData = data.ToArray();
-        var packet = new ServerPacket(byteData, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(byteData, player);
 
         PacketManager.InjectPacket(packet);
     }
@@ -75,7 +75,7 @@ public class GameActions
     public static async Task Face(Player player, Direction direction)
     {
         var data = new byte[] { 0x11, (byte)direction, 0x00 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
 
         PacketManager.InjectPacket(packet);
 
@@ -85,7 +85,7 @@ public class GameActions
     public static void RequestProfile(Player player)
     {
         var data = new byte[] { 0x2D, 0x00 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
 
         PacketManager.InjectPacket(packet);
     }
@@ -162,7 +162,7 @@ public class GameActions
     {
         player.WalkOrdinal = (player.WalkOrdinal + 1);
         var data = new byte[] { 0x06, (byte)dir, (byte)player.WalkOrdinal, 0x00, 0x06 };
-        var packet = new ServerPacket(data, ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data, player);
         PacketManager.InjectPacket(packet);
     }
 
@@ -206,7 +206,7 @@ public class GameActions
         data.Add((byte)dir);
         data.Add(0x00);
         
-        var packet = new ServerPacket(data.ToArray(), ServerPacket.PacketSource.Client, player);
+        var packet = new ClientPacket(data.ToArray(), player);
         PacketManager.InjectPacket(packet);
         Thread.Sleep(WalkSpeed);
     }

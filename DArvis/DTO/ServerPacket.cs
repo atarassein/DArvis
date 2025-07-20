@@ -7,155 +7,23 @@ using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.DTO;
 
-public class ServerPacket(byte[] data, ServerPacket.PacketSource source, Player player)
+public class ServerPacket(byte[] data, Player player) : Packet<ServerPacket.ServerEvent>(data, player)
 {
-    public class PacketBuffer
-    {
-        public byte[] Data;
-        public int bufferIndex = 1; // Start at 1 to skip the packet type byte
-        
-        public PacketBuffer(byte[] data)
-        {
-            Data = data;
-        }
-
-        public void resetBuffer()
-        {
-            bufferIndex = 1;
-        }
-        
-        public byte ReadByte()
-        {
-            if (bufferIndex < Data.Length)
-            {
-                return Data[bufferIndex++];
-            }
-            throw new IndexOutOfRangeException("Packet does not contain expected byte");
-        }
-        
-        public short ReadInt16()
-        {
-            if (bufferIndex + 1 < Data.Length)
-            {
-                return (short)(Data[bufferIndex++] << 8 | Data[bufferIndex++]);
-            }
-            throw new IndexOutOfRangeException("Packet does not contain expected Int16");
-        }
-        
-        public ushort ReadUInt16()
-        {
-            if (bufferIndex + 1 < Data.Length)
-            {
-                return (ushort)(Data[bufferIndex++] << 8 | Data[bufferIndex++]);
-            }
-            throw new IndexOutOfRangeException("Packet does not contain expected UInt16");
-        }
-        
-        public int ReadInt32()
-        {
-            if (bufferIndex + 3 < Data.Length)
-            {
-                return Data[bufferIndex++] << 24 | Data[bufferIndex++] << 16 | Data[bufferIndex++] << 8 |
-                       Data[bufferIndex++];
-            }
-            throw new IndexOutOfRangeException("Packet does not contain expected Int32");
-        }
-        
-        public string ReadString(int length)
-        {
-            if (bufferIndex + (length - 1) < Data.Length)
-            {
-                var buffer = new byte[length];
-                System.Buffer.BlockCopy(Data, bufferIndex, buffer, 0, length);
-                bufferIndex += length;
-                return Encoding.GetEncoding(949).GetString(buffer);
-            }
-            throw new IndexOutOfRangeException("Packet does not contain expected string of length " + length);
-        }
-        
-        public string ReadString8()
-        {
-            var length = ReadByte();
-            return ReadString(length);
-        }
-    }
-    
-    public byte[] Data { get; set; } = data;
-
-    public PacketBuffer Buffer
-    {
-        get
-        {
-            return new PacketBuffer(data);
-        }
-    }
-
-    public PacketSource Source { get; set; } = source;
-
-    private PacketType _type;
     
     public bool Handled = false;
     
-    public PacketType Type
-    {
-        get
-        {
-            if (Data.Length == 0)
-                return PacketType.Unknown;
-
-            if (Enum.IsDefined(typeof(PacketType), (int)Data[0]))
-                return (PacketType)Data[0];
-
-            return PacketType.Unknown;
-        }
-        set
-        {
-            
-        }
-    }
     
     public Player Player { get; set; } = player;
-    
-    public int ReadInt16(int start = 0)
-    {
-        if (start + 1 > Data.Length)
-            throw new IndexOutOfRangeException();
-        
-        return Data[start] << 8 | Data[++start];
-    }
-    
-    public int ReadInt32(int start = 0)
-    {
-        if (start + 3 > Data.Length)
-            throw new IndexOutOfRangeException();
-        
-        return Data[start] << 24 | Data[++start] << 16 | Data[++start] << 8 | Data[++start];
-    }
-    
-    public string ReadString8(int start = 0)
-    {
-        var length = Data[start];
-        return ReadString(++start, length);
-    }
-    
-    public string ReadString(int start = 0, int length = 0)
-    {
-        if (start + length > Data.Length)
-            throw new IndexOutOfRangeException();
-        
-        var buffer = new byte[length];
-        System.Buffer.BlockCopy(Data, start, buffer, 0, length);
-        return Encoding.GetEncoding(949).GetString(buffer);
-    }
-    
+    protected override ServerEvent GetUnknownEvent() => ServerEvent.Unknown;
+
     public override string ToString()
     {
         var player = Player.Name == null ? Player.Process.ProcessId.ToString() : Player.Name;
         var packetIdBytes = BitConverter.GetBytes(Player.PacketId).Reverse().ToArray();
-        var playerId = Player.PacketId == 0 ? "N/A" : BitConverter.ToString(packetIdBytes);
+        var playerId = Player.PacketId == 0 ? "00-00-00-00" : BitConverter.ToString(packetIdBytes);
 
         var packetData = BitConverter.ToString(Data);
-        var packetString = $"[{Source}] ({player} : {playerId}) {packetData}";
+        var packetString = $" ←s [{player,-12}][{playerId}] {packetData}";
         if (packetData.Contains(playerId))
         {
             packetString = packetString.Replace(playerId, ConsoleOutputExtension.ColorText(playerId, ConsoleColor.Blue));
@@ -164,14 +32,7 @@ public class ServerPacket(byte[] data, ServerPacket.PacketSource source, Player 
         return packetString;
     }
     
-    public enum PacketSource    
-    {
-        Unknown = 0,
-        Server = 1,
-        Client = 2
-    }
-
-    public enum PacketType
+    public enum ServerEvent
     {
         Unknown = -1,
         UnknownPacket00 = 0x00,

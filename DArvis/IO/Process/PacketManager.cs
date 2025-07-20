@@ -2,8 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -17,6 +15,13 @@ using Path = System.IO.Path;
 
 namespace DArvis.IO.Process
 {
+    enum PacketSource
+    {
+        Unknown = 0,
+        Server = 1,
+        Client = 2
+    }
+    
     public sealed class PacketManager
     {
         private static readonly PacketManager instance = new PacketManager();
@@ -30,7 +35,7 @@ namespace DArvis.IO.Process
         private static readonly object DispatcherLock = new();
         private static bool IsDispatching = false;
         
-        private readonly ConcurrentQueue<ServerPacket> ServerPacketInjectionQueue = new();
+        private readonly ConcurrentQueue<Packet> ServerPacketInjectionQueue = new();
         private static readonly object ServerInjectionLock = new();
         private static bool IsInjectingToServer = false;
         
@@ -169,7 +174,7 @@ namespace DArvis.IO.Process
     
             var data = new byte[ptr.CbData];
             var typeData = (int)ptr.DwData;
-            var source = ServerPacket.PacketSource.Unknown;
+            var source = PacketSource.Unknown;
             var id = wParam.ToInt32();
             
             Marshal.Copy(ptr.LpData, data, 0, ptr.CbData); // Copy from unmanaged memory
@@ -179,33 +184,28 @@ namespace DArvis.IO.Process
                 return IntPtr.Zero;
             }
             
-            if (Enum.IsDefined(typeof(ServerPacket.PacketSource), typeData))
+            if (Enum.IsDefined(typeof(PacketSource), typeData))
             {
-                source = (ServerPacket.PacketSource)typeData;
+                source = (PacketSource)typeData;
             }
             
-            var packet = new ServerPacket(data, source, player);
-            if (packet.Source == ServerPacket.PacketSource.Server)
+            if (source == PacketSource.Server)
             {
-                //Console.WriteLine(packet);
+                var packet = new ServerPacket(data, player);
                 ServerPacketQueue.Enqueue(packet);
             }
 
-            if (packet.Source == ServerPacket.PacketSource.Client)
-            {
-                 Console.WriteLine(packet);
-            }
             DispatchPackets();
 
             handled = true;
             return IntPtr.Zero;
         }
 
-        public static void InjectPacket(DTO.ServerPacket serverPacket)
+        public static void InjectPacket(Packet packet)
         {
-            if (serverPacket.Source == DTO.ServerPacket.PacketSource.Client)
+            if (packet is ClientPacket)
             {
-                Instance.ServerPacketInjectionQueue.Enqueue(serverPacket);
+                Instance.ServerPacketInjectionQueue.Enqueue(packet);
             }
 
             Instance.ProcessOutgoingPackets();

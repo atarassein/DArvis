@@ -12,29 +12,29 @@ public class MapPacketConsumer : PacketConsumer
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {
-        var objectPacketTypes = new[]
+        var objectEvents = new[]
         {
-            ServerPacket.PacketType.MapChanged,
-            ServerPacket.PacketType.MapData,
-            ServerPacket.PacketType.AislingAdded,
-            ServerPacket.PacketType.EntitiesAdded,
-            ServerPacket.PacketType.EntityMoved,
-            ServerPacket.PacketType.EntityRemoved,
+            ServerPacket.ServerEvent.MapChanged,
+            ServerPacket.ServerEvent.MapData,
+            ServerPacket.ServerEvent.AislingAdded,
+            ServerPacket.ServerEvent.EntitiesAdded,
+            ServerPacket.ServerEvent.EntityMoved,
+            ServerPacket.ServerEvent.EntityRemoved,
         };
         
-        return objectPacketTypes.Contains(serverPacket.Type);
+        return objectEvents.Contains(serverPacket.EventType);
     }
 
     public override void ProcessPacket(ServerPacket serverPacket)
     {
-        if (serverPacket.Type == ServerPacket.PacketType.MapData)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.MapData)
         {
             // We don't need to do anything with MapData packets since we get map data from files
             serverPacket.Handled = true;
             return;
         }
 
-        if (serverPacket.Type == ServerPacket.PacketType.MapChanged)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.MapChanged)
         {
             HandleMapChange(serverPacket);
         }
@@ -45,22 +45,22 @@ public class MapPacketConsumer : PacketConsumer
             return;
         }
         
-        if (serverPacket.Type == ServerPacket.PacketType.AislingAdded)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.AislingAdded)
         {
             HandleAislingAdded(serverPacket);
         }
 
-        if (serverPacket.Type == ServerPacket.PacketType.EntitiesAdded)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.EntitiesAdded)
         {
             HandleEntitiesAdded(serverPacket);
         }
         
-        if (serverPacket.Type == ServerPacket.PacketType.EntityMoved)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.EntityMoved)
         {
             HandleEntityMoved(serverPacket);
         }
 
-        if (serverPacket.Type == ServerPacket.PacketType.EntityRemoved)
+        if (serverPacket.EventType == ServerPacket.ServerEvent.EntityRemoved)
         {
             HandleEntityRemoved(serverPacket);
         }

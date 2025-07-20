@@ -8,18 +8,19 @@ public class ChatPacketConsumer : PacketConsumer
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {
-        return serverPacket.Type == ServerPacket.PacketType.Chat ||
-               serverPacket.Type == ServerPacket.PacketType.Message;
+        
+        return serverPacket.EventType == ServerPacket.ServerEvent.Chat ||
+               serverPacket.EventType == ServerPacket.ServerEvent.Message;
     }
 
     public override void ProcessPacket(ServerPacket serverPacket)
     {
-        switch (serverPacket.Type)
+        switch (serverPacket.EventType)
         {
-            case ServerPacket.PacketType.Chat:
+            case ServerPacket.ServerEvent.Chat:
                 HandleChatMessage(serverPacket);
                 break;
-            case ServerPacket.PacketType.Message:
+            case ServerPacket.ServerEvent.Message:
                 HandleWhisperMessage(serverPacket);
                 break;
         }
