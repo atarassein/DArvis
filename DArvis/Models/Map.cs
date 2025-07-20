@@ -19,7 +19,8 @@ public enum TileFlags
 public class Map: UpdatableObject
 {
     private readonly object _lock = new();
-    private int[,] _terrain;
+
+    public int[,] Terrain { get; }
 
     public ConcurrentDictionary<int, MapEntity> BlockingEntities;
     public ConcurrentDictionary<int, MapEntity> PassableEntities;
@@ -45,7 +46,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            _terrain = terrain;
+            Terrain = terrain;
         }
     }
 
@@ -65,7 +66,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            return _terrain[x, y];
+            return Terrain[x, y];
         }
     }
     
@@ -76,7 +77,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            _terrain[x, y] = value;
+            Terrain[x, y] = value;
         }
     }
     
@@ -186,10 +187,10 @@ public class Map: UpdatableObject
         };
         var end = new PathNode
         {
-            Position = Owner.Leader.Breadcrumb ?? new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
+            Position = Owner.Leader.Breadcrumbs[Owner.Location.MapNumber] ?? new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
             Direction = Owner.Leader.Location.Direction
         };
-        var pathToLeader = PathFinder.FindPath(start, end, _terrain);
+        var pathToLeader = PathFinder.FindPath(start, end, Terrain);
         
         int[,] pathGrid = new int[Attributes.Width, Attributes.Height];
         foreach (var step in pathToLeader)
@@ -309,8 +310,8 @@ public class Map: UpdatableObject
                 for (int y = 0; y < height; y++)
                 {
                     // Keep original walls (value 1), clear everything else to 0
-                    var hasOriginalWall = (_terrain[x, y] & (int)TileFlags.Wall) != 0;
-                    _terrain[x, y] = hasOriginalWall ? (int)TileFlags.Wall : 0;
+                    var hasOriginalWall = (Terrain[x, y] & (int)TileFlags.Wall) != 0;
+                    Terrain[x, y] = hasOriginalWall ? (int)TileFlags.Wall : 0;
                 }
             }
 
@@ -319,7 +320,7 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.BlockingEntity;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.BlockingEntity;
                 }
             }
 
@@ -328,7 +329,7 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.PassableEntity;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.PassableEntity;
                 }
             }
 
@@ -337,7 +338,7 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
                 }
             }
 
@@ -346,10 +347,6 @@ public class Map: UpdatableObject
                 //Console.WriteLine(this);
             }
 
-            if (Owner.Name == "AmorFati")
-            {
-                Console.WriteLine(this);
-            }
             IsUpdating = false;
         }
     }

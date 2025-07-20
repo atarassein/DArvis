@@ -29,6 +29,8 @@ namespace DArvis.Models
         private MapLocationAttributes attributes;
         private int x;
         private int y;
+        private int mapNumber;
+        private string mapName;
         private Direction direction;
         private string mapHash;
         private Map? _currentMap;
@@ -44,21 +46,46 @@ namespace DArvis.Models
         public MapLocationAttributes Attributes
         {
             get => attributes;
-            set => SetProperty(ref attributes, value, onChanging: OnAttributesChanging, onChanged: OnMapAttributesChanged);
+            set => SetProperty(ref attributes, value, onChanged: OnMapAttributesChanged);
+        }
+        
+        public int X
+        {
+            get => x;
+            set => SetProperty(ref x, value, onChanged: OnPlayerPositionChanged);
         }
 
-        public void OnAttributesChanging(MapLocationAttributes newLocation)
+        public int Y
+        {
+            get => y;
+            set => SetProperty(ref y, value, onChanged: OnPlayerPositionChanged);
+        }
+
+        public int MapNumber
+        {
+            get => mapNumber;
+            set => SetProperty(ref mapNumber, value, onChanging: OnMapNumberChanging);
+        }
+        
+        public string MapName
+        {
+            get => mapName;
+            set => SetProperty(ref mapName, value);
+        }
+        
+        public void OnMapNumberChanging(int mapNumber)
         {
             // When the current map changes the Player object location coordinates are still at their
             // previous values. We can take advantage of the delay between the map change and the 
             // Player position update to drop a breadcrumb at the previous map so followers know where to go.
             
-            if (Owner.Follower != null && Owner.Follower?.Location?.Attributes?.MapNumber != null
-                                       && newLocation.MapNumber != Owner.Follower.Location.Attributes.MapNumber)
+            if (Owner.Follower != null && Owner.Follower?.Location?.MapNumber != null
+                                       && mapNumber != Owner.Follower.Location.MapNumber)
             {
-                var oldX = Owner.Location.X;
-                var oldY = Owner.Location.Y;
-                var oldDir = Owner.Location.Direction;
+                Console.WriteLine("map number changed from {0} to {1} for {2}", MapNumber, mapNumber, Owner.Name);
+                var oldX = x;
+                var oldY = y;
+                var oldDir = direction;
 
                 switch (oldDir)
                 {
@@ -85,31 +112,29 @@ namespace DArvis.Models
                 }
                 
                 // Drop a breadcrumb at the previous map location
-                Owner.Breadcrumb = new Point(oldX, oldY);
+                Owner.Breadcrumbs[MapNumber] = new Point(oldX, oldY);
                 
+                Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
             }
         }
+
         
-        public int X
-        {
-            get => x;
-            set => SetProperty(ref x, value, onChanged: OnPlayerPositionChanged);
-        }
-
-        public int Y
-        {
-            get => y;
-            set => SetProperty(ref y, value, onChanged: OnPlayerPositionChanged);
-        }
-
         public Direction Direction
         {
             get => direction;
             set => SetProperty(ref direction, value);
         }
 
+        public Point Point => new(X, Y);
+
+        public PathNode PathNode => new PathNode
+        {
+            Position = Point,
+            Direction = Direction,
+        };
+        
         public string MapHash
         {
             get => mapHash;
@@ -179,6 +204,7 @@ namespace DArvis.Models
         
         private void OnPlayerPositionChanged(int newValue)
         {
+            Console.WriteLine($"{Owner.Name} @ ({X}, {Y}) on map ({MapNumber})");
             if (CurrentMap == null)
                 return;
             
@@ -197,7 +223,7 @@ namespace DArvis.Models
         
         protected override void OnUpdate()
         {
-            return; // No need to update this object periodically, it will be updated based on packets received.
+            return;
             var version = Owner.Version;
 
             if (version == null)
@@ -226,6 +252,8 @@ namespace DArvis.Models
             else
                 Y = 0;
 
+            if (Owner.Name == "AmorFati")
+                Console.WriteLine(Owner.Name + " is at map " + Attributes.MapNumber + " @ (" + X + "," + Y + ")");
             if (mapNameVariable != null && mapNameVariable.TryReadString(reader, out var mapName))
                 Attributes.MapName = mapName;
             else

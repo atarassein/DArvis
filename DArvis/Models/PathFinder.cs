@@ -231,9 +231,7 @@ public class PathNode
     public float GScore { get; set; }
     public float HScore { get; set;  } 
     public float FScore => GScore + HScore;
-    
     public PathNode? Previous { get; set; }
-    
     public PathNode? Next { get; set; }
 }
 

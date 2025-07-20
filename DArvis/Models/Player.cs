@@ -109,30 +109,17 @@ namespace DArvis.Models
 
             return false;
         }
-        private ConcurrentDictionary<int, Point> _breadcrumbs = new();
-        public Point? Breadcrumb
-        {
-            get
-            {
-                if (Follower?.Location?.CurrentMap?.Attributes?.MapNumber == null) return null;
-                
-                var followerMapNumber = Follower.Location.CurrentMap.Attributes.MapNumber;
-                
-                if (_breadcrumbs.TryGetValue(followerMapNumber, out var breadCrumb))
-                    return breadCrumb;
 
-                return null;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    _breadcrumbs = new ConcurrentDictionary<int, Point>();
-                    
-                }
-                
-                _breadcrumbs.AddOrUpdate(Location.Attributes.MapNumber, value.Value, (_, _) => value.Value);
-            }
+        public ConcurrentDictionary<int, Point?> _breadcrumbs;
+
+        public ConcurrentDictionary<int, Point?> Breadcrumbs
+        {
+            get => _breadcrumbs ??= new ConcurrentDictionary<int, Point?>();
+        }
+
+        public bool TryGetBreadcrumb(int key, out Point? value)
+        {
+            return Breadcrumbs.TryGetValue(key, out value);
         }
         
         public ClientState GameClient => gameClient;
@@ -344,7 +331,7 @@ namespace DArvis.Models
             if (otherPlayer?.Location.CurrentMap == null) return false;
             if (Location.CurrentMap == null) return false;
             
-            return Location.CurrentMap.Attributes.MapNumber == otherPlayer.Location.CurrentMap.Attributes.MapNumber;
+            return Location.MapNumber == otherPlayer.Location.MapNumber;
         }
         
         private void OnLoggedIn()
