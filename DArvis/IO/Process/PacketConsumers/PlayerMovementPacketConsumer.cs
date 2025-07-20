@@ -38,8 +38,9 @@ public class PlayerMovementPacketConsumer : PacketConsumer
     {
         var playerMoved = new PlayerMoved(packet);
         var player = packet.Player;
-        player.Location.X = playerMoved.X;
-        player.Location.Y = playerMoved.Y;
+        // these values will be updated from memory
+        //player.Location.X = playerMoved.X;
+        //player.Location.Y = playerMoved.Y;
         player.Location.Direction = playerMoved.Direction;
         packet.Handled = true;
     }
@@ -58,9 +59,10 @@ public class PlayerMovementPacketConsumer : PacketConsumer
 
     private void HandlePlayerLocationChange(Packet packet)
     {
-        var playerChangedLocation = new PlayerChangedLocation(packet);
-        packet.Player.Location.X = playerChangedLocation.X;
-        packet.Player.Location.Y = playerChangedLocation.Y;
+        //var playerChangedLocation = new PlayerChangedLocation(packet);
+        // these values will be updated from memory
+        //packet.Player.Location.X = playerChangedLocation.X;
+        //packet.Player.Location.Y = playerChangedLocation.Y;
         packet.Handled = true;
     }
 }

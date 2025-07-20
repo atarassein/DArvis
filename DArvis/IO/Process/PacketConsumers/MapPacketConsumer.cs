@@ -39,10 +39,10 @@ public class MapPacketConsumer : PacketConsumer
             HandleMapChange(packet);
         }
 
-        if (packet.Player.Location.CurrentMap == null)
+        if (!packet.Player.NeedsMapData())
         {
             packet.Handled = true;
-            return; // No map to process any other packet on
+            return;
         }
         
         if (packet.Type == Packet.PacketType.AislingAdded)
@@ -85,6 +85,13 @@ public class MapPacketConsumer : PacketConsumer
     private void HandleAislingAdded(Packet packet)
     {
         var aisling = new AislingEntityAdded(packet);
+        if (packet.Player.Leader != null && aisling.Entity.Serial == packet.Player.Leader.PacketId)
+        {
+            // The leader will handle its own tracking for us.
+            packet.Handled = true;
+            return;
+        }
+        
         if (aisling.Entity.Serial == packet.Player.PacketId)
         {
             packet.Handled = true;
@@ -102,6 +109,7 @@ public class MapPacketConsumer : PacketConsumer
         // var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
         // Console.WriteLine($"{added}    " + packet);
         var entities = new EntitiesAdded(packet);
+        
         packet.Player.Location.CurrentMap.AddEntities(entities.Entities);
         packet.Handled = true;
     }
@@ -109,6 +117,13 @@ public class MapPacketConsumer : PacketConsumer
     private void HandleEntityMoved(Packet packet)
     {
         var entityMoved = new EntityMoved(packet);
+        if (packet.Player.Leader != null && entityMoved.Serial == packet.Player.Leader.PacketId)
+        {
+            // The leader will handle its own tracking for us.
+            packet.Handled = true;
+            return;
+        }
+        
         var prevX = entityMoved.PreviousX;
         var prevY = entityMoved.PreviousY;
         var newX = entityMoved.X;
@@ -125,6 +140,13 @@ public class MapPacketConsumer : PacketConsumer
     private void HandleEntityRemoved(Packet packet)
     {
         var entityRemoved = new EntityRemoved(packet);
+        if (packet.Player.Leader != null && entityRemoved.Serial == packet.Player.Leader.PacketId)
+        {
+            // The leader will handle its own tracking for us.
+            packet.Handled = true;
+            return;
+        }
+        
         packet.Player.Location.CurrentMap.RemoveEntityBySerial(entityRemoved.Serial);
         // var removed = ConsoleOutputExtension.ColorText("ENTITY REMOVED", ConsoleColor.Red);
         // Console.WriteLine($"{removed}  " + packet);

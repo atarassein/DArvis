@@ -796,6 +796,41 @@ namespace DArvis.Views
 
         private void StartClientUpdate()
         {
+            var positionUpdateWorker = new BackgroundWorker();
+            positionUpdateWorker.DoWork += (sender, e) =>
+            {
+                var players = PlayerManager.Instance.VisiblePlayers;
+                foreach (var player in players)
+                {
+                    var stream = player.Accessor.GetStream();
+                    var reader = new BinaryReader(stream, Encoding.ASCII);
+                    
+                    var mapNumberVar = new DynamicMemoryVariable("MapNumber", 0x882E68, 0, 0, 0, [0x26C]);
+                    mapNumberVar.TryReadInt32(reader, out var mapNumber);
+                    player.Location.MapNumber = mapNumber;
+
+                    var mapNameVar = new DynamicMemoryVariable("MapName", 0x82B76C, 32, 0, 0, [0x4E3C]);
+                    mapNameVar.TryReadString(reader, out var mapName);
+                    player.Location.MapName = mapName;
+
+                    var x = new DynamicMemoryVariable("MapX", 0x882E68, 0, 0, 0, [0x23C]);
+                    x.TryReadInt32(reader, out var playerX);
+                    
+                    var y = new DynamicMemoryVariable("MapY", 0x882E68, 0, 0, 0, [0x238]);
+                    y.TryReadInt32(reader, out var playerY);
+                    player.Location.Point = new Point(playerX, playerY);
+                    player.Location.X = playerX;
+                    player.Location.Y = playerY;
+                }
+                Thread.Sleep(10);
+
+            };
+            positionUpdateWorker.RunWorkerCompleted += (sender, e) =>
+            {
+                positionUpdateWorker.RunWorkerAsync();
+            };
+            positionUpdateWorker.RunWorkerAsync();
+            
             clientUpdateWorker = new BackgroundWorker
             {
                 WorkerSupportsCancellation = true
@@ -804,10 +839,10 @@ namespace DArvis.Views
             clientUpdateWorker.DoWork += (sender, e) =>
             {
                 var delayTime = (TimeSpan)e.Argument;
-
                 if (delayTime > TimeSpan.Zero)
                     Thread.Sleep(delayTime);
 
+                LastUpdate = DateTime.Now;
                 PlayerManager.Instance.UpdateClients();
             };
 
@@ -1906,9 +1941,19 @@ namespace DArvis.Views
 
                 if (selectedMacro.Client.Leader == null && selectedItem.IsNone)
                     return;
-                        
-                selectedMacro.Client.Leader = selectedItem.IsNone ? null : selectedItem.Player;
-                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedItem.DisplayName);
+
+                if (selectedItem.IsNone)
+                {
+                    selectedMacro.Client.Leader.Follower = null;
+                    selectedMacro.Client.Leader = null;
+                    return;
+                }
+                
+                selectedMacro.Client.Leader = selectedItem.Player;
+                selectedItem.Player.Follower = selectedMacro.Client;
+                
+                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedMacro.Client.Leader.Name);
+                Console.WriteLine(selectedItem.Player + " is leading " + selectedItem.Player.Follower.Name);
             }
         }
         

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Binarysharp.MemoryManagement;
 using DArvis.DTO;
 using DArvis.IO.Process;
@@ -71,14 +72,13 @@ public class GameActions
         PacketManager.InjectPacket(packet);
     }
 
-    public static void Face(Player player, Direction direction)
+    public static async Task Face(Player player, Direction direction)
     {
         var data = new byte[] { 0x11, (byte)direction, 0x00 };
         var packet = new Packet(data, Packet.PacketSource.Client, player);
 
         PacketManager.InjectPacket(packet);
-     
-        // TODO: Not sure if it's wise to set this here, maybe this should only be set when the server responds
+
         player.Location.Direction = direction;
     }
 
@@ -125,20 +125,28 @@ public class GameActions
         SendMessage((int)memory.Windows.MainWindowHandle, WM_COPYDATA, 0, ref cds);
     }
     
-    public static void Walk(Player player, Direction dir, int throttleMs = 50)
+    public static async Task WalkAsync(Player player, Direction dir)
     {
-        if ((DateTime.Now - player.LastWalkCommand).TotalMilliseconds > throttleMs)
+        if (dir != player.Location.Direction)
         {
-            if (dir != player.Location.Direction)
-            {
-                InjectWalk(player, dir);
-                player.Location.Direction = dir;
-                Thread.Sleep(throttleMs);
-            }
-            
+            Console.WriteLine("FACING NEW DIRECTION: " + dir);
             InjectWalk(player, dir);
-            player.LastWalkCommand = DateTime.Now;
+            player.Location.Direction = dir;
+            await Task.Delay(1);
         }
+            
+        InjectWalk(player, dir);
+    }    
+    
+    public static void Walk(Player player, Direction dir)
+    {
+        if (dir != player.Location.Direction)
+        {
+            Face(player, dir);
+            player.Location.Direction = dir;
+        }
+            
+        InjectWalk(player, dir);
     }
 
     #endregion

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using DArvis.Common;
+using DArvis.IO;
 using DArvis.Metadata;
 using DArvis.Models;
 using DArvis.Settings;
@@ -24,6 +25,20 @@ namespace DArvis.Macro
         private List<FlowerQueueItem> flowerQueue = new();
         private PlayerMacroStatus playerStatus;
 
+        private FollowTarget _followTarget;
+        private FollowTarget FollowTarget
+        {
+            get
+            {
+                if (_followTarget == null)
+                {
+                    _followTarget = new FollowTarget(this);
+                }
+
+                return _followTarget;
+            }
+        }
+        
         private int spellQueueIndex;
         private int flowerQueueIndex;
 
@@ -123,7 +138,10 @@ namespace DArvis.Macro
         }
 
         public PlayerMacroState(Player client)
-           : base(client) { }
+            : base(client)
+        {
+            _followTarget = new FollowTarget(this);
+        }
 
         public void AddToSpellQueue(SpellQueueItem spell, int index = -1)
         {
@@ -466,18 +484,12 @@ namespace DArvis.Macro
             }
         }
 
-        private bool DoFollowMacro()
+        private async void DoFollowMacro()
         {
-            if (client.Leader == null)
-                return false;
-            
-            var destination = client.Leader.Location;
-
-            if (client.Location.IsNearby(destination))
-                return true;
-            
-            //var path = client.Location.Path;
-            return true;
+            if (await _followTarget.ShouldWalk())
+            {
+                await _followTarget.Walk();
+            }
         }
         
         // Zolian feature!

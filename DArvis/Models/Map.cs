@@ -19,7 +19,8 @@ public enum TileFlags
 public class Map: UpdatableObject
 {
     private readonly object _lock = new();
-    private int[,] _terrain;
+
+    public int[,] Terrain { get; }
 
     public ConcurrentDictionary<int, MapEntity> BlockingEntities;
     public ConcurrentDictionary<int, MapEntity> PassableEntities;
@@ -27,6 +28,12 @@ public class Map: UpdatableObject
     
     public MapLocationAttributes Attributes;
     public Player Owner;
+    
+    private PathFinder? _pathFinder;
+    public PathFinder PathFinder
+    {
+        get { return _pathFinder ??= new PathFinder(); }
+    }
     
     private Map(Player player, MapLocationAttributes attributes, int[,] terrain)
     {
@@ -39,7 +46,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            _terrain = terrain;
+            Terrain = terrain;
         }
     }
 
@@ -59,7 +66,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            return _terrain[x, y];
+            return Terrain[x, y];
         }
     }
     
@@ -70,7 +77,7 @@ public class Map: UpdatableObject
         
         lock (_lock)
         {
-            _terrain[x, y] = value;
+            Terrain[x, y] = value;
         }
     }
     
@@ -111,6 +118,9 @@ public class Map: UpdatableObject
         else
             shouldUpdate = AddEntityToDict(entity, PassableEntities, deferUpdate);
 
+        if (!deferUpdate && shouldUpdate)
+            Update();
+        
         return shouldUpdate;
     }
     
@@ -167,22 +177,75 @@ public class Map: UpdatableObject
             Update();
         }
     }
+
+    public bool IsValidNodePath(PathNode[] path, int currentIndex)
+    {
+        
+        return true;
+    }
     
+    public PathNode[] calculatePathFindingNodes()
+    {
+        var start = new PathNode
+        {
+            Position = new Point(Owner.Location.X, Owner.Location.Y),
+            Direction = Owner.Location.Direction
+        };
+
+        if (Owner.Location.MapNumber == Owner.Leader?.Location.MapNumber)
+        {
+            var end = new PathNode
+            {
+                Position = new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
+                Direction = Owner.Leader.Location.Direction
+            };
+            
+            return PathFinder.FindPath(start, end, Terrain);
+        }
+
+        if (Owner.Leader.Breadcrumbs.TryGetValue(Owner.Location.MapNumber, out var breadcrumb))
+        {
+            return PathFinder.FindPath(start, breadcrumb, Terrain);
+        }
+
+        return [];
+    }
     public override string ToString()
     {
+        var pathGrid = new int[Attributes.Width,Attributes.Height];
+        if (Owner.Leader != null)
+        {
+            var pathNodes = calculatePathFindingNodes();
+            foreach (var step in pathNodes)
+            {
+                pathGrid[(int)step.Position.X, (int)step.Position.Y] = 1;
+            }
+        }
+        
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
         for (short i = 0; i < Attributes.Height; i++)
         {
             for (short j = 0; j < Attributes.Width; j++)
             {
+                
                 if (Owner.Location.X == j && Owner.Location.Y == i)
                 {
                     result += "O";
                     continue;
                 }
+
+                if (Owner.IsOnSameMapAs(Owner.Leader) && Owner.Leader.Location.X == j && Owner.Leader.Location.Y == i)
+                {
+                    result += "L";
+                    continue;
+                }
                 
-                // check if the coordinate has monster flag set
-                // if tile has a monster then print it as "M"
+                if (pathGrid[j, i] == 1)
+                {
+                    result += ".";
+                    continue;
+                }
+                
                 if (HasPassableEntity(j, i))
                 {
                     result += "~";
@@ -242,6 +305,8 @@ public class Map: UpdatableObject
         return (GetGridValue(x, y) & (int)TileFlags.Item) != 0;
     }
 
+
+    
     private bool IsUpdating = false;
     protected override void OnUpdate()
     {
@@ -260,8 +325,8 @@ public class Map: UpdatableObject
                 for (int y = 0; y < height; y++)
                 {
                     // Keep original walls (value 1), clear everything else to 0
-                    var hasOriginalWall = (_terrain[x, y] & (int)TileFlags.Wall) != 0;
-                    _terrain[x, y] = hasOriginalWall ? (int)TileFlags.Wall : 0;
+                    var hasOriginalWall = (Terrain[x, y] & (int)TileFlags.Wall) != 0;
+                    Terrain[x, y] = hasOriginalWall ? (int)TileFlags.Wall : 0;
                 }
             }
 
@@ -270,7 +335,7 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.BlockingEntity;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.BlockingEntity;
                 }
             }
 
@@ -279,7 +344,7 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.PassableEntity;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.PassableEntity;
                 }
             }
 
@@ -288,10 +353,15 @@ public class Map: UpdatableObject
             {
                 if (IsValidCoordinate(entity.X, entity.Y))
                 {
-                    _terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
+                    Terrain[entity.X, entity.Y] |= (int)TileFlags.Item;
                 }
             }
-            
+
+            if (Owner.Leader != null)
+            {
+                //Console.WriteLine(this);
+            }
+
             IsUpdating = false;
         }
     }

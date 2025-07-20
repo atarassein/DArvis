@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using System.Windows;
 using DArvis.Common;
 using DArvis.IO.Process;
 using DArvis.Macro;
@@ -22,7 +23,6 @@ namespace DArvis.Models
         private readonly Spellbook spellbook;
         private readonly PlayerStats stats;
         private readonly PlayerModifiers modifiers;
-        private readonly Map currentMap;
         private readonly MapLocation location;
 
         private readonly Stream stream;
@@ -35,6 +35,7 @@ namespace DArvis.Models
         private DateTime? loginTimestamp;
         private bool isLoggedIn;
         private string status;
+        private bool isWalking;
         private bool isMacroRunning;
         private bool isMacroPaused;
         private bool isMacroStopped;
@@ -43,8 +44,10 @@ namespace DArvis.Models
         private bool hasLyliacPlant;
         private bool hasLyliacVineyard;
         private bool hasFasSpiorad;
-        private Player leader;
-        private Player follower;
+        
+        private Player? _leader;
+        private Player? follower;
+        
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
         public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
@@ -75,16 +78,50 @@ namespace DArvis.Models
             set => SetProperty(ref packetId, value);
         }
         
-        public Player Leader
+        public Player? Leader
         {
-            get => leader;
-            set => SetProperty(ref leader, value);
+            get => _leader;
+            set => SetProperty(ref _leader, value, onChanged: leader => Location.Update());
         }
         
-        public Player Follower
+        public Player? Follower
         {
             get => follower;
             set => SetProperty(ref follower, value);
+        }
+
+        /// <summary>
+        /// Checks if the player needs map data to be loaded.
+        /// Current use cases: following a leader
+        /// </summary>
+        /// <returns></returns>
+        public bool NeedsMapData()
+        {
+            if (Location?.CurrentMap == null)
+            {
+                return false; // No map to populate with data
+            }
+            
+            if (Leader != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public ConcurrentDictionary<int, PathNode?> _lastPosition;
+
+        public ConcurrentDictionary<int, PathNode?> LastPosition
+        {
+            get => _lastPosition ??= new ConcurrentDictionary<int, PathNode?>();
+        }
+        
+        public ConcurrentDictionary<int, PathNode?> _breadcrumbs;
+
+        public ConcurrentDictionary<int, PathNode?> Breadcrumbs
+        {
+            get => _breadcrumbs ??= new ConcurrentDictionary<int, PathNode?>();
         }
         
         public ClientState GameClient => gameClient;
@@ -100,8 +137,6 @@ namespace DArvis.Models
         public PlayerStats Stats => stats;
 
         public PlayerModifiers Modifiers => modifiers;
-
-        public Map CurrentMap => currentMap;
         
         public MapLocation Location => location;
         
@@ -123,6 +158,12 @@ namespace DArvis.Models
             set => SetProperty(ref status, value);
         }
 
+        public bool IsWalking
+        {
+            get => isWalking;
+            set => SetProperty(ref isWalking, value);
+        }
+        
         public bool IsMacroRunning
         {
             get => isMacroRunning;
@@ -287,6 +328,19 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
+        public bool IsNearby(Player otherPlayer, int distance = 2)
+        {
+            if (!otherPlayer.IsDisposing && otherPlayer == null)
+                throw new ArgumentNullException(nameof(otherPlayer));
+
+            return Location.IsNearby(otherPlayer.Location, distance);
+        }
+        
+        public bool IsOnSameMapAs(Player otherPlayer)
+        {
+            return Location.MapNumber == otherPlayer.Location.MapNumber;
+        }
+        
         private void OnLoggedIn()
         {
             IsLoggedIn = true;

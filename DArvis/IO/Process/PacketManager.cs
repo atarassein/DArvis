@@ -13,6 +13,7 @@ using DArvis.IO.Process.PacketConsumers;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
+using Path = System.IO.Path;
 
 namespace DArvis.IO.Process
 {

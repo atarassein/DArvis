@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -7,6 +6,7 @@ using System.Xml.Serialization;
 using DArvis.Common;
 using DArvis.Macro;
 using DArvis.Models;
+using Path = System.IO.Path;
 
 namespace DArvis.Settings
 {
@@ -561,7 +561,7 @@ namespace DArvis.Settings
             SkipIntroVideo = true;
             NoWalls = false;
 
-            MapChangeAction = MacroAction.Stop;
+            MapChangeAction = MacroAction.None;
             CoordsChangeAction = MacroAction.None;
             UseShiftForMedeniaPane = true;
             PreserveUserPanel = true;
