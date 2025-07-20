@@ -6,14 +6,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Binarysharp.MemoryManagement;
+using DArvis.IO.Packet.Consumers.Server;
 using DArvis.DTO;
-using DArvis.IO.Process.PacketConsumers;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
 using Path = System.IO.Path;
 
-namespace DArvis.IO.Process
+namespace DArvis.IO.Packet
 {
     enum PacketSource
     {
@@ -31,11 +31,13 @@ namespace DArvis.IO.Process
         
         private readonly List<IPacketConsumer> consumers = new();
         
-        private readonly ConcurrentQueue<DTO.ServerPacket> ServerPacketQueue = new();
+        private readonly ConcurrentQueue<ServerPacket> ServerPacketQueue = new();
         private static readonly object DispatcherLock = new();
         private static bool IsDispatching = false;
         
-        private readonly ConcurrentQueue<Packet> ServerPacketInjectionQueue = new();
+        // private readonly ConcurrentQueue<ServerPacket> ServerPacketInjectionQueue = new();
+        
+        private readonly ConcurrentQueue<ClientPacket> ClientPacketInjectionQueue = new();
         private static readonly object ServerInjectionLock = new();
         private static bool IsInjectingToServer = false;
         
@@ -201,11 +203,18 @@ namespace DArvis.IO.Process
             return IntPtr.Zero;
         }
 
-        public static void InjectPacket(Packet packet)
+        public static void InjectPacket(DTO.Packet packet)
         {
-            if (packet is ClientPacket)
+            switch (packet) 
             {
-                Instance.ServerPacketInjectionQueue.Enqueue(packet);
+                case ServerPacket serverPacket:
+                    // Instance.ServerPacketInjectionQueue.Enqueue(serverPacket);
+                    break;
+                case ClientPacket clientPacket:
+                    Instance.ClientPacketInjectionQueue.Enqueue(clientPacket);
+                    break;
+                default:
+                    throw new ArgumentException("Unknown packet type");
             }
 
             Instance.ProcessOutgoingPackets();
@@ -247,7 +256,7 @@ namespace DArvis.IO.Process
                     
                     if (!packet.Handled)
                     {
-                        logger.LogWarn($"No consumer found for packet type: {packet.Type}");
+                        logger.LogWarn($"No consumer found for packet type: {packet.EventType}");
                         Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
                     }
                 }
@@ -272,7 +281,7 @@ namespace DArvis.IO.Process
                 if (IsInjectingToServer)
                     return;
 
-                if (!ServerPacketInjectionQueue.TryPeek(out var packet))
+                if (!ClientPacketInjectionQueue.TryPeek(out var packet))
                     return;
 
                 IsInjectingToServer = true;
@@ -281,9 +290,9 @@ namespace DArvis.IO.Process
             var packetInjector = new BackgroundWorker();
             packetInjector.DoWork += (sender, e) =>
             {
-                while (!ServerPacketInjectionQueue.IsEmpty)
+                while (!ClientPacketInjectionQueue.IsEmpty)
                 {
-                    ServerPacketInjectionQueue.TryDequeue(out var packet);
+                    ClientPacketInjectionQueue.TryDequeue(out var packet);
                     
                     var pId = packet.Player.Process.ProcessId;
                     var process = System.Diagnostics.Process.GetProcessById(pId);

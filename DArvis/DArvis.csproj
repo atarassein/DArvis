@@ -23,6 +23,9 @@
   <ItemGroup>
     <ResourceFiles Include="Resources\**\*" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IO\Packet\Consumers\Client\" />
+  </ItemGroup>
   <Target Name="CopyResourceContents" AfterTargets="Build">
     <Copy
       SourceFiles="@(ResourceFiles)"

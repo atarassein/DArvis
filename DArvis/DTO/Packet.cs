@@ -23,8 +23,6 @@ public abstract class Packet<TEventType>(byte[] data, Player player) : Packet(da
         }
     }
 
-    public override Enum Type => EventType;
-
     protected abstract TEventType GetUnknownEvent();
 }
 
@@ -106,19 +104,6 @@ public abstract class Packet(byte[] data, Player player)
     public byte[] Data { get; set; } = data;
 
     public PacketBuffer Buffer => new(data);
-        
-    public abstract Enum Type { get; }
-    
-    protected T GetPacketType<T>() where T : Enum
-    {
-        if (Data.Length == 0)
-            return default(T);
-
-        if (Enum.IsDefined(typeof(T), (int)Data[0]))
-            return (T)(object)Data[0];
-
-        return default(T);
-    }
     
     public int ReadInt16(int start = 0)
     {

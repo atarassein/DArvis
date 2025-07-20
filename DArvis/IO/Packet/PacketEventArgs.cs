@@ -1,7 +1,7 @@
 ﻿using System;
 using DArvis.DTO;
 
-namespace DArvis.IO;
+namespace DArvis.IO.Packet;
 
 public delegate void PacketEventHandler(object sender, PacketEventArgs e);
 

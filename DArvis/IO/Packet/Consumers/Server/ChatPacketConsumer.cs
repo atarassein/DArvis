@@ -2,7 +2,7 @@
 using System.Threading;
 using DArvis.DTO;
 
-namespace DArvis.IO.Process.PacketConsumers;
+namespace DArvis.IO.Packet.Consumers.Server;
 
 public class ChatPacketConsumer : PacketConsumer
 {

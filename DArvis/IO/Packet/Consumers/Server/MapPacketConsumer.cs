@@ -6,7 +6,7 @@ using DArvis.Extensions;
 using DArvis.Models;
 using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
-namespace DArvis.IO.Process.PacketConsumers;
+namespace DArvis.IO.Packet.Consumers.Server;
 
 public class MapPacketConsumer : PacketConsumer
 {

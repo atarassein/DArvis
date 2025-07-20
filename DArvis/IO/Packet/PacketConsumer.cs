@@ -1,7 +1,7 @@
 ﻿using DArvis.DTO;
 using DArvis.Services.Logging;
 
-namespace DArvis.IO.Process;
+namespace DArvis.IO.Packet;
 
 public interface IPacketConsumer
 {
