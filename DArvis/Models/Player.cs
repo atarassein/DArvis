@@ -46,7 +46,7 @@ namespace DArvis.Models
         private bool hasFasSpiorad;
         
         private Player? _leader;
-        private Player follower;
+        private Player? follower;
         
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
@@ -84,7 +84,7 @@ namespace DArvis.Models
             set => SetProperty(ref _leader, value, onChanged: leader => Location.Update());
         }
         
-        public Player Follower
+        public Player? Follower
         {
             get => follower;
             set => SetProperty(ref follower, value);
