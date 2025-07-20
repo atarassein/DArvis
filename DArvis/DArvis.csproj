@@ -24,6 +24,7 @@
     <ResourceFiles Include="Resources\**\*" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DTO\ClientPackets\" />
     <Folder Include="IO\Packet\Consumers\Client\" />
   </ItemGroup>
   <Target Name="CopyResourceContents" AfterTargets="Build">

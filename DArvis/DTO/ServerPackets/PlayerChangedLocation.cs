@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Buffers.Binary;
-using DArvis.Models;
+using DArvis.IO.Packet;
 
-namespace DArvis.DTO;
+namespace DArvis.DTO.ServerPackets;
 
 public class PlayerChangedLocation
 {

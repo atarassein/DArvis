@@ -5,7 +5,7 @@ using DArvis.Extensions;
 using DArvis.Models;
 using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
-namespace DArvis.DTO;
+namespace DArvis.IO.Packet;
 
 public class ServerPacket(byte[] data, Player player) : Packet<ServerPacket.ServerEvent>(data, player)
 {

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
+﻿using System.Linq;
 using DArvis.DTO;
-using DArvis.Extensions;
+using DArvis.DTO.ServerPackets;
 using DArvis.Models;
-using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.IO.Packet.Consumers.Server;
 

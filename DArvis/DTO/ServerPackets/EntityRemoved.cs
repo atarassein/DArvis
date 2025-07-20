@@ -1,4 +1,6 @@
-﻿namespace DArvis.DTO;
+﻿using DArvis.IO.Packet;
+
+namespace DArvis.DTO.ServerPackets;
 
 public class EntityRemoved
 {

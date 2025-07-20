@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Buffers.Binary;
+using DArvis.IO.Packet;
 using DArvis.Models;
 
-namespace DArvis.DTO;
+namespace DArvis.DTO.ServerPackets;
 
 public class PlayerMoved
 {

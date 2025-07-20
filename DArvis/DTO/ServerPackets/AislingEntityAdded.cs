@@ -1,6 +1,7 @@
-﻿using DArvis.Models;
+﻿using DArvis.IO.Packet;
+using DArvis.Models;
 
-namespace DArvis.DTO;
+namespace DArvis.DTO.ServerPackets;
 
 public class AislingEntityAdded
 {

@@ -1,5 +1,5 @@
 ﻿using DArvis.Models;
-namespace DArvis.DTO;
+namespace DArvis.IO.Packet;
 
 public class ClientPacket(byte[] data, Player player) : Packet<ClientPacket.ClientEvent>(data, player)
 {

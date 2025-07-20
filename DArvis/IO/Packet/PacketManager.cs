@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using Binarysharp.MemoryManagement;
 using DArvis.IO.Packet.Consumers.Server;
-using DArvis.DTO;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
@@ -203,7 +202,7 @@ namespace DArvis.IO.Packet
             return IntPtr.Zero;
         }
 
-        public static void InjectPacket(DTO.Packet packet)
+        public static void InjectPacket(Packet packet)
         {
             switch (packet) 
             {

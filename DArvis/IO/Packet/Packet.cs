@@ -2,7 +2,7 @@
 using System.Text;
 using DArvis.Models;
 
-namespace DArvis.DTO;
+namespace DArvis.IO.Packet;
 
 public abstract class Packet<TEventType>(byte[] data, Player player) : Packet(data, player)
     where TEventType : Enum
