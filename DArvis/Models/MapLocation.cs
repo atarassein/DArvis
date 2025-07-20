@@ -113,6 +113,12 @@ namespace DArvis.Models
                 var oldY = y;
                 var oldDir = direction;
 
+                Owner.LastPosition[MapNumber] = new PathNode
+                {
+                    Position = new Point(oldX, oldY),
+                    Direction = oldDir
+                };
+                
                 switch (oldDir)
                 {
                     case Direction.North:
@@ -144,7 +150,7 @@ namespace DArvis.Models
                     Direction = oldDir,
                 };
                 
-                //Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
+                Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
             }

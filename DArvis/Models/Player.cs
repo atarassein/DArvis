@@ -110,6 +110,13 @@ namespace DArvis.Models
             return false;
         }
 
+        public ConcurrentDictionary<int, PathNode?> _lastPosition;
+
+        public ConcurrentDictionary<int, PathNode?> LastPosition
+        {
+            get => _lastPosition ??= new ConcurrentDictionary<int, PathNode?>();
+        }
+        
         public ConcurrentDictionary<int, PathNode?> _breadcrumbs;
 
         public ConcurrentDictionary<int, PathNode?> Breadcrumbs

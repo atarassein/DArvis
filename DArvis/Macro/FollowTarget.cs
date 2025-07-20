@@ -22,7 +22,8 @@ public class FollowTarget(PlayerMacroState macro)
         var pathNode = target.Location.PathNode;
         var x = pathNode.Position.X;
         var y = pathNode.Position.Y;
-        switch (pathNode.Direction)
+        var direction = target.Location.Direction;
+        switch (direction)
         {
             case Direction.North:
                 y++;
@@ -104,13 +105,14 @@ public class FollowTarget(PlayerMacroState macro)
         {
             var playerMap = player.Location.MapNumber;
             PathNode? targetNode = null;
-
+            bool isBreadcrumb = false;
             if (player.IsOnSameMapAs(leader))
             {
                 targetNode = NodeBehindPlayer(leader);
             }
             else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumbNode) && breadcrumbNode != null)
             {
+                isBreadcrumb = true;
                 targetNode = breadcrumbNode;
             }
 
@@ -125,6 +127,19 @@ public class FollowTarget(PlayerMacroState macro)
                 targetNode,
                 player.Location.CurrentMap.Terrain);
 
+            if (isBreadcrumb && (_currentPath == null || _currentPath.Length == 0))
+            {
+                // if we're following an invalid breadcrumb then try last position
+                if (leader.LastPosition.TryGetValue(playerMap, out var lastPosition) && lastPosition != null)
+                {
+                    targetNode = lastPosition;
+                    _currentPath = PathFinder.FindPath(
+                        player.Location.PathNode,
+                        targetNode,
+                        player.Location.CurrentMap.Terrain);
+                }
+            }
+            
             if (_currentPath == null || _currentPath.Length == 0)
             {
                 StopWalking();
@@ -136,6 +151,10 @@ public class FollowTarget(PlayerMacroState macro)
             // Execute the path step by step
             while (_currentPathIndex < _currentPath.Length && !cancellationToken.IsCancellationRequested)
             {
+                if (!isBreadcrumb && _currentPath.Length - _currentPathIndex < 2)
+                {
+                    break; // break early
+                }
                 var nextNode = _currentPath[_currentPathIndex];
                 
                 Console.WriteLine($"Walking to step {_currentPathIndex + 1}/{_currentPath.Length}: " +
@@ -148,30 +167,49 @@ public class FollowTarget(PlayerMacroState macro)
                     _currentPathIndex++;
                     continue;
                 }
-
-                GameActions.Walk(player, nextNode.Direction);
-
-                // Wait for position update or timeout
-                var waitTime = 0;
-                const int maxWaitTime = 460;
-                const int pollInterval = 5;
-
-                while (waitTime < maxWaitTime && !cancellationToken.IsCancellationRequested)
+    
+                // Create a task completion source for this movement
+                var moveCompletionSource = new TaskCompletionSource<bool>();
+                
+                // Subscribe to position changes for this specific move
+                void OnMoveCompleted(object sender, System.ComponentModel.PropertyChangedEventArgs e)
                 {
-                    if (player.Location.X == nextNode.Position.X && player.Location.Y == nextNode.Position.Y)
+                    if (e.PropertyName == nameof(MapLocation.Point))
+                    {
+                        var currentPos = player.Location.Point;
+                        if ((int)currentPos.X == (int)nextNode.Position.X && (int)currentPos.Y == (int)nextNode.Position.Y)
+                        {
+                            moveCompletionSource.TrySetResult(true);
+                        }
+                    }
+                }
+    
+                player.Location.PropertyChanged += OnMoveCompleted;
+    
+                try
+                {
+                    GameActions.Walk(player, nextNode.Direction);
+    
+                    // Wait for the move to complete with a timeout
+                    var moveTask = moveCompletionSource.Task;
+                    var timeoutTask = Task.Delay(500, cancellationToken); // 500ms timeout
+    
+                    var completedTask = await Task.WhenAny(moveTask, timeoutTask);
+    
+                    if (completedTask == moveTask && await moveTask)
                     {
                         _currentPathIndex++;
-                        break;
                     }
-
-                    await Task.Delay(pollInterval, cancellationToken);
-                    waitTime += pollInterval;
+                    else
+                    {
+                        Console.WriteLine("Walk timeout - recalculating path");
+                        break; // Will trigger path recalculation
+                    }
                 }
-
-                if (waitTime >= maxWaitTime)
+                finally
                 {
-                    Console.WriteLine("Walk timeout - recalculating path");
-                    break; // Will trigger path recalculation
+                    // Always unsubscribe from the event
+                    player.Location.PropertyChanged -= OnMoveCompleted;
                 }
             }
         }
