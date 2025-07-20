@@ -261,7 +261,7 @@ public class FollowTarget(PlayerMacroState macro)
                 }
 
                 // Use a longer polling interval to reduce CPU usage
-                await Task.Delay(50, cancellationToken); // 50ms polling instead of property change events
+                await Task.Delay(5, cancellationToken); // 5ms polling instead of property change events
             }
         }
         catch (OperationCanceledException)
