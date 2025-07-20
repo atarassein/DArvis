@@ -178,35 +178,50 @@ public class Map: UpdatableObject
         }
     }
 
-    public int[,] calculatePathFindingNodes()
+    public bool IsValidNodePath(PathNode[] path, int currentIndex)
+    {
+        
+        return true;
+    }
+    
+    public PathNode[] calculatePathFindingNodes()
     {
         var start = new PathNode
         {
             Position = new Point(Owner.Location.X, Owner.Location.Y),
             Direction = Owner.Location.Direction
         };
-        var end = new PathNode
+
+        if (Owner.Location.MapNumber == Owner.Leader?.Location.MapNumber)
         {
-            Position = Owner.Leader.Breadcrumbs[Owner.Location.MapNumber] ?? new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
-            Direction = Owner.Leader.Location.Direction
-        };
-        var pathToLeader = PathFinder.FindPath(start, end, Terrain);
-        
-        int[,] pathGrid = new int[Attributes.Width, Attributes.Height];
-        foreach (var step in pathToLeader)
-        {
-            pathGrid[(int)step.Position.X, (int)step.Position.Y] = 1;
+            var end = new PathNode
+            {
+                Position = new Point(Owner.Leader.Location.X, Owner.Leader.Location.Y),
+                Direction = Owner.Leader.Location.Direction
+            };
+            
+            return PathFinder.FindPath(start, end, Terrain);
         }
 
-        return pathGrid;
+        if (Owner.Leader.Breadcrumbs.TryGetValue(Owner.Location.MapNumber, out var breadcrumb))
+        {
+            return PathFinder.FindPath(start, breadcrumb, Terrain);
+        }
+
+        return [];
     }
     public override string ToString()
     {
         var pathGrid = new int[Attributes.Width,Attributes.Height];
         if (Owner.Leader != null)
         {
-            pathGrid = calculatePathFindingNodes();
+            var pathNodes = calculatePathFindingNodes();
+            foreach (var step in pathNodes)
+            {
+                pathGrid[(int)step.Position.X, (int)step.Position.Y] = 1;
+            }
         }
+        
         var result = Attributes.MapName + " (" + Attributes.MapNumber + ") - " + Attributes.Width + "/" + Attributes.Height+ Environment.NewLine;
         for (short i = 0; i < Attributes.Height; i++)
         {

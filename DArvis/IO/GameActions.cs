@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -124,23 +125,37 @@ public class GameActions
         
         SendMessage((int)memory.Windows.MainWindowHandle, WM_COPYDATA, 0, ref cds);
     }
-    
+
+    private static ConcurrentDictionary<int, DateTime> lastWalkTimes = new();
     public static void Walk(Player player, Direction dir, int throttleMs = 50)
     {
-        if ((DateTime.Now - player.LastWalkCommand).TotalMilliseconds > throttleMs)
+        if (dir != player.Location.Direction)
         {
-            if (dir != player.Location.Direction)
-            {
-                Console.WriteLine("turning " + dir);
-                InjectWalk(player, dir);
-                player.Location.Direction = dir;
-                Thread.Sleep(throttleMs);
-            }
-            
-            Console.WriteLine("walking " + dir);
             InjectWalk(player, dir);
-            player.LastWalkCommand = DateTime.Now;
+            player.Location.Direction = dir;
+            Thread.Sleep(throttleMs);
         }
+            
+        var walkThrottle = TimeSpan.FromMilliseconds(450);
+        if (!lastWalkTimes.ContainsKey(player.PacketId))
+        {
+            lastWalkTimes.TryAdd(player.PacketId, DateTime.Now);
+        }
+        else
+        {
+            if (lastWalkTimes.TryGetValue(player.PacketId, out var lastWalkTime))
+            {
+                walkThrottle -= DateTime.Now - lastWalkTime;
+                if (walkThrottle < TimeSpan.Zero)
+                {
+                    walkThrottle = TimeSpan.Zero;
+                }
+            }
+        }
+        Thread.Sleep(walkThrottle);
+        InjectWalk(player, dir);
+        var now = DateTime.Now;
+        lastWalkTimes.TryUpdate(player.PacketId, now,now);
     }
 
     #endregion

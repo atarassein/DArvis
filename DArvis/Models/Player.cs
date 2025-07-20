@@ -110,16 +110,11 @@ namespace DArvis.Models
             return false;
         }
 
-        public ConcurrentDictionary<int, Point?> _breadcrumbs;
+        public ConcurrentDictionary<int, PathNode?> _breadcrumbs;
 
-        public ConcurrentDictionary<int, Point?> Breadcrumbs
+        public ConcurrentDictionary<int, PathNode?> Breadcrumbs
         {
-            get => _breadcrumbs ??= new ConcurrentDictionary<int, Point?>();
-        }
-
-        public bool TryGetBreadcrumb(int key, out Point? value)
-        {
-            return Breadcrumbs.TryGetValue(key, out value);
+            get => _breadcrumbs ??= new ConcurrentDictionary<int, PathNode?>();
         }
         
         public ClientState GameClient => gameClient;

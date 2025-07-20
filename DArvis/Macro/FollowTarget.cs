@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using DArvis.IO;
 using DArvis.IO.Process;
 using DArvis.Models;
 
@@ -29,8 +30,6 @@ public class FollowTarget(PlayerMacroState macro)
          case Direction.West:
             x++;
             break;
-         default:
-            throw new ArgumentOutOfRangeException();
       }
       
       return new PathNode {
@@ -41,6 +40,8 @@ public class FollowTarget(PlayerMacroState macro)
    public bool ShouldWalk()
    {
       var player = macro.Client;
+      if (player.IsWalking) return false;
+      
       var playerMap = player.Location.MapNumber;
       var leader = macro.Client.Leader;
       var leaderMap = leader.Location.MapNumber;
@@ -50,7 +51,6 @@ public class FollowTarget(PlayerMacroState macro)
          return true;
       }
       
-      Thread.Sleep(500);
       if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumb))
       {
          if (playerMap == leaderMap || leader.Breadcrumbs[playerMap] != null)
@@ -66,10 +66,13 @@ public class FollowTarget(PlayerMacroState macro)
    public void Walk()
    {
       var player = macro.Client;
+      if (player.IsWalking) return;
       player.IsWalking = true;
+      
       var leader = player.Leader;
       if (player == null || leader == null)
       {
+         player.IsWalking = false;
          return;
       }
       
@@ -81,17 +84,48 @@ public class FollowTarget(PlayerMacroState macro)
             player.Location.PathNode,
             targetNode,
             player.Location.CurrentMap.Terrain);
-         Console.WriteLine("Walking to " + leader.Location.X + " " + leader.Location.Y);
-      } else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumb))
-      {
-         var breadcrumbPoint = new PathNode
+         if (path == null || path.Length == 0)
          {
-            Position = new Point(breadcrumb.Value.X, breadcrumb.Value.Y),
-            Direction = Direction.North // Assuming North for simplicity, adjust as needed
-         };
+            player.IsWalking = false;
+            return;
+         }
+         var node = path[0];
+         GameActions.Walk(player, node.Direction);
+         var startTime = DateTime.Now;
+         while(player.Location.X != node.Position.X && player.Location.Y != node.Position.Y && player.Location.Direction != node.Direction)
+         {
+            if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(10))
+            {
+               player.IsWalking = false;
+               return;
+            }
+            Thread.Sleep(1);
+         }
+      } else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumbNode))
+      {
+         var path = PathFinder.FindPath(
+            player.Location.PathNode,
+            breadcrumbNode,
+            player.Location.CurrentMap.Terrain);
          
-         Console.WriteLine("Walking to breadcrumb " + breadcrumb.Value);
+         var index = 0;
+         var startTime = DateTime.Now;
+         while (player.Location.CurrentMap.IsValidNodePath(path, index))
+         {
+            GameActions.Walk(player, path[index].Direction);
+            while(player.Location.X != path[index].Position.X && player.Location.Y != path[index].Position.Y && player.Location.Direction != path[index].Direction)
+            {
+               if (DateTime.Now - startTime > TimeSpan.FromMilliseconds(10))
+               {
+                  player.IsWalking = false;
+                  break;
+               }
+               Thread.Sleep(1);
+            }
+         }
       }
+      
+      player.IsWalking = false;
    }
 
    public void DoneWalking()

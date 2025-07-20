@@ -82,7 +82,6 @@ namespace DArvis.Models
             if (Owner.Follower != null && Owner.Follower?.Location?.MapNumber != null
                                        && mapNumber != Owner.Follower.Location.MapNumber)
             {
-                Console.WriteLine("map number changed from {0} to {1} for {2}", MapNumber, mapNumber, Owner.Name);
                 var oldX = x;
                 var oldY = y;
                 var oldDir = direction;
@@ -112,9 +111,13 @@ namespace DArvis.Models
                 }
                 
                 // Drop a breadcrumb at the previous map location
-                Owner.Breadcrumbs[MapNumber] = new Point(oldX, oldY);
+                Owner.Breadcrumbs[MapNumber] = new PathNode
+                {
+                    Position = new Point(oldX, oldY),
+                    Direction = oldDir,
+                };
                 
-                Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
+                //Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
             }
@@ -202,8 +205,15 @@ namespace DArvis.Models
             CurrentMap = Map.loadFromAttributes(Owner, attributes);
         }
         
+        private DateTime lastUpdate = DateTime.MinValue;
         private void OnPlayerPositionChanged(int newValue)
         {
+            if (lastUpdate == DateTime.MinValue)
+            {
+                lastUpdate = DateTime.Now;
+            }
+            Console.WriteLine($"{(DateTime.Now - lastUpdate).TotalMilliseconds}ms since last walk update");
+            lastUpdate = DateTime.Now;
             Console.WriteLine($"{Owner.Name} @ ({X}, {Y}) on map ({MapNumber})");
             if (CurrentMap == null)
                 return;
