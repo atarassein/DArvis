@@ -321,11 +321,8 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
-        public bool IsOnSameMapAs(Player? otherPlayer)
+        public bool IsOnSameMapAs(Player otherPlayer)
         {
-            if (otherPlayer?.Location.CurrentMap == null) return false;
-            if (Location.CurrentMap == null) return false;
-            
             return Location.MapNumber == otherPlayer.Location.MapNumber;
         }
         
