@@ -2,11 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Binarysharp.MemoryManagement;
-using DArvis.IO.Packet.Consumers.Server;
+using DArvis.IO.Packet.Consumers;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Shared;
@@ -54,11 +55,28 @@ namespace DArvis.IO.Packet
         
         public static void RegisterConsumers()
         {
-            Instance.RegisterConsumer(new UnknownPacketConsumer());
-            Instance.RegisterConsumer(new ChatPacketConsumer());
-            Instance.RegisterConsumer(new PlayerMovementPacketConsumer());
-            Instance.RegisterConsumer(new PlayerActionPacketConsumer());
-            Instance.RegisterConsumer(new MapPacketConsumer());
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var consumerTypes = assembly.GetTypes()
+                .Where(type => type.Namespace != null && 
+                       type.Namespace.StartsWith("DArvis.IO.Packet.Consumers") &&
+                       typeof(IPacketConsumer).IsAssignableFrom(type) &&
+                       !type.IsAbstract &&
+                       !type.IsInterface)
+                .ToList();
+
+            foreach (var consumerType in consumerTypes)
+            {
+                try
+                {
+                    var consumer = (IPacketConsumer)Activator.CreateInstance(consumerType);
+                    Instance.RegisterConsumer(consumer);
+                    Instance.logger.LogInfo($"Registered consumer: {consumerType.Name}");
+                }
+                catch (Exception ex)
+                {
+                    Instance.logger.LogError($"Failed to register consumer {consumerType.Name}: {ex.Message}");
+                }
+            }
         }
         
         public void RegisterConsumer(IPacketConsumer consumer)

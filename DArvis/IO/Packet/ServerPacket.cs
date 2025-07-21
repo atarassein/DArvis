@@ -9,7 +9,7 @@ namespace DArvis.IO.Packet;
 
 public class ServerPacket(byte[] data, Player player) : Packet<ServerPacket.ServerEvent>(data, player)
 {
-    public Player Player { get; set; } = player;
+    
     protected override ServerEvent GetUnknownEvent() => ServerEvent.Unknown;
 
     public override string ToString()
@@ -19,7 +19,7 @@ public class ServerPacket(byte[] data, Player player) : Packet<ServerPacket.Serv
         var playerId = Player.PacketId == 0 ? "00-00-00-00" : BitConverter.ToString(packetIdBytes);
 
         var packetData = BitConverter.ToString(Data);
-        var packetString = $" ←s [{player,-12}][{playerId}] {packetData}";
+        var packetString = $"<<s [{player,-12}][{playerId}] {packetData}";
         if (packetData.Contains(playerId))
         {
             packetString = packetString.Replace(playerId, ConsoleOutputExtension.ColorText(playerId, ConsoleColor.Blue));

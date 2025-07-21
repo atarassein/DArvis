@@ -3,9 +3,9 @@ using DArvis.DTO;
 using DArvis.DTO.ServerPackets;
 using DArvis.Models;
 
-namespace DArvis.IO.Packet.Consumers.Server;
+namespace DArvis.IO.Packet.Consumers;
 
-public class MapPacketConsumer : PacketConsumer<ServerPacket>
+public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

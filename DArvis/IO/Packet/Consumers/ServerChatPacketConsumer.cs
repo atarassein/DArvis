@@ -2,9 +2,9 @@
 using System.Threading;
 using DArvis.DTO;
 
-namespace DArvis.IO.Packet.Consumers.Server;
+namespace DArvis.IO.Packet.Consumers;
 
-public class ChatPacketConsumer : PacketConsumer<ServerPacket>
+public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket packet)
     {

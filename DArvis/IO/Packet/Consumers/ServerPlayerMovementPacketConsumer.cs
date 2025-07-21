@@ -3,9 +3,9 @@ using System.Linq;
 using DArvis.DTO;
 using DArvis.DTO.ServerPackets;
 
-namespace DArvis.IO.Packet.Consumers.Server;
+namespace DArvis.IO.Packet.Consumers;
 
-public class PlayerMovementPacketConsumer : PacketConsumer<ServerPacket>
+public class ServerPlayerMovementPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

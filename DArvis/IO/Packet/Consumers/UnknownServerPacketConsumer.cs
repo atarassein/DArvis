@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 
-namespace DArvis.IO.Packet.Consumers.Server;
+namespace DArvis.IO.Packet.Consumers;
 
-public class UnknownPacketConsumer : PacketConsumer<ServerPacket>
+public class UnknownServerPacketConsumer : PacketConsumer<ServerPacket>
 {
     public override bool CanConsume(ServerPacket serverPacket)
     {

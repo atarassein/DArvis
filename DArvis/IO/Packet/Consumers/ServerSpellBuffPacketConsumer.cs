@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using DArvis.DTO;
 
-namespace DArvis.IO.Packet.Consumers.Server;
+namespace DArvis.IO.Packet.Consumers;
 
-public class SpellBuffPacketConsumer : PacketConsumer<ServerPacket>
+public class ServerSpellBuffPacketConsumer : PacketConsumer<ServerPacket>
 {
     //Packet.Event.SpellBuffExpiration;
     public override bool CanConsume(ServerPacket serverPacket)
