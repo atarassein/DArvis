@@ -293,6 +293,27 @@
                     </ListBox>
                 </Grid>
             </TabItem>
+                        <!-- Follow Tab -->
+            <TabItem x:Name="BuffsTab" Header="Buffs">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Select targets to maintain buffs on:" Margin="5"/>
+                    <CheckBox x:Name="buffCheckbox" Grid.Row="1" 
+                              Margin="8"
+                              Style="{StaticResource ObsidianCheckBox}"
+                              IsThreeState="True"
+                              Checked="HandleCheck" Unchecked="HandleUnchecked" 
+                              Indeterminate="HandleThirdState">
+                        Three-state CheckBox
+                    </CheckBox>
+                    <TextBlock x:Name="buffCheckboxText" Grid.Row="2" Margin="5,0,0,0" />
+                </Grid>
+            </TabItem>
             
             <!-- Inventory Tab -->
             <TabItem Name="inventoryTab" Header="_Items" IsEnabled="False">

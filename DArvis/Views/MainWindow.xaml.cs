@@ -2136,6 +2136,51 @@ namespace DArvis.Views
             ToggleFlower(supportsFlowering, selectedMacro.Client.HasLyliacPlant, selectedMacro.Client.HasLyliacVineyard);
         }
 
+        private void HandleCheck(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (buffCheckboxText != null)
+                {
+                    buffCheckboxText.Text = "The CheckBox is checked.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in HandleCheck: {ex.Message}");
+            }
+        }
+
+        private void HandleUnchecked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (buffCheckboxText != null)
+                {
+                    buffCheckboxText.Text = "The CheckBox is unchecked.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in HandleUnchecked: {ex.Message}");
+            }
+        }
+
+        private void HandleThirdState(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (buffCheckboxText != null)
+                {
+                    buffCheckboxText.Text = "The CheckBox is in the indeterminate state.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in HandleThirdState: {ex.Message}");
+            }
+        }
+        
         private void inventoryListBox_ItemDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // Only handle left-click
