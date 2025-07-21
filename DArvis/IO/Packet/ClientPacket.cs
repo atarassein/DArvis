@@ -30,10 +30,13 @@ public class ClientPacket(byte[] data, Player player) : Packet<ClientPacket.Clie
     public enum ClientEvent
     {
         Unknown = -1,
+        StepCounter = 0x06,
         Unknown0C = 0x0C,
         Say = 0x0E,
+        Turn = 0x11,
         Chat = 0x19,
         Unknown38 = 0x38,
+        Click = 0x43,
         Unknown45 = 0x45,
     }
 }

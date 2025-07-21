@@ -44,7 +44,6 @@ public class UnknownServerPacketConsumer : PacketConsumer<ServerPacket>
             ServerPacket.ServerEvent.UnknownPacket2B,
             ServerPacket.ServerEvent.UnknownPacket2C,
             ServerPacket.ServerEvent.UnknownPacket2D,
-            ServerPacket.ServerEvent.UnknownPacket2E,
             ServerPacket.ServerEvent.UnknownPacket2F,
             ServerPacket.ServerEvent.UnknownPacket30,
             ServerPacket.ServerEvent.UnknownPacket31,

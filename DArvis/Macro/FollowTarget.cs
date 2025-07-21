@@ -164,9 +164,9 @@ public class FollowTarget(PlayerMacroState macro)
                 
                 var nextNode = _currentPath[_currentPathIndex];
                 
-                Console.WriteLine($"Walking to step {_currentPathIndex + 1}/{_currentPath.Length}: " +
-                                $"({player.Location.PathNode.Position.X}, {player.Location.PathNode.Position.Y}) -> " +
-                                $"[{nextNode.Direction}] -> ({nextNode.Position.X}, {nextNode.Position.Y})");
+                //Console.WriteLine($"Walking to step {_currentPathIndex + 1}/{_currentPath.Length}: " +
+                //                $"({player.Location.PathNode.Position.X}, {player.Location.PathNode.Position.Y}) -> " +
+                //                $"[{nextNode.Direction}] -> ({nextNode.Position.X}, {nextNode.Position.Y})");
 
                 // Check if we're already at the target position
                 if ((int)player.Location.X == (int)nextNode.Position.X && (int)player.Location.Y == (int)nextNode.Position.Y)

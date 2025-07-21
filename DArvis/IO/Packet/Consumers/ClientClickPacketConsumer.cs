@@ -1,11 +1,10 @@
 ﻿namespace DArvis.IO.Packet.Consumers;
 
-public class ClientChatPacketConsumer : PacketConsumer<ClientPacket>
+public class ClientClickPacketConsumer : PacketConsumer<ClientPacket>
 {
     public override bool CanConsume(ClientPacket packet)
     {
-        return packet.EventType == ClientPacket.ClientEvent.Chat
-               || packet.EventType == ClientPacket.ClientEvent.Say;
+        return packet.EventType == ClientPacket.ClientEvent.Click; // not sure what this is, it fires off when clicking around the character
     }
 
     public override void ProcessPacket(ClientPacket packet)

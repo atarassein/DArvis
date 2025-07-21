@@ -127,7 +127,7 @@ public class GameActions
     {
         if (dir != player.Location.Direction)
         {
-            Console.WriteLine("FACING NEW DIRECTION: " + dir);
+            // Console.WriteLine("FACING NEW DIRECTION: " + dir);
             InjectWalk(player, dir);
             player.Location.Direction = dir;
             await Task.Delay(1);
