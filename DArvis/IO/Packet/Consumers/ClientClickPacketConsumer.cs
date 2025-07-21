@@ -1,4 +1,6 @@
-﻿namespace DArvis.IO.Packet.Consumers;
+﻿using System;
+
+namespace DArvis.IO.Packet.Consumers;
 
 public class ClientClickPacketConsumer : PacketConsumer<ClientPacket>
 {
@@ -9,6 +11,12 @@ public class ClientClickPacketConsumer : PacketConsumer<ClientPacket>
 
     public override void ProcessPacket(ClientPacket packet)
     {
+        var buffer = packet.Buffer;
+        var unknown = buffer.ReadByte();
+        var x = buffer.ReadInt16();
+        var y = buffer.ReadInt16();
+        // Console.WriteLine($"click: {unknown}? ({x},{y}) {buffer.ReadByte()}?");
+        
         packet.Handled = true;
     }
 
