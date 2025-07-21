@@ -6,7 +6,7 @@ namespace DArvis.DTO.ServerPackets;
 public class MapSelection
 {
     public string Name;
-    public Dictionary<string, byte[]> Maps;
+    public Dictionary<string, byte[]> Maps = [];
     
     public MapSelection(Packet packet)
     {
