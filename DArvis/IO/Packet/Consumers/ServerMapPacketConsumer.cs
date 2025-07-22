@@ -143,11 +143,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             return;
         }
 
-        if (entity.Name != "Unknown")
-        {
-            packet.Player.AislingManager.UpdateAisling(entity);
-        }
-        else
+        if (!packet.Player.AislingManager.UpdateAisling(entity))
         {
             // This is an entity... likely a monster.
             // TODO: Handle entity tracking for monsters
