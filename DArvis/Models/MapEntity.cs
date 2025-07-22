@@ -18,6 +18,8 @@ public class MapEntity
     public ushort Sprite;
     public int X;
     public int Y;
+    public int PreviousX;
+    public int PreviousY;
     public Direction Direction;
     public string Name = "Unknown";
     public int Serial;

@@ -132,23 +132,35 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     private void HandleEntityMoved(ServerPacket packet)
     {
         var entityMoved = new EntityMoved(packet);
-        if (packet.Player.Leader != null && entityMoved.Serial == packet.Player.Leader.PacketId)
+        var entity = entityMoved.Entity;
+        if (packet.Player.Leader != null && entity.Serial == packet.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.
             packet.Handled = true;
             return;
         }
+
+        if (entity.Name != "Unknown")
+        {
+            packet.Player.AislingManager.UpdateAisling(entity);
+        }
+        else
+        {
+            // This is an entity... likely a monster.
+            // TODO: Handle entity tracking for monsters
+        }
         
-        var prevX = entityMoved.PreviousX;
-        var prevY = entityMoved.PreviousY;
-        var newX = entityMoved.X;
-        var newY = entityMoved.Y;
-        var direction = entityMoved.Direction;
+        var serial = entity.Serial;
+        var prevX = entity.PreviousX;
+        var prevY = entity.PreviousY;
+        var newX = entity.X;
+        var newY = entity.Y;
+        var direction = entity.Direction;
         // Console.WriteLine($"ENTITY MOVED: {entityMoved.Serial} ({newX}, {newY})");
         // var moved = ConsoleOutputExtension.ColorText("ENTITY MOVED", ConsoleColor.Yellow);
         // Console.WriteLine($"{moved}    " + packet);
         
-        packet.Player.Location.CurrentMap.EntityMoved(entityMoved.Serial, prevX, prevY, newX, newY, direction);
+        packet.Player.Location.CurrentMap.EntityMoved(serial, prevX, prevY, newX, newY, direction);
         packet.Handled = true;
     }
     

@@ -38,4 +38,16 @@ public class AislingManager(Player Owner)
         _aislings.AddOrUpdate(aisling.Name.ToLower(), aisling, (k, v) => aisling);
     }
     
+    public void UpdateAisling(MapEntity aislingEntity)
+    {
+        if (_aislings.TryGetValue(aislingEntity.Name.ToLower(), out var aisling))
+        {
+            aisling.X = aislingEntity.X;
+            aisling.Y = aislingEntity.Y;
+            aisling.Direction = aislingEntity.Direction;
+            aisling.IsVisible = true;
+            aisling.IsHidden = false; // TODO: determine hidden state
+        }
+    }
+    
 }

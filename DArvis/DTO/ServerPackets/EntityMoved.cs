@@ -5,34 +5,42 @@ namespace DArvis.DTO.ServerPackets;
 
 public class EntityMoved
 {
-    public int Serial;
-    public int PreviousX;
-    public int PreviousY;
-    public int X;
-    public int Y;
-    public Direction Direction;
+
+    public MapEntity Entity;
     
     public EntityMoved(ServerPacket serverPacket)
     {
         var buffer = serverPacket.Buffer;
-        Serial = buffer.ReadInt32();
-        X = PreviousX = buffer.ReadInt16();
-        Y = PreviousY = buffer.ReadInt16();
-        Direction = (Direction)buffer.ReadByte();
-        switch (Direction)
+        var serial = buffer.ReadInt32();
+        var previousX = buffer.ReadInt16();
+        var previousY = buffer.ReadInt16();
+        var direction = (Direction)buffer.ReadByte();
+        var x = previousX;
+        var y = previousY;
+        switch (direction)
         {
             case Direction.South:
-                Y++;
+                y++;
                 break;
             case Direction.East:
-                X++;
+                x++;
                 break;
             case Direction.West:
-                X--;
+                x--;
                 break;
             case Direction.North:
-                Y--;
+                y--;
                 break;
         }
+
+        Entity = new MapEntity
+        {
+            Serial = serial,
+            X = x,
+            Y = y,
+            PreviousX = previousX,
+            PreviousY = previousY,
+            Direction = direction
+        };
     }
 }
