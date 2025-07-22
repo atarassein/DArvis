@@ -1,4 +1,5 @@
-﻿using DArvis.IO.Packet;
+﻿using System;
+using DArvis.IO.Packet;
 using DArvis.Models;
 
 namespace DArvis.DTO.ServerPackets;
@@ -18,12 +19,23 @@ public class AislingEntityAdded
         Entity.Y = buffer.ReadInt16();
         Entity.Direction = (Direction)buffer.ReadByte();
         Entity.Serial = buffer.ReadInt32();
-        
+
+        var nameLength = 0;
+        if (buffer.ReadInt16() == -1) // 0xFFFF indicates a hidden or disguised entity
+        {
+            nameLength = serverPacket.Data[23];
+            if (nameLength > 0)
+            {
+                Entity.Name = serverPacket.ReadString(24, nameLength);
+            }
+
+            return;
+        }
         // The length of name bytes is stored at index 41
         if (serverPacket.Data.Length < 42)
             return;
         
-        var nameLength = serverPacket.Data[41];
+        nameLength = serverPacket.Data[41];
         if (nameLength == 0)
             Entity.Hidden = true;
         

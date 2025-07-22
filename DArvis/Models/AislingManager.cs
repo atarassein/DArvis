@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 
 namespace DArvis.Models;
 
@@ -29,9 +30,11 @@ public class AislingManager : INotifyPropertyChanged
     
     public event PropertyChangedEventHandler PropertyChanged;
 
+    private readonly Timer _cleanupTimer;
+    
     public AislingManager(Player Owner)
     {
-        // Constructor logic
+        _cleanupTimer = new Timer(RemoveInactiveAislings, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
     }
     
     public void AddAisling(MapEntity? aislingEntity)
@@ -66,6 +69,7 @@ public class AislingManager : INotifyPropertyChanged
                 aisling.Y = newAisling.Y;
                 aisling.Direction = newAisling.Direction;
                 aisling.IsHidden = true;
+                aisling.IsVisible = true;
                 // Console.WriteLine($"~{newAisling.Name} @ ({newAisling.X},{newAisling.Y})");
                 return;
             }
@@ -92,7 +96,8 @@ public class AislingManager : INotifyPropertyChanged
             aisling.X = aislingEntity.X;
             aisling.Y = aislingEntity.Y;
             aisling.Direction = aislingEntity.Direction;
-            aisling.IsVisible = false;
+            aisling.IsVisible = true;
+            aisling.IsHidden = aislingEntity.Name == "";
             aisling.LastSeen = DateTime.UtcNow;
             // Console.WriteLine($" {aisling.Name} -> {aisling.Direction.ToString()[0]}({aisling.X},{aisling.Y})");
             UpdateAislingCheckboxes();
@@ -118,6 +123,23 @@ public class AislingManager : INotifyPropertyChanged
             return;
         }
     }
+
+    /// <summary>
+    /// This is called upon map refresh. Any aislings which are visible will be re-added
+    /// when AislingManager.AddAisling is called.
+    /// </summary>
+    public void HideEveryoneForRefresh()
+    {
+        foreach (var aisling in _aislings.Values)
+        {
+            aisling.IsHidden = true;
+        }
+        
+        foreach (var aislingCheckbox in _aislingCheckboxes)
+        {
+            aislingCheckbox.IsVisible = false;
+        }
+    }
     
     private void UpdateAislingCheckboxes()
     {
@@ -133,6 +155,15 @@ public class AislingManager : INotifyPropertyChanged
     
             var currentNames = _aislingCheckboxes.Select(x => x.Name).ToHashSet();
     
+            foreach (var aisling in _aislings.Values)
+            {
+                var checkbox = _aislingCheckboxes.FirstOrDefault(x => x.Name == aisling.Name);
+                if (checkbox != null)
+                {
+                    checkbox.IsVisible = aisling.IsVisible; // Ensure IsVisible is updated
+                }
+            }
+            
             // Add new aislings
             foreach (var name in sortedAislings.Except(currentNames))
             {
@@ -159,11 +190,32 @@ public class AislingManager : INotifyPropertyChanged
         });
     }
     
+    private void RemoveInactiveAislings(object state)
+    {
+        var cutoffTime = DateTime.UtcNow - TimeSpan.FromMinutes(10);
+
+        // Marshal to UI thread
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            var toRemove = _aislings.Values
+                .Where(a => a.LastSeen < cutoffTime && !_aislingCheckboxes.Any(c => c.Name == a.Name && c.IsChecked))
+                .Select(a => a.Name.ToLower())
+                .ToList();
+
+            foreach (var name in toRemove)
+            {
+                _aislings.TryRemove(name, out _);
+            }
+
+            UpdateAislingCheckboxes();
+        });
+    }
 }
 
 public class AislingCheckboxViewModel : INotifyPropertyChanged
 {
     private bool _isChecked;
+    private bool _isVisible;
 
     public string Name { get; set; }
 
@@ -178,6 +230,16 @@ public class AislingCheckboxViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set
+        {
+            _isVisible = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVisible)));
+        }
+    }
+    
     public Action UpdateAction { get; set; }
 
     public event PropertyChangedEventHandler PropertyChanged;

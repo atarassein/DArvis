@@ -82,7 +82,6 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     
     private void HandleMapChange(ServerPacket packet)
     {
-        // TODO: Drop a breadcrumb at the door of the previous map if player has followers
         var mapChanged = new MapChanged(packet);
         var mapAttributes = new MapLocationAttributes
         {
@@ -91,7 +90,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             Width = mapChanged.MapWidth,
             Height = mapChanged.MapHeight
         };
-        
+        packet.Player.AislingManager.HideEveryoneForRefresh();
         packet.Player.Location.Attributes = mapAttributes;
         packet.Handled = true;
     }
@@ -116,8 +115,8 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             return; // We don't really need to see when the player is added to their own map
         }
         
-        // var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
-        // Console.WriteLine($"{added}   " + packet);
+        var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
+        Console.WriteLine($"{added}   " + packet);
         packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
         packet.Handled = true;
     }
