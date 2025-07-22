@@ -296,25 +296,28 @@
 
             <!-- Buffs Tab -->
             <TabItem x:Name="BuffsTab" Header="Buffs">
-                <DockPanel>
-                    <Border Name="buffCheckboxesBorder"
-                            DockPanel.Dock="Top"
-                            BorderBrush="{StaticResource ObsidianSeparatorColor}"
-                            HorizontalAlignment="Center"
-                            Margin="8,16,8,8">
-                        <Grid>
-                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,20">Select targets to maintain buffs on</TextBlock>
-                        </Grid>
-                    </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl 
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="0,0,0,20">Select targets to maintain buffs on</TextBlock>
+                    <Border Grid.Row="1" Grid.Column="0">
+                        <ListBox 
                             ItemTemplate="{StaticResource BuffDataTemplate}"
                             ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.AislingCheckboxes}"
+                            Style="{StaticResource ObsidianListBox}"
                             >
-                        </ItemsControl>
-                    </ScrollViewer>
-                    <TextBlock x:Name="buffCheckboxText" Grid.Row="2" Margin="5,0,0,0" />
-                </DockPanel>
+                        </ListBox>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="1">
+                        <TextBlock>TODO</TextBlock>
+                    </Border>
+                </Grid>
             </TabItem>
             
             <!-- Inventory Tab -->
