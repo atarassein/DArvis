@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using DArvis.DTO;
 using DArvis.DTO.ServerPackets;
+using DArvis.Extensions;
 using DArvis.Models;
+using ConsoleColor = DArvis.Extensions.ConsoleColor;
 
 namespace DArvis.IO.Packet.Consumers;
 
@@ -36,13 +39,15 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
         {
             HandleMapSelection(packet);
         }
+
         if (packet.EventType == ServerPacket.ServerEvent.MapChanged)
         {
             HandleMapChange(packet);
         }
 
-        if (!packet.Player.NeedsMapData())
+        if (packet.Player.Location.CurrentMap == null)
         {
+            // Console.WriteLine("no map loaded, cannot process map packet: " + packet.EventType);
             packet.Handled = true;
             return;
         }
@@ -110,6 +115,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
         // var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
         // Console.WriteLine($"{added}   " + packet);
         packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
+        packet.Player.AislingManager.AddAisling(aisling.Entity);
         packet.Handled = true;
     }
 

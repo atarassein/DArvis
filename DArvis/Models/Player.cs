@@ -48,6 +48,8 @@ namespace DArvis.Models
         private Player? _leader;
         private Player? follower;
         
+        public AislingManager AislingManager;
+        
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
         public int WalkOrdinal { get; internal set; } // TODO: this might get removed later
@@ -240,6 +242,7 @@ namespace DArvis.Models
             stats = new PlayerStats(this);
             modifiers = new PlayerModifiers(this);
             location = new MapLocation(this);
+            AislingManager = new AislingManager(this);
         }
 
         ~Player() => Dispose(false);
