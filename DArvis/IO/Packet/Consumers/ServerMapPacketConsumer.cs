@@ -99,6 +99,10 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     private void HandleAislingAdded(ServerPacket packet)
     {
         var aisling = new AislingEntityAdded(packet);
+        
+        // Self-tracking and leader tracking are valid use-cases for AislingManager
+        packet.Player.AislingManager.AddAisling(aisling.Entity);
+        
         if (packet.Player.Leader != null && aisling.Entity.Serial == packet.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.
@@ -115,7 +119,6 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
         // var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
         // Console.WriteLine($"{added}   " + packet);
         packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
-        packet.Player.AislingManager.AddAisling(aisling.Entity);
         packet.Handled = true;
     }
 
@@ -167,6 +170,9 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     private void HandleEntityRemoved(ServerPacket packet)
     {
         var entityRemoved = new EntityRemoved(packet);
+        
+        packet.Player.AislingManager.HideAisling(entityRemoved.Serial);
+        
         if (packet.Player.Leader != null && entityRemoved.Serial == packet.Player.Leader.PacketId)
         {
             // The leader will handle its own tracking for us.

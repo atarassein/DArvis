@@ -49,5 +49,21 @@ public class AislingManager(Player Owner)
             aisling.IsHidden = false; // TODO: determine hidden state
         }
     }
+
+    /// <summary>
+    /// We never really remove Aislings, we just consider them non-visible.
+    /// </summary>
+    /// <param name="serial"></param>
+    public void HideAisling(int serial)
+    {
+        foreach (var aisling in _aislings.Values)
+        {
+            if (aisling.Serial != serial) continue;
+            
+            aisling.IsVisible = false;
+            aisling.IsHidden = false; // TODO: determine hidden state
+            return;
+        }
+    }
     
 }
