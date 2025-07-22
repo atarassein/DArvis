@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:DArvis"
+                    xmlns:models="clr-namespace:DArvis.Models">
+
+    <DataTemplate x:Key="BuffDataTemplate" DataType="{x:Type models:AislingCheckboxViewModel}">
+        <CheckBox Content="{Binding Name}"
+                  IsChecked="{Binding IsChecked}"
+                  Style="{StaticResource ObsidianCheckBox}"
+                  Margin="5,2"/>
+    </DataTemplate>
+
+</ResourceDictionary>

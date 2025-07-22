@@ -24,7 +24,8 @@ namespace DArvis.Models
         private readonly PlayerStats stats;
         private readonly PlayerModifiers modifiers;
         private readonly MapLocation location;
-
+        private readonly AislingManager aislingManager;
+        
         private readonly Stream stream;
         private readonly BinaryReader reader;
 
@@ -47,8 +48,8 @@ namespace DArvis.Models
         
         private Player? _leader;
         private Player? follower;
-        
-        public AislingManager AislingManager;
+
+        public AislingManager AislingManager => aislingManager;
         
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
@@ -242,7 +243,7 @@ namespace DArvis.Models
             stats = new PlayerStats(this);
             modifiers = new PlayerModifiers(this);
             location = new MapLocation(this);
-            AislingManager = new AislingManager(this);
+            aislingManager = new AislingManager(this);
         }
 
         ~Player() => Dispose(false);

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 
 namespace DArvis.Models;
 
-public class AislingManager(Player Owner)
+public class AislingManager : INotifyPropertyChanged
 {
     private class Aisling
     {
@@ -20,6 +23,17 @@ public class AislingManager(Player Owner)
     
     // use this class to track aisling entities seen, whether they are logged in or not, visible on the map or not, etc
     private readonly ConcurrentDictionary<string, Aisling> _aislings = new();
+    private readonly ObservableCollection<AislingCheckboxViewModel> _aislingCheckboxes = new();
+    
+    public ObservableCollection<AislingCheckboxViewModel> AislingCheckboxes => _aislingCheckboxes;
+    
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public AislingManager(Player Owner)
+    {
+        // Constructor logic
+    }
+    
     public void AddAisling(MapEntity? aislingEntity)
     {
         if (aislingEntity == null || aislingEntity.Serial == 0)
@@ -36,8 +50,6 @@ public class AislingManager(Player Owner)
             IsHidden = false, // TODO
             LastSeen = DateTime.UtcNow
         };
-        
-        
         
         if (newAisling.Name == "")
         {
@@ -61,6 +73,7 @@ public class AislingManager(Player Owner)
         
         // Console.WriteLine($" {newAisling.Name} @ {newAisling.Direction.ToString()[0]}({newAisling.X},{newAisling.Y})");
         _aislings.AddOrUpdate(newAisling.Name.ToLower(), newAisling, (k, v) => newAisling);
+        UpdateAislingCheckboxes();
     }
     
     /// <summary>
@@ -81,6 +94,7 @@ public class AislingManager(Player Owner)
             aisling.IsVisible = false;
             aisling.LastSeen = DateTime.UtcNow;
             // Console.WriteLine($" {aisling.Name} -> {aisling.Direction.ToString()[0]}({aisling.X},{aisling.Y})");
+            UpdateAislingCheckboxes();
             return true;
         }
 
@@ -99,8 +113,51 @@ public class AislingManager(Player Owner)
             
             aisling.IsVisible = false;
             // Console.WriteLine($" {aisling.Name} left view");
+            UpdateAislingCheckboxes();
             return;
         }
     }
     
+    private void UpdateAislingCheckboxes()
+    {
+        // Marshal to UI thread
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            var currentNames = _aislingCheckboxes.Select(x => x.Name).ToHashSet();
+            var aislingNames = _aislings.Values.Select(x => x.Name).ToHashSet();
+
+            // Add new aislings
+            foreach (var name in aislingNames.Except(currentNames))
+            {
+                _aislingCheckboxes.Add(new AislingCheckboxViewModel { Name = name, IsChecked = false });
+            }
+
+            // Remove old aislings (if you want to remove them when they're no longer tracked)
+            var toRemove = _aislingCheckboxes.Where(x => !aislingNames.Contains(x.Name)).ToList();
+            foreach (var item in toRemove)
+            {
+                _aislingCheckboxes.Remove(item);
+            }
+        });
+    }
+    
+}
+
+public class AislingCheckboxViewModel : INotifyPropertyChanged
+{
+    private bool _isChecked;
+    
+    public string Name { get; set; }
+    
+    public bool IsChecked
+    {
+        get => _isChecked;
+        set
+        {
+            _isChecked = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
+        }
+    }
+    
+    public event PropertyChangedEventHandler PropertyChanged;
 }

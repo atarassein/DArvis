@@ -293,26 +293,28 @@
                     </ListBox>
                 </Grid>
             </TabItem>
-                        <!-- Follow Tab -->
+
+            <!-- Buffs Tab -->
             <TabItem x:Name="BuffsTab" Header="Buffs">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Select targets to maintain buffs on:" Margin="5"/>
-                    <CheckBox x:Name="buffCheckbox" Grid.Row="1" 
-                              Margin="8"
-                              Style="{StaticResource ObsidianCheckBox}"
-                              IsThreeState="True"
-                              Checked="HandleCheck" Unchecked="HandleUnchecked" 
-                              Indeterminate="HandleThirdState">
-                        Three-state CheckBox
-                    </CheckBox>
+                <DockPanel>
+                    <Border Name="buffCheckboxesBorder"
+                            DockPanel.Dock="Top"
+                            BorderBrush="{StaticResource ObsidianSeparatorColor}"
+                            HorizontalAlignment="Center"
+                            Margin="8,16,8,8">
+                        <Grid>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,20">Select targets to maintain buffs on</TextBlock>
+                        </Grid>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl 
+                            ItemTemplate="{StaticResource BuffDataTemplate}"
+                            ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.AislingCheckboxes}"
+                            >
+                        </ItemsControl>
+                    </ScrollViewer>
                     <TextBlock x:Name="buffCheckboxText" Grid.Row="2" Margin="5,0,0,0" />
-                </Grid>
+                </DockPanel>
             </TabItem>
             
             <!-- Inventory Tab -->
