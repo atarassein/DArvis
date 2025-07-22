@@ -55,7 +55,7 @@ public class AislingManager : INotifyPropertyChanged
         {
             foreach (var aisling in _aislings.Values)
             {
-                if (aisling.Serial != newAisling.Serial)
+                if (aisling.Name != "" || aisling.Serial != newAisling.Serial)
                     continue;
                 
                 if (aisling.LastSeen < DateTime.UtcNow - TimeSpan.FromHours(4))
@@ -70,7 +70,8 @@ public class AislingManager : INotifyPropertyChanged
                 return;
             }
         }
-        
+
+        if (newAisling.Name == "") return;
         // Console.WriteLine($" {newAisling.Name} @ {newAisling.Direction.ToString()[0]}({newAisling.X},{newAisling.Y})");
         _aislings.AddOrUpdate(newAisling.Name.ToLower(), newAisling, (k, v) => newAisling);
         UpdateAislingCheckboxes();
@@ -123,20 +124,37 @@ public class AislingManager : INotifyPropertyChanged
         // Marshal to UI thread
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
+            var sortedAislings = _aislings.Values
+                .OrderBy(a => _aislingCheckboxes.FirstOrDefault(x => x.Name == a.Name)?.IsChecked ?? false)
+                .ThenByDescending(a => _aislingCheckboxes.FirstOrDefault(x => x.Name == a.Name)?.IsChecked == true ? a.Name : null)
+                .ThenBy(a => a.LastSeen.ToString("yyyy-MM-dd HH:mm"))
+                .Select(a => a.Name)
+                .ToList();
+    
             var currentNames = _aislingCheckboxes.Select(x => x.Name).ToHashSet();
-            var aislingNames = _aislings.Values.Select(x => x.Name).ToHashSet();
-
+    
             // Add new aislings
-            foreach (var name in aislingNames.Except(currentNames))
+            foreach (var name in sortedAislings.Except(currentNames))
             {
-                _aislingCheckboxes.Add(new AislingCheckboxViewModel { Name = name, IsChecked = false });
+                _aislingCheckboxes.Add(new AislingCheckboxViewModel { Name = name, IsChecked = false, UpdateAction = UpdateAislingCheckboxes });
             }
-
-            // Remove old aislings (if you want to remove them when they're no longer tracked)
-            var toRemove = _aislingCheckboxes.Where(x => !aislingNames.Contains(x.Name)).ToList();
+    
+            // Remove old aislings
+            var toRemove = _aislingCheckboxes.Where(x => !sortedAislings.Contains(x.Name)).ToList();
             foreach (var item in toRemove)
             {
                 _aislingCheckboxes.Remove(item);
+            }
+    
+            // Reorder the collection
+            var reordered = _aislingCheckboxes
+                .OrderByDescending(x => sortedAislings.IndexOf(x.Name))
+                .ToList();
+    
+            _aislingCheckboxes.Clear();
+            foreach (var item in reordered)
+            {
+                _aislingCheckboxes.Add(item);
             }
         });
     }
@@ -146,9 +164,9 @@ public class AislingManager : INotifyPropertyChanged
 public class AislingCheckboxViewModel : INotifyPropertyChanged
 {
     private bool _isChecked;
-    
+
     public string Name { get; set; }
-    
+
     public bool IsChecked
     {
         get => _isChecked;
@@ -156,8 +174,11 @@ public class AislingCheckboxViewModel : INotifyPropertyChanged
         {
             _isChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
+            UpdateAction?.Invoke(); // Call UpdateAislingCheckboxes when IsChecked changes
         }
     }
-    
+
+    public Action UpdateAction { get; set; }
+
     public event PropertyChangedEventHandler PropertyChanged;
 }
