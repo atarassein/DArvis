@@ -94,6 +94,16 @@ public abstract class Packet(byte[] data, Player player)
             throw new IndexOutOfRangeException("Packet does not contain expected string of length " + length);
         }
         
+        public string ReadString(int start, int length)
+        {
+            if (start + length > Data.Length)
+                throw new IndexOutOfRangeException("Packet does not contain expected string of length " + length);
+            
+            var buffer = new byte[length];
+            System.Buffer.BlockCopy(Data, start, buffer, 0, length);
+            return Encoding.GetEncoding(949).GetString(buffer);
+        }
+        
         public string ReadString8()
         {
             var length = ReadByte();

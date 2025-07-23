@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using DArvis.DTO;
+using DArvis.DTO.ServerPackets;
 
 namespace DArvis.IO.Packet.Consumers;
 
@@ -29,12 +32,21 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
     private void HandleChatMessage(ServerPacket serverPacket)
     {
         // Console.WriteLine("Processing chat message...");
+        //Console.WriteLine($"{serverPacket}");
         serverPacket.Handled = true;
     }
 
     private void HandleWhisperMessage(ServerPacket serverPacket)
     {
-        // Process whisper message
+        //var notificationService = new WindowsToastNotificationService();
+        //var _whisperNotificationHandler = new WhisperNotificationHandler(notificationService);
+        // Console.WriteLine(serverPacket);
+        var whisper = new ChatWhisper(serverPacket);
+        if (whisper.IsWhisper())
+        {
+            Console.WriteLine(whisper);
+            
+        }
         serverPacket.Handled = true;
     }
 }

@@ -143,7 +143,10 @@ namespace DArvis.IO.Packet
             try
             {
                 var dllPath = Path.Combine(Environment.CurrentDirectory, "DAvid.dll");
-                memory.Modules.Inject(dllPath);
+                var module = memory.Modules.Inject(dllPath);
+                var isValid = module.IsValid;
+                var m = module.BaseAddress;
+                Console.WriteLine("DAvid.dll injected: " + isValid + " at " + m);
                 Instance.logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
                 Console.Beep();
             } catch (Exception ex)
