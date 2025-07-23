@@ -90,7 +90,7 @@ public class BuffCheckboxViewModel : INotifyPropertyChanged
         {
             _isChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
-            UpdateAction?.Invoke(); // Call UpdateAislingCheckboxes when IsChecked changes
+            UpdateAction?.Invoke();
         }
     }
     
