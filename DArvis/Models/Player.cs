@@ -25,6 +25,7 @@ namespace DArvis.Models
         private readonly PlayerModifiers modifiers;
         private readonly MapLocation location;
         private readonly AislingManager aislingManager;
+        private readonly BuffManager buffManager;
         
         private readonly Stream stream;
         private readonly BinaryReader reader;
@@ -50,6 +51,7 @@ namespace DArvis.Models
         private Player? follower;
 
         public AislingManager AislingManager => aislingManager;
+        public BuffManager BuffManager => buffManager;
         
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
@@ -244,6 +246,7 @@ namespace DArvis.Models
             modifiers = new PlayerModifiers(this);
             location = new MapLocation(this);
             aislingManager = new AislingManager(this);
+            buffManager = new BuffManager(this);
         }
 
         ~Player() => Dispose(false);
@@ -332,7 +335,7 @@ namespace DArvis.Models
                 PacketId = packetId;
         }
 
-        public bool IsNearby(Player otherPlayer, int distance = 2)
+        public bool IsNearby(Player? otherPlayer, int distance = 2)
         {
             if (otherPlayer == null || otherPlayer.IsDisposing)
                 return false;

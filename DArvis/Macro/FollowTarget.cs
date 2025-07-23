@@ -52,7 +52,7 @@ public class FollowTarget(PlayerMacroState macro)
     {
         var player = macro.Client;
         var leader = player.Leader;
-        if (player.IsWalking || player.IsNearby(leader))
+        if (player.IsWalking || leader == null || player.IsNearby(leader))
         {
             await Task.Delay(100);
             return false;

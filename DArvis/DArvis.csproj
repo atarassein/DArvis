@@ -26,6 +26,13 @@
   <ItemGroup>
     <Folder Include="DTO\ClientPackets\" />
   </ItemGroup>
+  <ItemGroup>
+    <Page Update="Templates\BuffSpellsDataTemplate.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <XamlRuntime>Wpf</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
   <Target Name="CopyResourceContents" AfterTargets="Build">
     <Copy
       SourceFiles="@(ResourceFiles)"

@@ -205,6 +205,7 @@ namespace DArvis.Models
             Owner.HasLyliacVineyard = foundLyliacVineyard;
 
             UpdateCooldowns();
+            Owner.BuffManager.UpdateBuffs();
         }
 
         public void ResetDefaults()

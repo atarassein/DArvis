@@ -36,7 +36,8 @@
                 
                 <!-- Data Templates -->
                 <ResourceDictionary Source="Templates\AbilityDataTemplate.xaml"/>
-                <ResourceDictionary Source="Templates\BuffDataTemplate.xaml"/>
+                <ResourceDictionary Source="Templates\BuffTargetsDataTemplate.xaml"/>
+                <ResourceDictionary Source="Templates\BuffSpellsDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\ClientVersionDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\ColorThemeDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\EquipmentItemDataTemplate.xaml"/>

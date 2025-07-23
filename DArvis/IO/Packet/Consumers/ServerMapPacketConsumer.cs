@@ -115,8 +115,8 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             return; // We don't really need to see when the player is added to their own map
         }
         
-        var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
-        Console.WriteLine($"{added}   " + packet);
+        //var added = ConsoleOutputExtension.ColorText("AISLING ADDED", ConsoleColor.Green);
+        //Console.WriteLine($"{added}   " + packet);
         packet.Player.Location.CurrentMap.AddEntity(aisling.Entity);
         packet.Handled = true;
     }
