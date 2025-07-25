@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.IO.Pipes;
-using System.Threading;
+﻿using System.IO.Pipes;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Newtonsoft.Json;
 using SideQuest.Messages;
