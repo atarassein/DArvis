@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -36,7 +37,7 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
         //Console.WriteLine($"{serverPacket}");
         serverPacket.Handled = true;
     }
-
+    
     private void HandleWhisperMessage(ServerPacket serverPacket)
     {
         //var notificationService = new WindowsToastNotificationService();
@@ -53,9 +54,8 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
                 Content = whisper.Message,
                 ClientPipe = "ToastReplyListener42"
             };
-            sideQuest.ShowToast(toast);
+            sideQuest.ShowBackgroundToast(serverPacket.Player, toast);
             Console.WriteLine(whisper);
-            
         }
         serverPacket.Handled = true;
     }

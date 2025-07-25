@@ -1,4 +1,5 @@
 ﻿using System;
+using DArvis.Models;
 
 namespace DArvis.Services.SideQuest;
 
@@ -14,7 +15,7 @@ public class ToastMessage
 public interface ISideQuest : IDisposable
 {
     
-    void ShowToast(ToastMessage toast);
+    void ShowBackgroundToast(Player player, ToastMessage toast);
     
     /// <summary>
     /// Starts the SideQuest service.

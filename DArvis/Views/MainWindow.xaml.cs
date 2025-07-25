@@ -2407,16 +2407,7 @@ namespace DArvis.Views
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            var sideQuest = App.Current.Services.GetService<ISideQuest>();
-            var toast = new ToastMessage
-            {
-                Type = "whisper",
-                Title = "Name",
-                Content = "You have received a whisper",
-                ClientPipe = "ToastReplyListener42"
-            };
-            sideQuest.ShowToast(toast);
-            Console.WriteLine("Test button clicked, toast message should be displayed.");
+            
         }
         
         private void injectButton_Click(object sender, RoutedEventArgs e)

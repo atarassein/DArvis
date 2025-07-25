@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
+using DArvis.Models;
 using DArvis.Services.Logging;
 using Newtonsoft.Json;
 
@@ -15,6 +17,9 @@ public class SideQuest : ISideQuest
     public bool IsRunning => _sideQuestProcess != null && !_sideQuestProcess.HasExited;
     public string ServiceName => "SideQuest";
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+    
     public SideQuest(ILogger logger)
     {
         _logger = logger;
@@ -27,8 +32,11 @@ public class SideQuest : ISideQuest
         _sideQuestProcess = null;
     }
 
-    public void ShowToast(ToastMessage toast)
+    public void ShowBackgroundToast(Player player, ToastMessage toast)
     {
+        if (GetForegroundWindow() == player.Process.WindowHandle)
+            return;
+        
         using (var client = new NamedPipeClientStream(".", "SideQuestPipe", PipeDirection.Out))
         {
             client.Connect();
