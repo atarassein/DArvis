@@ -26,6 +26,7 @@ using DArvis.Metadata;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
+using DArvis.Services.SideQuest;
 using DArvis.Settings;
 using DArvis.Win32;
 using Path = System.IO.Path;
@@ -2406,15 +2407,16 @@ namespace DArvis.Views
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var client = new NamedPipeClientStream(".", "ToastAgentPipe", PipeDirection.Out))
+            var sideQuest = App.Current.Services.GetService<ISideQuest>();
+            var toast = new ToastMessage
             {
-                client.Connect();
-                using (var writer = new StreamWriter(client))
-                {
-                    writer.AutoFlush = true; // Ensure data is sent immediately
-                    writer.WriteLine("Help, my dick is trapped in the vacuum cleaner!");
-                }
-            }
+                Type = "whisper",
+                Title = "Name",
+                Content = "You have received a whisper",
+                ClientPipe = "ToastReplyListener42"
+            };
+            sideQuest.ShowToast(toast);
+            Console.WriteLine("Test button clicked, toast message should be displayed.");
         }
         
         private void injectButton_Click(object sender, RoutedEventArgs e)

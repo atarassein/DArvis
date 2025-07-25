@@ -4,6 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DArvis.DTO;
 using DArvis.DTO.ServerPackets;
+using DArvis.Services.SideQuest;
 
 namespace DArvis.IO.Packet.Consumers;
 
@@ -44,6 +45,15 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
         var whisper = new ChatWhisper(serverPacket);
         if (whisper.IsWhisper())
         {
+            var sideQuest = App.Current.Services.GetService<ISideQuest>();
+            var toast = new ToastMessage
+            {
+                Type = "whisper",
+                Title = whisper.SenderName + " > " + serverPacket.Player.Name,
+                Content = whisper.Message,
+                ClientPipe = "ToastReplyListener42"
+            };
+            sideQuest.ShowToast(toast);
             Console.WriteLine(whisper);
             
         }

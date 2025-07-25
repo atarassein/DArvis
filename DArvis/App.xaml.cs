@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using DArvis.Services;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
+using DArvis.Services.SideQuest;
 using DArvis.Views;
 using IServiceProvider = DArvis.Services.IServiceProvider;
 
@@ -13,7 +14,8 @@ namespace DArvis
     {
         public const string USER_MANUAL_URL = @"https://ewrogers.github.io/DArvis4/";
 
-        private ILogger logger;
+        private ILogger? logger;
+        private ISideQuest? sideQuestService;
 
         public static new App Current => (App)Application.Current;
 
@@ -43,6 +45,10 @@ namespace DArvis
         {
             base.OnStartup(e);
 
+            // Start SideQuest service
+            sideQuestService = Services.GetService<ISideQuest>();
+            sideQuestService?.Start();
+
             var mainWindow = new MainWindow();
             mainWindow.Show();
         }
@@ -62,6 +68,7 @@ namespace DArvis
 
         private void Cleanup()
         {
+            sideQuestService?.Stop();
         }
         
         private static IServiceProvider ConfigureServices()
@@ -70,12 +77,14 @@ namespace DArvis
             
             // Services
             services.AddSingleton<ILogger, Logger>();
-
+            services.AddSingleton<ISideQuest, SideQuest>();
             services.AddTransient<IMacroStateSerializer, MacroStateSerializer>();
 
             // ViewModels
 
             return services.BuildServiceProvider();
         }
+
+
     }
 }
