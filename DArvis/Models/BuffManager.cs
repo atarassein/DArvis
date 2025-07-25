@@ -29,6 +29,9 @@ public class BuffManager(Player player) : INotifyPropertyChanged
     private ObservableCollection<BuffCheckboxViewModel> _buffCheckboxes = [];
     public ObservableCollection<BuffCheckboxViewModel> BuffCheckboxes => _buffCheckboxes;
 
+    private ObservableCollection<Spell> _activeSpells = new();
+    public ObservableCollection<Spell> ActiveSpells => _activeSpells;
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     private bool _hasBuffs = false;
@@ -62,7 +65,7 @@ public class BuffManager(Player player) : INotifyPropertyChanged
                 .ThenBy(a => _buffCheckboxes.FirstOrDefault(x => x.Spell.Name == a.Name)?.IsChecked == true ? a.Name : null)
                 .Select(a => a.Name)
                 .ToList();
-            
+
             var reordered = _buffCheckboxes
                 .OrderBy(x => sortedBuffs.IndexOf(x.Spell.Name))
                 .ToList();
@@ -71,6 +74,13 @@ public class BuffManager(Player player) : INotifyPropertyChanged
             foreach (var item in reordered)
             {
                 _buffCheckboxes.Add(item);
+            }
+
+            // Update ActiveSpells
+            _activeSpells.Clear();
+            foreach (var checkbox in _buffCheckboxes.Where(x => x.IsChecked))
+            {
+                _activeSpells.Add(checkbox.Spell);
             }
         });
     }

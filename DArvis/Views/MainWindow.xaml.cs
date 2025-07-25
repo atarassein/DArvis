@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -2405,35 +2406,15 @@ namespace DArvis.Views
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            var bw = new BackgroundWorker();
-            bw.DoWork += (s, args) =>
+            using (var client = new NamedPipeClientStream(".", "ToastAgentPipe", PipeDirection.Out))
             {
-                try
+                client.Connect();
+                using (var writer = new StreamWriter(client))
                 {
-                    var player = PlayerManager.Instance.AllClients.FirstOrDefault();
-                    GameActions.Refresh(player);
-                    GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
-                    Thread.Sleep(2000);
-                    GameActions.Walk(player, Direction.North);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.North);
-                    Thread.Sleep(1000);
-                    GameActions.Walk(player, Direction.East);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.East);
-                    Thread.Sleep(1000);
-                    GameActions.Walk(player, Direction.South);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.South);
-                    Thread.Sleep(1000);
+                    writer.AutoFlush = true; // Ensure data is sent immediately
+                    writer.WriteLine("Help, my dick is trapped in the vacuum cleaner!");
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError($"Error during test walk: {ex.Message}");
-                }
-            };
-            bw.RunWorkerAsync();
-
+            }
         }
         
         private void injectButton_Click(object sender, RoutedEventArgs e)

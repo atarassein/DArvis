@@ -612,11 +612,7 @@
                 <DockPanel>
                     <Button Name="testButton"
                             Click="testButton_Click">
-                        Test Injection
-                    </Button>
-                    <Button Name="injectButton"
-                            Click="injectButton_Click">
-                        Inject DLL
+                        Send Notification
                     </Button>
                 </DockPanel>
             </TabItem>
