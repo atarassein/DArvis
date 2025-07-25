@@ -1,4 +1,5 @@
-﻿using System.IO.Pipes;
+﻿using System.ComponentModel.DataAnnotations;
+using System.IO.Pipes;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Newtonsoft.Json;
 using SideQuest.Messages;
