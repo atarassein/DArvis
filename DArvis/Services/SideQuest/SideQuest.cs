@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using DArvis.IO;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using Newtonsoft.Json;
@@ -16,7 +19,11 @@ public class SideQuest : ISideQuest
     
     public bool IsRunning => _sideQuestProcess != null && !_sideQuestProcess.HasExited;
     public string ServiceName => "SideQuest";
-
+    
+    private const string PipeName = "SideQuestPipe";
+    public const string ReplyPipeName = "SideQuestReplyPipe";
+    private CancellationTokenSource? _replyListenerCts;
+    
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
     
@@ -36,16 +43,32 @@ public class SideQuest : ISideQuest
     {
         if (GetForegroundWindow() == player.Process.WindowHandle)
             return;
-        
-        using (var client = new NamedPipeClientStream(".", "SideQuestPipe", PipeDirection.Out))
+
+        try
         {
-            client.Connect();
-            using (var writer = new StreamWriter(client) { AutoFlush = true })
-            {
-                string json = JsonConvert.SerializeObject(toast);
-                writer.AutoFlush = true; // Ensure data is sent immediately
-                writer.WriteLine(json);
-            }
+            using var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out);
+            client.Connect(1000); // Avoid indefinite blocking
+
+            using var writer = new StreamWriter(client) { AutoFlush = true };
+            toast.PlayerName = player.Name;
+            toast.ClientPipe = ReplyPipeName;
+            string json = JsonConvert.SerializeObject(toast);
+            writer.WriteLine(json);
+        }
+        catch (TimeoutException)
+        {
+            Console.WriteLine("Toast agent is not running or not accepting pipe connections.");
+            _logger.LogWarn("Toast agent is not running or not accepting pipe connections.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"IO error sending toast: {ex.Message}");
+            _logger.LogWarn($"IO error sending toast: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unexpected error sending toast: {ex.Message}");
+            _logger.LogError($"Unexpected error sending toast: {ex.Message}");
         }
     }
 
@@ -59,6 +82,7 @@ public class SideQuest : ISideQuest
             {
                 Console.WriteLine("Side quest process already running");
                 _logger.LogInfo("SideQuest is already running.");
+                StartReplyListener();
                 return;
             }
 
@@ -76,9 +100,11 @@ public class SideQuest : ISideQuest
                     UseShellExecute = false,
                     CreateNoWindow = false
                 });
-
                 Console.WriteLine($"Started SideQuest process with ID: {_sideQuestProcess?.Id}");
                 _logger.LogInfo($"Started SideQuest process with ID: {_sideQuestProcess?.Id}");
+                StartReplyListener();
+                Console.WriteLine($"Reply listener started for SideQuest with pipe name: {ReplyPipeName}");
+                _logger.LogInfo($"Reply listener started for SideQuest with pipe name: {ReplyPipeName}");
             }
             else
             {
@@ -93,6 +119,51 @@ public class SideQuest : ISideQuest
         }
     }
 
+    private void StartReplyListener()
+    {
+        _replyListenerCts = new CancellationTokenSource();
+
+        Task.Run(async () =>
+        {
+            while (!_replyListenerCts.IsCancellationRequested)
+            {
+                try
+                {
+                    Console.WriteLine("REPLY LISTENER STARTED");
+                    using var server = new NamedPipeServerStream(
+                        ReplyPipeName,
+                        PipeDirection.In,
+                        1,
+                        PipeTransmissionMode.Message,
+                        PipeOptions.Asynchronous);
+
+                    await server.WaitForConnectionAsync(_replyListenerCts.Token);
+
+                    using var reader = new StreamReader(server);
+                    string? json = await reader.ReadLineAsync();
+
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        Console.WriteLine($"[SideQuest Reply]: {json}");
+                        var toast = JsonConvert.DeserializeObject<ToastMessage>(json);
+                        var player = PlayerManager.Instance.GetPlayerByName(toast.PlayerName);
+                        GameActions.Whisper(player, toast.ReplyTo, toast.Content);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Graceful shutdown
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in SideQuest reply listener: {ex.Message}");
+                    _logger.LogWarn($"Error in SideQuest reply listener: {ex.Message}");
+                }
+            }
+        }, _replyListenerCts.Token);
+    }
+    
     public void Stop()
     {
         try
@@ -101,16 +172,16 @@ public class SideQuest : ISideQuest
             if (_sideQuestProcess != null && !_sideQuestProcess.HasExited)
             {
                 _sideQuestProcess.CloseMainWindow();
-                
+
                 // Give it a moment to close gracefully
                 if (!_sideQuestProcess.WaitForExit(5000))
                 {
                     _sideQuestProcess.Kill();
                 }
-                
+
                 _sideQuestProcess.Dispose();
                 _sideQuestProcess = null;
-                
+
                 Console.WriteLine("Stopped SideQuest process.");
                 _logger.LogInfo("Stopped SideQuest process.");
             }
@@ -124,11 +195,12 @@ public class SideQuest : ISideQuest
                     if (!process.HasExited)
                     {
                         process.CloseMainWindow();
-                        
+
                         if (!process.WaitForExit(5000))
                         {
                             process.Kill();
                         }
+
                         Console.WriteLine($"Stopped additional SideQuest process with ID: {process.Id}");
                         _logger.LogInfo($"Stopped additional SideQuest process with ID: {process.Id}");
                     }
@@ -149,5 +221,25 @@ public class SideQuest : ISideQuest
             Console.WriteLine($"Error while stopping SideQuest: {ex.Message}");
             _logger.LogError($"Error while stopping SideQuest: {ex.Message}");
         }
+        finally
+        {
+            StopReplyListener();
+        }
     }
+    
+    private void StopReplyListener()
+    {
+        try
+        {
+            _replyListenerCts?.Cancel();
+            _replyListenerCts?.Dispose();
+            _replyListenerCts = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to stop reply listener: {ex.Message}");
+            _logger.LogWarn($"Failed to stop reply listener: {ex.Message}");
+        }
+    }
+    
 }

@@ -6,10 +6,13 @@ namespace DArvis.Services.SideQuest;
 public class ToastMessage
 {
     public string Type { get; set; } = "";
+    
+    public string PlayerName { get; set; } = "";
     public string Title { get; set; } = "";
     public string Content { get; set; } = "";
     public string? Process { get; set; } = null;
-    public string? ClientPipe { get; set; } = null;
+    public string? ClientPipe = SideQuest.ReplyPipeName;
+    public string? ReplyTo { get; set; } = null; // For "reply" action
 }
 
 public interface ISideQuest : IDisposable

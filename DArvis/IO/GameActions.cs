@@ -22,6 +22,31 @@ public class GameActions
         
         PacketManager.InjectPacket(packet);
     }
+
+    public static void Whisper(Player player, string recipient, string message)
+    {
+        Console.WriteLine("SENDING WHISPER FROM " + player.Name + " > " + recipient + ": " + message);
+        var encoding = Encoding.GetEncoding(949); // Use the appropriate encoding
+        var recipientBytes = encoding.GetBytes(recipient);
+        var messageBytes = encoding.GetBytes(message);
+
+        var byteList = new List<byte>
+        {
+            0x19, // ID byte
+            (byte)recipientBytes.Length // Recipient length
+        };
+
+        byteList.AddRange(recipientBytes); // Add recipient bytes
+        byteList.Add((byte)messageBytes.Length); // Message length
+        byteList.AddRange(messageBytes); // Add message bytes
+        byteList.Add(0x00); // Terminal byte
+        byteList.Add(0x19); // Terminal byte
+        
+        var data = byteList.ToArray();
+        
+        var packet = new ClientPacket(data, player);
+        PacketManager.InjectPacket(packet);
+    }
     
     public static void Assail(Player player)
     {

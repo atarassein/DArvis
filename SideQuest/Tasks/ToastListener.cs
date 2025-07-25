@@ -27,7 +27,10 @@ public static class ToastListener
                     using var reader = new StreamReader(server);
                     string? json = await reader.ReadLineAsync();
 
-                    if (!string.IsNullOrWhiteSpace(json))
+                    if (string.IsNullOrWhiteSpace(json))
+                        continue;
+
+                    try
                     {
                         var toast = JsonConvert.DeserializeObject<ToastMessage>(json);
                         if (toast != null)
@@ -42,6 +45,9 @@ public static class ToastListener
                                     break;
                             }
                         }
+                    }
+                    catch (JsonException)
+                    {
                     }
                 }
                 catch (OperationCanceledException)
@@ -74,16 +80,23 @@ public static class ToastListener
 
     private static void ShowWhisperToast(ToastMessage toast)
     {
+        Console.WriteLine(toast);
         new ToastContentBuilder()
             .AddArgument("action", "reply")
+            .AddArgument("type", "whisper")
             .AddArgument("pipe", toast.ClientPipe ?? "")
             .AddText(toast.Title)
             .AddText(toast.Content)
             .AddInputTextBox("replyBox", placeHolderContent: "Type a reply...")
-            .AddButton(new ToastButton("Send", $"action=sendReply&pipe={toast.ClientPipe ?? ""}&inputId=replyBox")
-            {
-                ActivationType = ToastActivationType.Background
-            })
+            .AddButton(
+                new ToastButton()
+                    .SetContent("Send")
+                    .AddArgument("type", "whisper")
+                    .AddArgument("pipe", toast.ClientPipe ?? "")
+                    .AddArgument("playerName", toast.PlayerName)
+                    .AddArgument("replyTo", toast.ReplyTo ?? "")
+                    .SetBackgroundActivation()
+                )
             .Show();
     }
 }

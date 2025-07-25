@@ -8,7 +8,7 @@ public class ChatWhisper
 {
 
     public string? SenderName { get; private set; }
-    public String? Message { get; private set; }
+    public String Message { get; private set; } = string.Empty;
     public DateTime Timestamp { get; private set; }
 
     private Player Target;
@@ -29,7 +29,7 @@ public class ChatWhisper
 
     public bool IsWhisper()
     {
-        return SenderName != null && Message != null;
+        return SenderName != null && Message != string.Empty;
     }
     
     public override string ToString()

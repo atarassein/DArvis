@@ -52,7 +52,7 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
                 Type = "whisper",
                 Title = whisper.SenderName + " > " + serverPacket.Player.Name,
                 Content = whisper.Message,
-                ClientPipe = "ToastReplyListener42"
+                ReplyTo = whisper.SenderName
             };
             sideQuest.ShowBackgroundToast(serverPacket.Player, toast);
             Console.WriteLine(whisper);

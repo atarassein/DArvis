@@ -1,4 +1,6 @@
-﻿namespace DArvis.IO.Packet.Consumers;
+﻿using System;
+
+namespace DArvis.IO.Packet.Consumers;
 
 public class ClientChatPacketConsumer : PacketConsumer<ClientPacket>
 {
@@ -10,6 +12,7 @@ public class ClientChatPacketConsumer : PacketConsumer<ClientPacket>
 
     public override void ProcessPacket(ClientPacket packet)
     {
+        Console.WriteLine(packet);
         packet.Handled = true;
     }
 
