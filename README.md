@@ -20,6 +20,7 @@ A fork of both [EtDA](https://github.com/wren11/ETDA) and [SleepHunter](https://
     ✅ Packet Hooking/Interception
     ✅ Packet Queue Publshing/Consuming
     ✅ Mapping
+    ✅ Whisper Notifications
     ✅ Auto-Following
     ⌛ Auto-Buffing
     ⬜ Auto-Debuffing
