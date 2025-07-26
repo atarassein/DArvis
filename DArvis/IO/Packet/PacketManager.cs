@@ -324,7 +324,14 @@ namespace DArvis.IO.Packet
                 while (!ClientPacketQueue.IsEmpty)
                 {
                     ClientPacketQueue.TryDequeue(out var packet);
-                    //Console.WriteLine(packet);
+                    var dateNow = DateTime.Now;
+                    // Log the packet with a timestamp
+                    // This is a workaround for the fact that DateTime.Now.ToString("HH:mm:ss") does not support "ii" for minutes in .NET Core
+
+                    if (packet.Player.Name == "AmorFati")
+                    {
+                        Console.WriteLine($"[{dateNow:HH:mm:ss}] " + packet);
+                    }
                     var ableConsumers = consumers.FindAll(c => c.CanConsume(packet));
                     foreach (var consumer in ableConsumers)
                     {
@@ -334,7 +341,7 @@ namespace DArvis.IO.Packet
                     if (!packet.Handled)
                     {
                         logger.LogWarn($"No consumer found for packet type: {packet.EventType}");
-                        Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
+                        //Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
                     }
                 }
             };
@@ -385,6 +392,11 @@ namespace DArvis.IO.Packet
                     memory.Write((IntPtr)DAStaticPointers.SendBuffer + 0x04, 1, false);
                     memory.Write((IntPtr)DAStaticPointers.SendBuffer + 0x08, packet.Data.Length, false);
                     memory.Write((IntPtr)DAStaticPointers.SendBuffer + 0x12, packet.Data, false);
+                    
+                    if (packet.Pause > TimeSpan.Zero)
+                    {
+                        Thread.Sleep(packet.Pause);
+                    }
                 }
             };
             
