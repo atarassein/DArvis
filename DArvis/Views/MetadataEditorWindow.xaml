@@ -71,6 +71,7 @@
                             <GridViewColumn Header="Group" Width="100" CellTemplate="{StaticResource GroupDataTemplate}"/>
                             <GridViewColumn Header="Mana" Width="70" CellTemplate="{StaticResource ManaDataTemplate}"/>
                             <GridViewColumn Header="Lines" Width="75" CellTemplate="{StaticResource LinesDataTemplate}"/>
+                            <GridViewColumn Header="Duration" Width="110" CellTemplate="{StaticResource DurationDataTemplate}"/>
                             <GridViewColumn Header="Cooldown" Width="110" CellTemplate="{StaticResource CooldownDataTemplate}"/>
                             <GridViewColumn Header="Dialog?" Width="75" CellTemplate="{StaticResource OpensDialogDataTemplate}"/>
                             <GridViewColumn Header="No Improve?" Width="120" CellTemplate="{StaticResource CanImproveDataTemplate}"/>

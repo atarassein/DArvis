@@ -21,6 +21,7 @@ namespace DArvis.Models
         private string name;
         private int iconIndex;
         private ImageSource icon;
+        private TimeSpan duration;
         private TimeSpan cooldown;
         private bool isOnCooldown;
         private int currentLevel;
@@ -83,6 +84,12 @@ namespace DArvis.Models
             set => SetProperty(ref isOnCooldown, value);
         }
 
+        public TimeSpan Duration
+        {
+            get => duration;
+            set => SetProperty(ref duration, value);
+        }
+        
         public TimeSpan Cooldown
         {
             get => cooldown;

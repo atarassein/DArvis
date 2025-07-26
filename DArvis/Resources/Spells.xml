@@ -30,7 +30,7 @@
     <Spell Name="ard seun" Class="Priest" Group="seun" Mana="400" Lines="1" Duration="0" />
     <Spell Name="ard srad" Class="Wizard" Group="srad" Mana="2530" Lines="4" Duration="0" />
     <Spell Name="ard srad nadur" Class="Wizard" Group="srad" Mana="5" Duration="0" />
-    <Spell Name="armachd" Class="Priest" Group="armachd" Mana="30" Lines="2" Duration="0" />
+    <Spell Name="armachd" Class="Priest" Group="armachd" Mana="30" Lines="2" Duration="149" />
     <Spell Name="armachd fein" Class="Priest" Group="armachd" Mana="30" Duration="0" />
     <Spell Name="Asgall Faileas" Class="Warrior" Group="asgall" Mana="310" Lines="1" Duration="0" />
     <Spell Name="athar" Class="Wizard" Group="athar" Mana="200" Lines="2" Duration="0" />

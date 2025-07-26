@@ -1118,6 +1118,11 @@ namespace DArvis.Macro
                 if (didRequireSwitch)
                     Thread.Sleep(SwitchDelay);
 
+                if (item.Target.Mode == SpellTargetMode.BuffTargets)
+                {
+                    // TODO: rotate through buff targets and rebuff if buff has expired
+                }
+                
                 client.DoubleClickSlot(spell.Panel, spell.Slot);
                 ClickTarget(item.Target);
 
