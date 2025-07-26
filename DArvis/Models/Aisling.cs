@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 
 namespace DArvis.Models;
@@ -16,6 +17,7 @@ public class Aisling : INotifyPropertyChanged
     private bool _isBuffTarget;
     private bool _isVisible;
     
+    public ConcurrentDictionary<string, DateTime> BuffExpirationTimes { get; set; } = new();
     public bool IsBuffTarget
     {
         get => _isBuffTarget;

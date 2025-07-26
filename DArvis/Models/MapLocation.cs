@@ -212,6 +212,16 @@ namespace DArvis.Models
             return deltaX + deltaY <= maxDistance;
         }
         
+        public bool IsWithinRange(int x, int y, int maxX = 10, int maxY = 10)
+        {
+            CheckIfDisposed();
+
+            var deltaX = Math.Abs(X - x);
+            var deltaY = Math.Abs(Y - y);
+
+            return deltaX <= maxX && deltaY <= maxY;
+        }
+        
         public bool IsWithinRange(MapLocation other, int maxX = 10, int maxY = 10)
         {
             CheckIfDisposed();

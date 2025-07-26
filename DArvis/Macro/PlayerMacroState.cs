@@ -1118,16 +1118,54 @@ namespace DArvis.Macro
                 if (didRequireSwitch)
                     Thread.Sleep(SwitchDelay);
 
+                TimeSpan spellCastDuration;
+                DateTime now;
                 if (item.Target.Mode == SpellTargetMode.BuffTargets)
                 {
-                    // TODO: rotate through buff targets and rebuff if buff has expired
+                    var targets = Client.AislingManager.Aislings.ToList(); // Create snapshot to avoid collection modification during enumeration
+                    foreach (var aisling in targets)
+                    {
+                        if (!aisling.IsBuffTarget || !aisling.IsVisible || aisling.IsHidden)
+                            continue;
+
+                        if (aisling.BuffExpirationTimes.TryGetValue(spell.Name, out var time))
+                        {
+                            if (DateTime.Now <= time)
+                                continue;
+                        }
+                        
+                        if (!client.Location.IsWithinRange(aisling.X, aisling.Y))
+                            continue;
+
+                        client.DoubleClickSlot(spell.Panel, spell.Slot);
+                        ClickAbsoluteCoord(aisling.X, aisling.Y);
+                        
+                        var expirationTime = DateTime.Now + spell.Duration;
+                        aisling.BuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
+
+                        spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
+                        now = DateTime.Now;
+
+                        SpellCastDuration = spellCastDuration;
+                        SpellCastTimestamp = now;
+                        item.LastUsedTimestamp = now;
+                        
+                        if (spell.Cooldown > TimeSpan.Zero)
+                        {
+                            client.Spellbook.SetCooldownTimestamp(spell.Name, now.Add(spellCastDuration));
+                            return true;
+                        }
+                        
+                        Thread.Sleep(spellCastDuration); // TODO: this isn't sleeping as expected
+                    }
+                    return true;
                 }
                 
                 client.DoubleClickSlot(spell.Panel, spell.Slot);
                 ClickTarget(item.Target);
 
-                var spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
-                var now = DateTime.Now;
+                spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
+                now = DateTime.Now;
 
                 SpellCastDuration = spellCastDuration;
                 SpellCastTimestamp = now;
@@ -1184,6 +1222,20 @@ namespace DArvis.Macro
                 return false;
 
             return true;
+        }
+
+        private void ClickAbsoluteCoord(int x, int y)
+        {
+            var pt = GetAbsoluteTilePoint(x, y);
+
+            // scale for window
+            if (client.Process.WindowScaleX > 0 && client.Process.WindowScaleX != 1)
+                pt.X *= client.Process.WindowScaleX;
+
+            if (client.Process.WindowScaleY > 0 && client.Process.WindowScaleY != 1)
+                pt.Y *= client.Process.WindowScaleY;
+
+            client.ClickAt(pt.X, pt.Y);
         }
 
         private void ClickTarget(SpellTarget target)
