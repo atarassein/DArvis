@@ -253,6 +253,7 @@ namespace DArvis.Models
             return unitType switch
             {
                 SpellTargetMode.None => null,
+                SpellTargetMode.BuffTargets => string.Format("{0}", "Buff Targets"),
                 SpellTargetMode.Character => string.Format("{0}", characterName),
                 SpellTargetMode.AbsoluteTile => string.Format("Tile {0}, {1}", location.X.ToString(), location.Y.ToString()),
                 SpellTargetMode.AbsoluteXY => string.Format("Screen {0}, {1}", location.X.ToString(), location.Y.ToString()),
