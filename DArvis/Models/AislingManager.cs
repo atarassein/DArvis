@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -10,25 +8,12 @@ namespace DArvis.Models;
 
 public class AislingManager : INotifyPropertyChanged
 {
-    private class Aisling
-    {
-        public string Name;
-        public int Serial;
-        public int X;
-        public int Y;
-        public Direction Direction;
-        public bool IsVisible;
-        public bool IsHidden;
-        public DateTime LastSeen = DateTime.UtcNow;
-    }
+    // Single collection for both internal tracking and UI binding
+    private readonly ObservableCollection<Aisling> _aislings = new();
     
-    // use this class to track aisling entities seen, whether they are logged in or not, visible on the map or not, etc
-    private readonly ConcurrentDictionary<string, Aisling> _aislings = new();
-    private readonly ObservableCollection<AislingCheckboxViewModel> _aislingCheckboxes = new();
+    public ObservableCollection<Aisling> Aislings => _aislings;
     
-    public ObservableCollection<AislingCheckboxViewModel> AislingCheckboxes => _aislingCheckboxes;
-    
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly Timer _cleanupTimer;
     
@@ -42,43 +27,62 @@ public class AislingManager : INotifyPropertyChanged
         if (aislingEntity == null || aislingEntity.Serial == 0)
             return; // not an aisling
 
-        var newAisling = new Aisling
+        // Marshal to UI thread for all collection operations
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            Name = aislingEntity.Name,
-            Serial = aislingEntity.Serial,
-            X = aislingEntity.X,
-            Y = aislingEntity.Y,
-            Direction = aislingEntity.Direction,
-            IsVisible = true,
-            IsHidden = false, // TODO
-            LastSeen = DateTime.UtcNow
-        };
-        
-        if (newAisling.Name == "")
-        {
-            foreach (var aisling in _aislings.Values)
+            var newAisling = new Aisling
             {
-                if (aisling.Name != "" || aisling.Serial != newAisling.Serial)
-                    continue;
-                
-                if (aisling.LastSeen < DateTime.UtcNow - TimeSpan.FromHours(4))
-                    continue; // TODO: configure memory time for aislings
-                
-                // we found a hidden aisling
-                aisling.X = newAisling.X;
-                aisling.Y = newAisling.Y;
-                aisling.Direction = newAisling.Direction;
-                aisling.IsHidden = true;
-                aisling.IsVisible = true;
-                // Console.WriteLine($"~{newAisling.Name} @ ({newAisling.X},{newAisling.Y})");
-                return;
+                Name = aislingEntity.Name,
+                Serial = aislingEntity.Serial,
+                X = aislingEntity.X,
+                Y = aislingEntity.Y,
+                Direction = aislingEntity.Direction,
+                IsVisible = true,
+                IsHidden = false,
+                LastSeen = DateTime.UtcNow,
+                UpdateAction = UpdateAislings // Set the update action so checkbox changes trigger reordering
+            };
+            
+            if (newAisling.Name == "")
+            {
+                // Handle hidden aislings by serial lookup
+                var existingAisling = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial && a.Name != "");
+                if (existingAisling != null && existingAisling.LastSeen > DateTime.UtcNow - TimeSpan.FromHours(4))
+                {
+                    // Update existing hidden aisling
+                    existingAisling.X = newAisling.X;
+                    existingAisling.Y = newAisling.Y;
+                    existingAisling.Direction = newAisling.Direction;
+                    existingAisling.IsHidden = true;
+                    existingAisling.IsVisible = true;
+                    existingAisling.LastSeen = DateTime.UtcNow;
+                    UpdateAislings();
+                    return;
+                }
             }
-        }
 
-        if (newAisling.Name == "") return;
-        // Console.WriteLine($" {newAisling.Name} @ {newAisling.Direction.ToString()[0]}({newAisling.X},{newAisling.Y})");
-        _aislings.AddOrUpdate(newAisling.Name.ToLower(), newAisling, (k, v) => newAisling);
-        UpdateAislingCheckboxes();
+            if (newAisling.Name == "") return;
+            
+            // Find existing aisling by serial
+            var existing = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial);
+            if (existing != null)
+            {
+                // Update existing aisling properties
+                existing.Name = newAisling.Name;
+                existing.X = newAisling.X;
+                existing.Y = newAisling.Y;
+                existing.Direction = newAisling.Direction;
+                existing.IsVisible = newAisling.IsVisible;
+                existing.IsHidden = newAisling.IsHidden;
+                existing.LastSeen = newAisling.LastSeen;
+            }
+            else
+            {
+                // Add new aisling
+                _aislings.Add(newAisling);
+                UpdateAislings();
+            }
+        });
     }
     
     /// <summary>
@@ -88,23 +92,25 @@ public class AislingManager : INotifyPropertyChanged
     /// <returns></returns>
     public bool UpdateAisling(MapEntity aislingEntity)
     {
-        var serial = aislingEntity.Serial;
-        foreach (var aisling in _aislings.Values)
+        bool found = false;
+        
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            if (aisling.Serial != serial) continue;
-            
-            aisling.X = aislingEntity.X;
-            aisling.Y = aislingEntity.Y;
-            aisling.Direction = aislingEntity.Direction;
-            aisling.IsVisible = true;
-            aisling.IsHidden = aislingEntity.Name == "";
-            aisling.LastSeen = DateTime.UtcNow;
-            // Console.WriteLine($" {aisling.Name} -> {aisling.Direction.ToString()[0]}({aisling.X},{aisling.Y})");
-            UpdateAislingCheckboxes();
-            return true;
-        }
+            var aisling = _aislings.FirstOrDefault(a => a.Serial == aislingEntity.Serial);
+            if (aisling != null)
+            {
+                aisling.X = aislingEntity.X;
+                aisling.Y = aislingEntity.Y;
+                aisling.Direction = aislingEntity.Direction;
+                aisling.IsVisible = true;
+                aisling.IsHidden = aislingEntity.Name == "";
+                aisling.LastSeen = DateTime.UtcNow;
+                found = true;
+                UpdateAislings();
+            }
+        });
 
-        return false;
+        return found;
     }
 
     /// <summary>
@@ -113,15 +119,15 @@ public class AislingManager : INotifyPropertyChanged
     /// <param name="serial"></param>
     public void HideAisling(int serial)
     {
-        foreach (var aisling in _aislings.Values)
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            if (aisling.Serial != serial) continue;
-            
-            aisling.IsVisible = false;
-            // Console.WriteLine($" {aisling.Name} left view");
-            UpdateAislingCheckboxes();
-            return;
-        }
+            var aisling = _aislings.FirstOrDefault(a => a.Serial == serial);
+            if (aisling != null)
+            {
+                aisling.IsVisible = false;
+                UpdateAislings();
+            }
+        });
     }
 
     /// <summary>
@@ -130,117 +136,60 @@ public class AislingManager : INotifyPropertyChanged
     /// </summary>
     public void HideEveryoneForRefresh()
     {
-        foreach (var aisling in _aislings.Values)
-        {
-            aisling.IsHidden = true;
-        }
-        
-        foreach (var aislingCheckbox in _aislingCheckboxes)
-        {
-            aislingCheckbox.IsVisible = false;
-        }
-    }
-    
-    private void UpdateAislingCheckboxes()
-    {
-        // Marshal to UI thread
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            var sortedAislings = _aislings.Values
-                .OrderBy(a => _aislingCheckboxes.FirstOrDefault(x => x.Name == a.Name)?.IsChecked ?? false)
-                .ThenByDescending(a => _aislingCheckboxes.FirstOrDefault(x => x.Name == a.Name)?.IsChecked == true ? a.Name : null)
-                .ThenBy(a => a.LastSeen.ToString("yyyy-MM-dd HH:mm"))
-                .Select(a => a.Name)
-                .ToList();
-    
-            var currentNames = _aislingCheckboxes.Select(x => x.Name).ToHashSet();
-    
-            foreach (var aisling in _aislings.Values)
+            foreach (var aisling in _aislings)
             {
-                var checkbox = _aislingCheckboxes.FirstOrDefault(x => x.Name == aisling.Name);
-                if (checkbox != null)
-                {
-                    checkbox.IsVisible = aisling.IsVisible; // Ensure IsVisible is updated
-                }
+                aisling.IsVisible = false;
             }
-            
-            // Add new aislings
-            foreach (var name in sortedAislings.Except(currentNames))
-            {
-                _aislingCheckboxes.Add(new AislingCheckboxViewModel { Name = name, IsChecked = false, UpdateAction = UpdateAislingCheckboxes });
-            }
-    
-            // Remove old aislings
-            var toRemove = _aislingCheckboxes.Where(x => !sortedAislings.Contains(x.Name)).ToList();
-            foreach (var item in toRemove)
-            {
-                _aislingCheckboxes.Remove(item);
-            }
-    
-            // Reorder the collection
-            var reordered = _aislingCheckboxes
-                .OrderByDescending(x => sortedAislings.IndexOf(x.Name))
-                .ToList();
-    
-            _aislingCheckboxes.Clear();
-            foreach (var item in reordered)
-            {
-                _aislingCheckboxes.Add(item);
-            }
+
+            UpdateAislings();
         });
     }
     
-    private void RemoveInactiveAislings(object state)
+    private void RemoveInactiveAislings(object? state)
     {
         var cutoffTime = DateTime.UtcNow - TimeSpan.FromMinutes(10);
 
-        // Marshal to UI thread
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            var toRemove = _aislings.Values
-                .Where(a => a.LastSeen < cutoffTime && !_aislingCheckboxes.Any(c => c.Name == a.Name && c.IsChecked))
-                .Select(a => a.Name.ToLower())
+            var toRemove = _aislings
+                .Where(a => !a.IsBuffTarget && a.LastSeen < cutoffTime)
                 .ToList();
 
-            foreach (var name in toRemove)
+            foreach (var aisling in toRemove)
             {
-                _aislings.TryRemove(name, out _);
+                _aislings.Remove(aisling);
             }
-
-            UpdateAislingCheckboxes();
+            
+            // Reorder after removing inactive aislings
+            if (toRemove.Count > 0)
+            {
+                UpdateAislings();
+            }
         });
     }
-}
-
-public class AislingCheckboxViewModel : INotifyPropertyChanged
-{
-    private bool _isChecked;
-    private bool _isVisible;
-
-    public string Name { get; set; }
-
-    public bool IsChecked
-    {
-        get => _isChecked;
-        set
-        {
-            _isChecked = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
-            UpdateAction?.Invoke(); // Call UpdateAislingCheckboxes when IsChecked changes
-        }
-    }
-
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            _isVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVisible)));
-        }
-    }
     
-    public Action UpdateAction { get; set; }
+    /// <summary>
+    /// Updates and reorders the UI list of aislings
+    /// </summary>
+    public void UpdateAislings()
+    {
+        Console.WriteLine("Updating Aislings...");
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            // Create a sorted list of aislings
+            var sortedAislings = _aislings
+                .OrderByDescending(a => a.IsBuffTarget) // 1. Checked aislings first
+                .ThenBy(a => a.IsBuffTarget ? a.Name : (a.IsVisible ? $"1{a.Name}" : $"2{a.Name}")) // 2. For checked: alphabetical, for unchecked: visible then invisible, both alphabetical
+                .ToList();
 
-    public event PropertyChangedEventHandler PropertyChanged;
+            // Clear and repopulate to trigger UI update with new order
+            _aislings.Clear();
+            foreach (var aisling in sortedAislings)
+            {
+                _aislings.Add(aisling);
+            }
+        });
+    }
 }

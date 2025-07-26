@@ -3,9 +3,9 @@
                     xmlns:local="clr-namespace:DArvis"
                     xmlns:models="clr-namespace:DArvis.Models">
 
-    <DataTemplate x:Key="BuffTargetsDataTemplate" DataType="{x:Type models:AislingCheckboxViewModel}">
+    <DataTemplate x:Key="BuffTargetsDataTemplate" DataType="{x:Type models:Aisling}">
         <CheckBox Content="{Binding Name}"
-                  IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                  IsChecked="{Binding IsBuffTarget, Mode=TwoWay}"
                   Margin="5,2">
             <CheckBox.Style>
                 <Style TargetType="CheckBox" BasedOn="{StaticResource ObsidianCheckBox}">

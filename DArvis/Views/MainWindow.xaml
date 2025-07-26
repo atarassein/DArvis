@@ -314,7 +314,7 @@
                     <Border Grid.Row="1" Grid.Column="0">
                         <ListBox 
                             ItemTemplate="{StaticResource BuffTargetsDataTemplate}"
-                            ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.AislingCheckboxes}"
+                            ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.Aislings}"
                             Style="{StaticResource ObsidianListBox}"
                             >
                         </ListBox>
