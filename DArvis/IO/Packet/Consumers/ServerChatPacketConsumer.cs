@@ -33,16 +33,11 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
 
     private void HandleChatMessage(ServerPacket serverPacket)
     {
-        // Console.WriteLine("Processing chat message...");
-        //Console.WriteLine($"{serverPacket}");
         serverPacket.Handled = true;
     }
     
     private void HandleWhisperMessage(ServerPacket serverPacket)
     {
-        //var notificationService = new WindowsToastNotificationService();
-        //var _whisperNotificationHandler = new WhisperNotificationHandler(notificationService);
-        // Console.WriteLine(serverPacket);
         var whisper = new ChatWhisper(serverPacket);
         if (whisper.IsWhisper())
         {
@@ -55,7 +50,6 @@ public class ServerChatPacketConsumer : PacketConsumer<ServerPacket>
                 ReplyTo = whisper.SenderName
             };
             sideQuest.ShowBackgroundToast(serverPacket.Player, toast);
-            Console.WriteLine(whisper);
         }
         serverPacket.Handled = true;
     }

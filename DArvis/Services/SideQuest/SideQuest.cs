@@ -57,17 +57,14 @@ public class SideQuest : ISideQuest
         }
         catch (TimeoutException)
         {
-            Console.WriteLine("Toast agent is not running or not accepting pipe connections.");
             _logger.LogWarn("Toast agent is not running or not accepting pipe connections.");
         }
         catch (IOException ex)
         {
-            Console.WriteLine($"IO error sending toast: {ex.Message}");
             _logger.LogWarn($"IO error sending toast: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Unexpected error sending toast: {ex.Message}");
             _logger.LogError($"Unexpected error sending toast: {ex.Message}");
         }
     }
@@ -80,7 +77,6 @@ public class SideQuest : ISideQuest
             var existingProcesses = Process.GetProcessesByName("SideQuest");
             if (existingProcesses.Length > 0)
             {
-                Console.WriteLine("Side quest process already running");
                 _logger.LogInfo("SideQuest is already running.");
                 StartReplyListener();
                 return;
@@ -100,21 +96,17 @@ public class SideQuest : ISideQuest
                     UseShellExecute = false,
                     CreateNoWindow = false
                 });
-                Console.WriteLine($"Started SideQuest process with ID: {_sideQuestProcess?.Id}");
                 _logger.LogInfo($"Started SideQuest process with ID: {_sideQuestProcess?.Id}");
                 StartReplyListener();
-                Console.WriteLine($"Reply listener started for SideQuest with pipe name: {ReplyPipeName}");
                 _logger.LogInfo($"Reply listener started for SideQuest with pipe name: {ReplyPipeName}");
             }
             else
             {
-                Console.WriteLine("SideQuest.exe not found in application directory. Skipping SideQuest startup.");
                 _logger.LogInfo("SideQuest.exe not found in application directory. Skipping SideQuest startup.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to start SideQuest: {ex.Message}");
             _logger.LogError($"Failed to start SideQuest: {ex.Message}");
         }
     }
@@ -129,7 +121,6 @@ public class SideQuest : ISideQuest
             {
                 try
                 {
-                    Console.WriteLine("REPLY LISTENER STARTED");
                     using var server = new NamedPipeServerStream(
                         ReplyPipeName,
                         PipeDirection.In,
@@ -144,7 +135,6 @@ public class SideQuest : ISideQuest
 
                     if (!string.IsNullOrWhiteSpace(json))
                     {
-                        Console.WriteLine($"[SideQuest Reply]: {json}");
                         var toast = JsonConvert.DeserializeObject<ToastMessage>(json);
                         var player = PlayerManager.Instance.GetPlayerByName(toast.PlayerName);
                         GameActions.Whisper(player, toast.ReplyTo, toast.Content);
@@ -157,7 +147,6 @@ public class SideQuest : ISideQuest
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in SideQuest reply listener: {ex.Message}");
                     _logger.LogWarn($"Error in SideQuest reply listener: {ex.Message}");
                 }
             }
@@ -182,7 +171,6 @@ public class SideQuest : ISideQuest
                 _sideQuestProcess.Dispose();
                 _sideQuestProcess = null;
 
-                Console.WriteLine("Stopped SideQuest process.");
                 _logger.LogInfo("Stopped SideQuest process.");
             }
 
@@ -201,13 +189,11 @@ public class SideQuest : ISideQuest
                             process.Kill();
                         }
 
-                        Console.WriteLine($"Stopped additional SideQuest process with ID: {process.Id}");
                         _logger.LogInfo($"Stopped additional SideQuest process with ID: {process.Id}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to stop SideQuest process {process.Id}: {ex.Message}");
                     _logger.LogWarn($"Failed to stop SideQuest process {process.Id}: {ex.Message}");
                 }
                 finally
@@ -218,7 +204,6 @@ public class SideQuest : ISideQuest
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error while stopping SideQuest: {ex.Message}");
             _logger.LogError($"Error while stopping SideQuest: {ex.Message}");
         }
         finally
@@ -237,7 +222,6 @@ public class SideQuest : ISideQuest
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to stop reply listener: {ex.Message}");
             _logger.LogWarn($"Failed to stop reply listener: {ex.Message}");
         }
     }

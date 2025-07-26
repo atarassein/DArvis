@@ -150,7 +150,7 @@ namespace DArvis.Models
                     Direction = oldDir,
                 };
                 
-                Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
+                // Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
             }

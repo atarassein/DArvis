@@ -172,7 +172,7 @@ namespace DArvis.IO.Packet
                 var module = memory.Modules.Inject(dllPath);
                 var isValid = module.IsValid;
                 var m = module.BaseAddress;
-                Console.WriteLine("DAvid.dll injected: " + isValid + " at " + m);
+                // Console.WriteLine("DAvid.dll injected: " + isValid + " at " + m);
                 Instance.logger.LogInfo($"Injected DAvid.dll into process {process.ProcessName} ({process.Id})");
                 Console.Beep();
             } catch (Exception ex)
@@ -314,7 +314,7 @@ namespace DArvis.IO.Packet
                     if (!packet.Handled)
                     {
                         logger.LogWarn($"No consumer found for packet type: {packet.EventType}");
-                        Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
+                        //Console.WriteLine($"???[0x{packet.Data[0]:X2}]: {packet}");
                     }
                 }
             };
@@ -350,14 +350,7 @@ namespace DArvis.IO.Packet
                 while (!ClientPacketQueue.IsEmpty)
                 {
                     ClientPacketQueue.TryDequeue(out var packet);
-                    var dateNow = DateTime.Now;
-                    // Log the packet with a timestamp
-                    // This is a workaround for the fact that DateTime.Now.ToString("HH:mm:ss") does not support "ii" for minutes in .NET Core
-
-                    if (packet.Player.Name == "AmorFati")
-                    {
-                        Console.WriteLine($"[{dateNow:HH:mm:ss}] " + packet);
-                    }
+                    
                     var ableConsumers = consumers.FindAll(c => c.CanConsume(packet));
                     foreach (var consumer in ableConsumers)
                     {

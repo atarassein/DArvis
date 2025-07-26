@@ -1137,6 +1137,8 @@ namespace DArvis.Macro
                         if (!client.Location.IsWithinRange(aisling.X, aisling.Y))
                             continue;
 
+                        Console.WriteLine($"I AM AT [{client.Location.X},{client.Location.Y}]");
+                        Console.WriteLine($"CASTING {spell.Name}->{aisling.Name}@[{aisling.X},{aisling.Y}]");
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
                         ClickAbsoluteCoord(aisling.X, aisling.Y);
                         
@@ -1156,7 +1158,7 @@ namespace DArvis.Macro
                             return true;
                         }
                         
-                        Thread.Sleep(spellCastDuration); // TODO: this isn't sleeping as expected
+                        Thread.Sleep(spellCastDuration);
                     }
                     return true;
                 }

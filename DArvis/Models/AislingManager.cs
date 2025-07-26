@@ -201,7 +201,7 @@ public class AislingManager : INotifyPropertyChanged
 
     public void UpdateAislings()
     {
-        Console.WriteLine("Updating Aislings...");
+        // Console.WriteLine("Updating Aislings...");
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             // Create a sorted list of aislings

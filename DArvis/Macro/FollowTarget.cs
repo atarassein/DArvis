@@ -196,7 +196,7 @@ public class FollowTarget(PlayerMacroState macro)
                     }
                     else
                     {
-                        Console.WriteLine("Walk timeout - recalculating path");
+                        // Console.WriteLine("Walk timeout - recalculating path");
                         break;
                     }
                 }

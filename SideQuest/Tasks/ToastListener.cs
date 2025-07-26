@@ -57,7 +57,7 @@ public static class ToastListener
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    // Console.WriteLine($"Error: {ex.Message}");
                 }
             }
         }, cancellationToken);
@@ -80,7 +80,6 @@ public static class ToastListener
 
     private static void ShowWhisperToast(ToastMessage toast)
     {
-        Console.WriteLine(toast);
         new ToastContentBuilder()
             .AddArgument("action", "reply")
             .AddArgument("type", "whisper")

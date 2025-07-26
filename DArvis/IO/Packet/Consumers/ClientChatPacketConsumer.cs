@@ -12,7 +12,7 @@ public class ClientChatPacketConsumer : PacketConsumer<ClientPacket>
 
     public override void ProcessPacket(ClientPacket packet)
     {
-        Console.WriteLine(packet);
+        // Console.WriteLine(packet);
         packet.Handled = true;
     }
 

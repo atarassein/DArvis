@@ -25,11 +25,11 @@ class Program
     [STAThread]
     static void Main(string[] args)
     {
-        Console.WriteLine("Running...");
+        // Console.WriteLine("Running...");
         using var mutex = new Mutex(true, MutexName, out bool isNewInstance);
         if (!isNewInstance)
         {
-            Console.WriteLine("Another instance of the application is already running.");
+            // Console.WriteLine("Another instance of the application is already running.");
             return;
         }
 
@@ -37,7 +37,7 @@ class Program
 
         Console.CancelKeyPress += (sender, eventArgs) =>
         {
-            Console.WriteLine("Termination requested...");
+            // Console.WriteLine("Termination requested...");
             eventArgs.Cancel = true;
             cancellationTokenSource.Cancel();
         };
@@ -70,7 +70,6 @@ class Program
                                 Content = reply,
                                 ClientPipe = pipeName
                             };
-                            Console.WriteLine("RESPONSE: " + responseMessage);
                             SendReplyToClient(responseMessage);
                             break;
                     }
@@ -81,7 +80,7 @@ class Program
         }
         catch (OperationCanceledException)
         {
-            Console.WriteLine("Application terminated.");
+            // Console.WriteLine("Application terminated.");
         }
     }
     
@@ -97,7 +96,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to focus process: {ex.Message}");
+            // Console.WriteLine($"Failed to focus process: {ex.Message}");
         }
     }
     
@@ -117,7 +116,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to send reply: {ex.Message}");
+            // Console.WriteLine($"Failed to send reply: {ex.Message}");
         }
     }
 }

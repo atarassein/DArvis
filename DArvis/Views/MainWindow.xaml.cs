@@ -1947,9 +1947,6 @@ namespace DArvis.Views
                 
                 selectedMacro.Client.Leader = selectedItem.Player;
                 selectedItem.Player.Follower = selectedMacro.Client;
-                
-                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedMacro.Client.Leader.Name);
-                Console.WriteLine(selectedItem.Player + " is leading " + selectedItem.Player.Follower.Name);
             }
         }
         

@@ -25,7 +25,6 @@ public class GameActions
 
     public static void Whisper(Player player, string recipient, string message)
     {
-        Console.WriteLine("SENDING WHISPER FROM " + player.Name + " > " + recipient + ": " + message);
         var encoding = Encoding.GetEncoding(949); // Use the appropriate encoding
         var recipientBytes = encoding.GetBytes(recipient);
         var messageBytes = encoding.GetBytes(message);
