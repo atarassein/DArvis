@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,7 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using DArvis.Components;
 using Microsoft.Win32;
 using DArvis.Extensions;
 using DArvis.IO;
@@ -26,7 +23,6 @@ using DArvis.Metadata;
 using DArvis.Models;
 using DArvis.Services.Logging;
 using DArvis.Services.Serialization;
-using DArvis.Services.SideQuest;
 using DArvis.Settings;
 using DArvis.Win32;
 using Path = System.IO.Path;
@@ -40,8 +36,6 @@ namespace DArvis.Views
         static TimeSpan UpdateSpan { get; set; }
         static DateTime LastUpdate { get; set; }
         static Thread _updatingThread;
-        
-        static List<UpdateableComponent> _components = new();
         
         private const string DArvisMacroFileExtension = "sh4";
         private const string DArvisMacroFileFilter = "DArvis v4 Macro Files (*.sh4)|*.sh4";
