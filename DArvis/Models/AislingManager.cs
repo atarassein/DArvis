@@ -52,25 +52,30 @@ public class AislingManager : INotifyPropertyChanged
                     var existingAisling = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial && a.Name != "");
                     if (existingAisling != null && existingAisling.LastSeen > DateTime.UtcNow - TimeSpan.FromHours(4))
                     {
-                        // Update existing hidden aisling
+                        var existingHidden = existingAisling.IsHidden;
+                        // Update existing hidden aisling - position/direction changes don't affect sort order
                         existingAisling.X = newAisling.X;
                         existingAisling.Y = newAisling.Y;
                         existingAisling.Direction = newAisling.Direction;
                         existingAisling.IsHidden = true;
                         existingAisling.IsVisible = true;
                         existingAisling.LastSeen = DateTime.UtcNow;
-                        UpdateAislings();
+                        if (!existingHidden)
+                        {
+                            UpdateAislings();
+                        }
                         return;
                     }
                 }
 
-                if (newAisling.Name == "") return;
+                if (newAisling.Name == "") return; // no point tracking nameless aislings
 
                 // Find existing aisling by serial
                 var existing = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial);
                 if (existing != null)
                 {
-                    // Update existing aisling properties
+                    // Update existing aisling properties - only update if visibility changes
+                    var visibilityChanged = existing.IsVisible != newAisling.IsVisible;
                     existing.Name = newAisling.Name;
                     existing.X = newAisling.X;
                     existing.Y = newAisling.Y;
@@ -78,10 +83,16 @@ public class AislingManager : INotifyPropertyChanged
                     existing.IsVisible = newAisling.IsVisible;
                     existing.IsHidden = newAisling.IsHidden;
                     existing.LastSeen = newAisling.LastSeen;
+                    
+                    // Only update sort if visibility changed
+                    if (visibilityChanged)
+                    {
+                        UpdateAislings();
+                    }
                 }
                 else
                 {
-                    // Add new aisling
+                    // Add new aisling - this affects sort order
                     _aislings.Add(newAisling);
                     UpdateAislings();
                 }
@@ -100,14 +111,29 @@ public class AislingManager : INotifyPropertyChanged
                 var aisling = _aislings.FirstOrDefault(a => a.Serial == aislingEntity.Serial);
                 if (aisling != null)
                 {
+                    // Position and direction changes don't affect sort order, no need to call UpdateAislings
+                    var changed = false;
+                    if (aislingEntity.Name == "" && aislingEntity.Name != aisling.Name)
+                    {
+                        changed = true;
+                        aisling.IsHidden = true;
+                    } else if (aisling.Name == "" && aislingEntity.Name != aisling.Name)
+                    {
+                        changed = true;
+                        aisling.Name = aislingEntity.Name;
+                        aisling.IsHidden = false;
+                    }
                     aisling.X = aislingEntity.X;
                     aisling.Y = aislingEntity.Y;
                     aisling.Direction = aislingEntity.Direction;
                     aisling.IsVisible = true;
-                    aisling.IsHidden = aislingEntity.Name == "";
                     aisling.LastSeen = DateTime.UtcNow;
                     found = true;
-                    UpdateAislings();
+                    
+                    if (changed)
+                    {
+                        UpdateAislings();
+                    }
                 }
             });
         }
