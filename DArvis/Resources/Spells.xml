@@ -64,7 +64,7 @@
     <Spell Name="beag slan" Class="Priest" Group="slan" Mana="290" Duration="0" />
     <Spell Name="beag srad" Class="Wizard" Group="srad" Mana="20" Lines="2" Duration="0" />
     <Spell Name="beag srad lamh" Class="Wizard" Group="srad" Mana="60" Lines="2" Duration="0" />
-    <Spell Name="beannaich" Class="Priest" Group="beannaich" Mana="30" Lines="1" Duration="0" />
+    <Spell Name="beannaich" Class="Priest" Group="beannaich" Mana="30" Lines="1" Duration="210" />
     <Spell Name="beothaichdeum" Class="Priest" Mana="100" Lines="7" Duration="0" />
     <Spell Name="Blind Snare" Class="Rogue" Group="Blind Trap" Mana="50" Lines="2" Duration="0" />
     <Spell Name="Blind Trap" Class="Rogue" Group="Blind Trap" Mana="1" Lines="4" Duration="0" />
@@ -129,7 +129,7 @@
     <Spell Name="Draco Stance" Class="Monk" Group="dion" Mana="200" Duration="0" />
     <Spell Name="Dragon Blast" Class="Wizard" Mana="18000" Lines="2" Duration="0" />
     <Spell Name="eisd creutair" Class="Rogue" Mana="120" Duration="0" />
-    <Spell Name="fas deireas" Class="Priest" Mana="30" Lines="1" Duration="0" />
+    <Spell Name="fas deireas" Class="Priest" Mana="30" Lines="1" Duration="190" />
     <Spell Name="fas nadur" Class="Wizard" Group="fas nadur" Mana="150" Lines="3" Duration="0" />
     <Spell Name="fas spiorad" Class="Wizard" Lines="9" Duration="0" />
     <Spell Name="Feral Form" Class="Monk" Group="Feral Form" Mana="360" Duration="0" />
