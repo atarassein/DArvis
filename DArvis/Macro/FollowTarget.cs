@@ -183,7 +183,11 @@ public class FollowTarget(PlayerMacroState macro)
 
                 try
                 {
-                    // TODO: if player is casting a spell then stop walking until they're done
+                    // if player is casting a spell then stop walking until they're done
+                    if (macro.IsSpellCasting)
+                    {
+                        break;
+                    }
                     await GameActions.WalkAsync(player, nextNode.Direction);
 
                     // Wait for the move to complete with a timeout
