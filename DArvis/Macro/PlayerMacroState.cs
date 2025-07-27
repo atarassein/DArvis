@@ -1144,6 +1144,10 @@ namespace DArvis.Macro
                             Console.WriteLine($"[{currentTime}] [{client.Location.X},{client.Location.Y}] -> [{aisling.X},{aisling.Y}]");
                         }
                         
+                        // TODO: NeedToBuff = true
+                        // TODO: check if IsWalking, if so wait to stop
+                        // TODO: ShouldWalk needs to check if NeedToBuff is true, if so then it needs to stop walking
+                        
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
                         ClickAbsoluteCoord(aisling.X, aisling.Y);
                         

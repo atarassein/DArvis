@@ -135,14 +135,17 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     {
         var entityMoved = new EntityMoved(packet);
         var entity = entityMoved.Entity;
+        
+        // For buffing we still need to track location by packets because their client location won't update
+        // until the packet makes a round trip.
+        packet.Player.AislingManager.UpdateAisling(entity);
+        
         if (packet.Player.Leader != null && entity.Serial == packet.Player.Leader.PacketId)
         {
-            // The leader will handle its own tracking for us.
+            // The leader will handle its own tracking for us as far as following goes
             packet.Handled = true;
             return;
         }
-
-        packet.Player.AislingManager.UpdateAisling(entity);
         
         var serial = entity.Serial;
         var prevX = entity.PreviousX;
