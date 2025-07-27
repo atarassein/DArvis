@@ -1126,7 +1126,8 @@ namespace DArvis.Macro
                     var targets = Client.AislingManager.BuffTargets.Values.ToList(); // Create snapshot to avoid collection modification during enumeration
                     foreach (var aisling in targets)
                     {
-                        if (!aisling.IsVisible || aisling.IsHidden)
+                        var isSelfTarget = aisling.Name == client.Name;
+                        if (!isSelfTarget && !aisling.IsVisible || aisling.IsHidden)
                             continue;
 
                         if (aisling.BuffExpirationTimes.TryGetValue(spell.Name, out var time))
@@ -1135,21 +1136,22 @@ namespace DArvis.Macro
                                 continue;
                         }
                         
-                        if (!client.Location.IsWithinRange(aisling.X, aisling.Y))
+                        if (!isSelfTarget && !client.Location.IsWithinRange(aisling.X, aisling.Y))
                             continue;
-
-                        if (aisling.Name != client.Name)
-                        {
-                            var currentTime = DateTime.Now.ToString("HH:mm:ss");
-                            Console.WriteLine($"[{currentTime}] [{client.Location.X},{client.Location.Y}] -> [{aisling.X},{aisling.Y}]");
-                        }
                         
                         // TODO: NeedToBuff = true
                         // TODO: check if IsWalking, if so wait to stop
                         // TODO: ShouldWalk needs to check if NeedToBuff is true, if so then it needs to stop walking
-                        
+
+                        var targetX = aisling.X;
+                        var targetY = aisling.Y;
+                        if (isSelfTarget)
+                        {
+                            targetX = client.Location.X;
+                            targetY = client.Location.Y;
+                        }
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
-                        ClickAbsoluteCoord(aisling.X, aisling.Y);
+                        ClickAbsoluteCoord(targetX, targetY);
                         
                         var expirationTime = DateTime.Now + spell.Duration;
                         aisling.BuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
