@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
+using System.Windows;
 
 namespace DArvis.Models;
 
@@ -11,9 +13,8 @@ public class AislingManager : INotifyPropertyChanged
     // Single collection for both internal tracking and UI binding
     private readonly ObservableCollection<Aisling> _aislings = new();
     private readonly object _aislingLock = new object();
-
     public ObservableCollection<Aisling> Aislings => _aislings;
-
+    public ConcurrentDictionary<int, Aisling> BuffTargets { get; } = new();
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly Timer _cleanupTimer;
@@ -23,6 +24,20 @@ public class AislingManager : INotifyPropertyChanged
         _cleanupTimer = new Timer(RemoveInactiveAislings, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
     }
 
+    private void OnBuffTargetChanged(Aisling aisling, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Aisling.IsBuffTarget))
+            return;
+        
+        if (aisling.Name == "")
+            return; // we can't really do anything with this
+
+        if (aisling.IsBuffTarget && !BuffTargets.ContainsKey(aisling.Serial))
+            BuffTargets.TryAdd(aisling.Serial, aisling);
+        else if (!aisling.IsBuffTarget && BuffTargets.ContainsKey(aisling.Serial))
+            BuffTargets.TryRemove(aisling.Serial, out _);
+    }
+    
     public void AddAisling(MapEntity? aislingEntity)
     {
         if (aislingEntity == null || aislingEntity.Serial == 0 || aislingEntity.Name == "")
@@ -31,7 +46,7 @@ public class AislingManager : INotifyPropertyChanged
         lock (_aislingLock)
         {
             // Marshal to UI thread for all collection operations
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 var newAisling = new Aisling
                 {
@@ -43,8 +58,11 @@ public class AislingManager : INotifyPropertyChanged
                     IsVisible = true,
                     IsHidden = false,
                     LastSeen = DateTime.UtcNow,
-                    UpdateAction = UpdateAislings // Set the update action so checkbox changes trigger reordering
                 };
+                newAisling.IsBuffTargetChanged += (sender, e) => OnBuffTargetChanged((Aisling)sender!, e);
+                
+                if (BuffTargets.TryGetValue(newAisling.Serial, out _))
+                    BuffTargets[newAisling.Serial] = newAisling;
 
                 // Find existing aisling by serial
                 var existing = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial);
@@ -80,11 +98,14 @@ public class AislingManager : INotifyPropertyChanged
     {
         lock (_aislingLock)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 var aisling = _aislings.FirstOrDefault(a => a.Serial == aislingEntity.Serial);
                 if (aisling == null)
                     return;
+                
+                if (BuffTargets.TryGetValue(aisling.Serial, out _))
+                    BuffTargets[aisling.Serial] = aisling;
                 
                 // Position and direction changes don't affect sort order, no need to call UpdateAislings
                 var changed = false;
@@ -105,11 +126,6 @@ public class AislingManager : INotifyPropertyChanged
                 }
                 
                 aisling.LastSeen = DateTime.UtcNow;
-                
-                // TODO: only track this for buff targets
-                // aisling.X = aislingEntity.X;
-                // aisling.Y = aislingEntity.Y;
-                // aisling.Direction = aislingEntity.Direction;
                     
                 if (changed)
                 {
@@ -121,9 +137,12 @@ public class AislingManager : INotifyPropertyChanged
 
     public void RemoveAisling(int serial)
     {
+        if (BuffTargets.TryGetValue(serial, out var buffTarget))
+            buffTarget.IsVisible = false;
+        
         lock (_aislingLock)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 var aisling = _aislings.FirstOrDefault(a => a.Serial == serial);
                 if (aisling != null)
@@ -137,9 +156,15 @@ public class AislingManager : INotifyPropertyChanged
 
     public void HideEveryoneForRefresh()
     {
+        var buffTargetsSnapshot = BuffTargets.Values.ToList();
+        foreach (var buffTarget in buffTargetsSnapshot)
+        {
+            buffTarget.IsVisible = false;
+        }
+        
         lock (_aislingLock)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 foreach (var aisling in _aislings)
                 {
@@ -157,7 +182,7 @@ public class AislingManager : INotifyPropertyChanged
 
         lock (_aislingLock)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 var toRemove = _aislings
                     .Where(a => !a.IsBuffTarget && a.LastSeen < cutoffTime)
@@ -180,7 +205,7 @@ public class AislingManager : INotifyPropertyChanged
     public void UpdateAislings()
     {
         // Console.WriteLine("Updating Aislings...");
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        Application.Current.Dispatcher.Invoke(() =>
         {
             // Create a sorted list of aislings
             var sortedAislings = _aislings

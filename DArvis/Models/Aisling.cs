@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Windows;
 
 namespace DArvis.Models;
 
@@ -14,10 +15,17 @@ public class Aisling : INotifyPropertyChanged
     public bool IsHidden;
     public DateTime LastSeen = DateTime.UtcNow;
     
+    private Point _point;
     private bool _isBuffTarget;
     private bool _isVisible;
     
     public ConcurrentDictionary<string, DateTime> BuffExpirationTimes { get; set; } = new();
+    
+    public Point Point {
+        get => new(X, Y);
+        private set {}
+    }
+    
     public bool IsBuffTarget
     {
         get => _isBuffTarget;
@@ -25,7 +33,7 @@ public class Aisling : INotifyPropertyChanged
         {
             _isBuffTarget = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
-            UpdateAction?.Invoke(); // Call UpdateAislingCheckboxes when IsBuffTarget changes
+            IsBuffTargetChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
         }
     }
     
@@ -39,7 +47,6 @@ public class Aisling : INotifyPropertyChanged
         }
     }
     
-    public Action UpdateAction { get; set; }
-
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public event PropertyChangedEventHandler? IsBuffTargetChanged;
 }
