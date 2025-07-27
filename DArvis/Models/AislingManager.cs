@@ -25,7 +25,7 @@ public class AislingManager : INotifyPropertyChanged
 
     public void AddAisling(MapEntity? aislingEntity)
     {
-        if (aislingEntity == null || aislingEntity.Serial == 0)
+        if (aislingEntity == null || aislingEntity.Serial == 0 || aislingEntity.Name == "")
             return; // not an aisling
 
         lock (_aislingLock)
@@ -45,30 +45,6 @@ public class AislingManager : INotifyPropertyChanged
                     LastSeen = DateTime.UtcNow,
                     UpdateAction = UpdateAislings // Set the update action so checkbox changes trigger reordering
                 };
-
-                if (newAisling.Name == "")
-                {
-                    // Handle hidden aislings by serial lookup
-                    var existingAisling = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial && a.Name != "");
-                    if (existingAisling != null && existingAisling.LastSeen > DateTime.UtcNow - TimeSpan.FromHours(4))
-                    {
-                        var existingHidden = existingAisling.IsHidden;
-                        // Update existing hidden aisling - position/direction changes don't affect sort order
-                        existingAisling.X = newAisling.X;
-                        existingAisling.Y = newAisling.Y;
-                        existingAisling.Direction = newAisling.Direction;
-                        existingAisling.IsHidden = true;
-                        existingAisling.IsVisible = true;
-                        existingAisling.LastSeen = DateTime.UtcNow;
-                        if (!existingHidden)
-                        {
-                            UpdateAislings();
-                        }
-                        return;
-                    }
-                }
-
-                if (newAisling.Name == "") return; // no point tracking nameless aislings
 
                 // Find existing aisling by serial
                 var existing = _aislings.FirstOrDefault(a => a.Serial == newAisling.Serial);
@@ -100,48 +76,50 @@ public class AislingManager : INotifyPropertyChanged
         }
     }
 
-    public bool UpdateAisling(MapEntity aislingEntity)
+    public void UpdateAisling(MapEntity aislingEntity)
     {
-        bool found = false;
-
         lock (_aislingLock)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 var aisling = _aislings.FirstOrDefault(a => a.Serial == aislingEntity.Serial);
-                if (aisling != null)
+                if (aisling == null)
+                    return;
+                
+                // Position and direction changes don't affect sort order, no need to call UpdateAislings
+                var changed = false;
+                if (aislingEntity.Name == "" && !aisling.IsHidden)
                 {
-                    // Position and direction changes don't affect sort order, no need to call UpdateAislings
-                    var changed = false;
-                    if (aislingEntity.Name == "" && aislingEntity.Name != aisling.Name)
-                    {
-                        changed = true;
-                        aisling.IsHidden = true;
-                    } else if (aisling.Name == "" && aislingEntity.Name != aisling.Name)
-                    {
-                        changed = true;
-                        aisling.Name = aislingEntity.Name;
-                        aisling.IsHidden = false;
-                    }
-                    aisling.X = aislingEntity.X;
-                    aisling.Y = aislingEntity.Y;
-                    aisling.Direction = aislingEntity.Direction;
+                    changed = true;
+                    aisling.IsHidden = true;
+                } else if (aislingEntity.Name != "" && aisling.IsHidden)
+                {
+                    changed = true;
+                    aisling.IsHidden = false;
+                }
+
+                if (!aisling.IsVisible)
+                {
+                    changed = true;
                     aisling.IsVisible = true;
-                    aisling.LastSeen = DateTime.UtcNow;
-                    found = true;
+                }
+                
+                aisling.LastSeen = DateTime.UtcNow;
+                
+                // TODO: only track this for buff targets
+                // aisling.X = aislingEntity.X;
+                // aisling.Y = aislingEntity.Y;
+                // aisling.Direction = aislingEntity.Direction;
                     
-                    if (changed)
-                    {
-                        UpdateAislings();
-                    }
+                if (changed)
+                {
+                    UpdateAislings();
                 }
             });
         }
-
-        return found;
     }
 
-    public void HideAisling(int serial)
+    public void RemoveAisling(int serial)
     {
         lock (_aislingLock)
         {

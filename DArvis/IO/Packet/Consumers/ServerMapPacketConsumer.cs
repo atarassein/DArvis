@@ -142,11 +142,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             return;
         }
 
-        if (!packet.Player.AislingManager.UpdateAisling(entity))
-        {
-            // This is an entity... likely a monster.
-            // TODO: Handle entity tracking for monsters
-        }
+        packet.Player.AislingManager.UpdateAisling(entity);
         
         var serial = entity.Serial;
         var prevX = entity.PreviousX;
@@ -166,7 +162,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
     {
         var entityRemoved = new EntityRemoved(packet);
         
-        packet.Player.AislingManager.HideAisling(entityRemoved.Serial);
+        packet.Player.AislingManager.RemoveAisling(entityRemoved.Serial);
         
         if (packet.Player.Leader != null && entityRemoved.Serial == packet.Player.Leader.PacketId)
         {
