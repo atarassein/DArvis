@@ -43,36 +43,3 @@ public class Aisling : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler PropertyChanged;
 }
-
-public class AislingCheckboxViewModel : INotifyPropertyChanged
-{
-    private bool _isChecked;
-    private bool _isVisible;
-
-    public string Name { get; set; }
-
-    public bool IsChecked
-    {
-        get => _isChecked;
-        set
-        {
-            _isChecked = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
-            UpdateAction?.Invoke(); // Call UpdateAislingCheckboxes when IsChecked changes
-        }
-    }
-
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            _isVisible = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVisible)));
-        }
-    }
-    
-    public Action UpdateAction { get; set; }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-}
