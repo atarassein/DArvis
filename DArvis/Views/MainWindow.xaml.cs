@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -14,10 +12,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using DArvis.Components;
 using Microsoft.Win32;
 using DArvis.Extensions;
 using DArvis.IO;
+using DArvis.IO.Packet;
 using DArvis.IO.Process;
 using DArvis.Macro;
 using DArvis.Media;
@@ -38,8 +36,6 @@ namespace DArvis.Views
         static TimeSpan UpdateSpan { get; set; }
         static DateTime LastUpdate { get; set; }
         static Thread _updatingThread;
-        
-        static List<UpdateableComponent> _components = new();
         
         private const string DArvisMacroFileExtension = "sh4";
         private const string DArvisMacroFileFilter = "DArvis v4 Macro Files (*.sh4)|*.sh4";
@@ -1951,9 +1947,6 @@ namespace DArvis.Views
                 
                 selectedMacro.Client.Leader = selectedItem.Player;
                 selectedItem.Player.Follower = selectedMacro.Client;
-                
-                Console.WriteLine(selectedMacro.Client.Name + " is following " + selectedMacro.Client.Leader.Name);
-                Console.WriteLine(selectedItem.Player + " is leading " + selectedItem.Player.Follower.Name);
             }
         }
         
@@ -2135,7 +2128,7 @@ namespace DArvis.Views
             var supportsFlowering = selectedMacro.Client.Version?.SupportsFlowering ?? false;
             ToggleFlower(supportsFlowering, selectedMacro.Client.HasLyliacPlant, selectedMacro.Client.HasLyliacVineyard);
         }
-
+        
         private void inventoryListBox_ItemDoubleClick(object sender, MouseButtonEventArgs e)
         {
             // Only handle left-click
@@ -2405,35 +2398,7 @@ namespace DArvis.Views
 
         private void testButton_Click(object sender, RoutedEventArgs e)
         {
-            var bw = new BackgroundWorker();
-            bw.DoWork += (s, args) =>
-            {
-                try
-                {
-                    var player = PlayerManager.Instance.AllClients.FirstOrDefault();
-                    GameActions.Refresh(player);
-                    GameActions.Refresh(player); // Refresh twice to ensure all data is loaded
-                    Thread.Sleep(2000);
-                    GameActions.Walk(player, Direction.North);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.North);
-                    Thread.Sleep(1000);
-                    GameActions.Walk(player, Direction.East);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.East);
-                    Thread.Sleep(1000);
-                    GameActions.Walk(player, Direction.South);
-                    Thread.Sleep(500);
-                    GameActions.Walk(player, Direction.South);
-                    Thread.Sleep(1000);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError($"Error during test walk: {ex.Message}");
-                }
-            };
-            bw.RunWorkerAsync();
-
+            
         }
         
         private void injectButton_Click(object sender, RoutedEventArgs e)

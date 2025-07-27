@@ -17,6 +17,7 @@ namespace DArvis.Metadata
         private bool isAssail;
         private bool opensDialog;
         private bool canImprove = true;
+        private TimeSpan duration;
         private TimeSpan cooldown;
         private bool requiresDisarm;
         private double minHealthPercent;
@@ -78,12 +79,27 @@ namespace DArvis.Metadata
         }
 
         [XmlIgnore]
+        public TimeSpan Duration
+        {
+            get => duration;
+            set => SetProperty(ref duration, value, onChanged: (s) => { RaisePropertyChanged(nameof(DurationSeconds)); });
+        }
+        
+        [XmlIgnore]
         public TimeSpan Cooldown
         {
             get => cooldown;
             set => SetProperty(ref cooldown, value, onChanged: (s) => { RaisePropertyChanged(nameof(CooldownSeconds)); });
         }
 
+        [XmlAttribute("Duration")]
+        [DefaultValue(0.0)]
+        public double DurationSeconds
+        {
+            get => duration.TotalSeconds;
+            set => Duration = TimeSpan.FromSeconds(value);
+        }
+        
         [XmlAttribute("Cooldown")]
         [DefaultValue(0.0)]
         public double CooldownSeconds

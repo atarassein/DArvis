@@ -79,6 +79,25 @@
         </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- Duration Data Template -->
+    <DataTemplate x:Key="DurationDataTemplate">
+        <Border>
+            <TextBlock Name="DurationText" 
+                       Style="{StaticResource ObsidianText}"
+                       Text="{Binding Duration, Converter={StaticResource TimeSpanConverter}, ConverterParameter=Fractional}"
+                       FontSize="16"
+                       TextAlignment="Center"
+                       TextWrapping="WrapWithOverflow"
+                       Margin="0,2,0,0"/>
+        </Border>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Duration}" Value="0">
+                <Setter TargetName="DurationText" Property="Foreground" Value="{StaticResource ObsidianDisabled}"/>
+                <Setter TargetName="DurationText" Property="Text" Value="-"/>
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+    
     <!-- Cooldown Data Template -->
     <DataTemplate x:Key="CooldownDataTemplate">
         <Border>

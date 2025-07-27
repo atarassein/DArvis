@@ -180,6 +180,7 @@ namespace DArvis.Models
                     {
                         spells[i].NumberOfLines = metadata.NumberOfLines;
                         spells[i].ManaCost = metadata.ManaCost;
+                        spells[i].Duration = metadata.Duration;
                         spells[i].Cooldown = metadata.Cooldown;
                         spells[i].OpensDialog = metadata.OpensDialog;
                         spells[i].CanImprove = metadata.CanImprove;
@@ -190,6 +191,7 @@ namespace DArvis.Models
                     {
                         spells[i].NumberOfLines = 1;
                         spells[i].ManaCost = 0;
+                        spells[i].Duration = TimeSpan.Zero;
                         spells[i].Cooldown = TimeSpan.Zero;
                         spells[i].OpensDialog = false;
                         spells[i].CanImprove = true;
@@ -205,6 +207,7 @@ namespace DArvis.Models
             Owner.HasLyliacVineyard = foundLyliacVineyard;
 
             UpdateCooldowns();
+            Owner.BuffManager.UpdateBuffs();
         }
 
         public void ResetDefaults()

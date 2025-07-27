@@ -7,6 +7,9 @@
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <SelfContained>false</SelfContained>
     <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ApplicationIcon>darkages.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -19,9 +22,20 @@
 
   <ItemGroup>
     <PackageReference Include="MemorySharp" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
     <ResourceFiles Include="Resources\**\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DTO\ClientPackets\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Templates\BuffSpellsDataTemplate.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <XamlRuntime>Wpf</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <Target Name="CopyResourceContents" AfterTargets="Build">
     <Copy

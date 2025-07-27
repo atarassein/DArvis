@@ -418,48 +418,90 @@
 
             <!-- Spells Tabs-->
             <TabItem Name="spellsTab" Header="S_pells" IsEnabled="False">
-                <!-- Temuair Spells -->
-                <TabControl Style="{StaticResource ObsidianPanelTabControl}">
-                    <TabItem Header="_Temuair" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
-                        <ListBox Name="temuairSpellListBox" 
-                                 Style="{StaticResource ObsidianSkillListBox}"
-                                 ItemTemplate="{StaticResource AbilityDataTemplate}"
-                                 ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.TemuairSpells}"
-                                 VerticalContentAlignment="Top">
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
-                        </ListBox>
-                    </TabItem>
-                    <!-- Medenia Spells -->
-                    <TabItem Header="_Medenia" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
-                        <ListBox Name="medeniaSpellListBox" 
-                                 Style="{StaticResource ObsidianSkillListBox}"
-                                 ItemTemplate="{StaticResource AbilityDataTemplate}"
-                                 ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.MedeniaSpells}">
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
-                        </ListBox>
-                    </TabItem>
-                    <!-- World Spells -->
-                    <TabItem Header="_World" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
-                        <ListBox Name="worldSpellListBox" 
-                                 Style="{StaticResource ObsidianSkillListBox}"
-                                 ItemTemplate="{StaticResource AbilityDataTemplate}"
-                                 ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.WorldSpells}">
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
-                                    <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
-                                </Style>
-                            </ListBox.ItemContainerStyle>
-                        </ListBox>
-                    </TabItem>
-                </TabControl>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Spells Grid -->
+                    <Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Top">
+                        <!-- Temuair Spells -->
+                        <TabControl Style="{StaticResource ObsidianPanelTabControl}">
+                            <TabItem Header="_Temuair" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
+                                <ListBox Name="temuairSpellListBox" 
+                                         Style="{StaticResource ObsidianSkillListBox}"
+                                         ItemTemplate="{StaticResource AbilityDataTemplate}"
+                                         ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.TemuairSpells}"
+                                         VerticalContentAlignment="Top">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
+                                            <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+                            </TabItem>
+                            <!-- Medenia Spells -->
+                            <TabItem Header="_Medenia" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
+                                <ListBox Name="medeniaSpellListBox" 
+                                         Style="{StaticResource ObsidianSkillListBox}"
+                                         ItemTemplate="{StaticResource AbilityDataTemplate}"
+                                         ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.MedeniaSpells}">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
+                                            <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+                            </TabItem>
+                            <!-- World Spells -->
+                            <TabItem Header="_World" IsEnabled="{Binding Path=IsEnabled, ElementName=spellsTab}">
+                                <ListBox Name="worldSpellListBox" 
+                                         Style="{StaticResource ObsidianSkillListBox}"
+                                         ItemTemplate="{StaticResource AbilityDataTemplate}"
+                                         ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.Spellbook.WorldSpells}">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource ObsidianSkillListBoxItem}">
+                                            <EventSetter Event="MouseDoubleClick" Handler="spellListBox_ItemDoubleClick"/>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                </ListBox>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
+                    <!-- Buff Grid -->
+                    <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Row="0" Grid.Column="0">
+                                <TextBlock TextWrapping="Wrap" Margin="0,10" Text="Buff Targets" HorizontalAlignment="Center" />
+                            </Border>
+                            <Border Grid.Row="0" Grid.Column="1">
+                                <TextBlock TextWrapping="Wrap" Margin="0,10" Text="" HorizontalAlignment="Center" />
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="0">
+                                <ListBox 
+                                    ItemTemplate="{StaticResource BuffTargetsDataTemplate}"
+                                    ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.Aislings}"
+                                    Style="{StaticResource ObsidianListBox}"
+                                >
+                                </ListBox>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="1">
+                                <!-- Placeholder -->
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
             </TabItem>
 
             <!-- Flowering Tab -->
@@ -576,11 +618,7 @@
                 <DockPanel>
                     <Button Name="testButton"
                             Click="testButton_Click">
-                        Test Injection
-                    </Button>
-                    <Button Name="injectButton"
-                            Click="injectButton_Click">
-                        Inject DLL
+                        Send Notification
                     </Button>
                 </DockPanel>
             </TabItem>

@@ -26,6 +26,7 @@ namespace DArvis.Macro
         private PlayerMacroStatus playerStatus;
 
         private FollowTarget _followTarget;
+        private BuffTargets _buffTargets;
         private FollowTarget FollowTarget
         {
             get
@@ -141,6 +142,7 @@ namespace DArvis.Macro
             : base(client)
         {
             _followTarget = new FollowTarget(this);
+            _buffTargets = new BuffTargets(this);
         }
 
         public void AddToSpellQueue(SpellQueueItem spell, int index = -1)
@@ -425,6 +427,7 @@ namespace DArvis.Macro
                 currentPanel = client.GameClient.ActivePanel;
 
             DoFollowMacro();
+            DoBuffMacro();
             
             if (UserSettingsManager.Instance.Settings.FlowerBeforeSpellMacros)
             {
@@ -491,7 +494,14 @@ namespace DArvis.Macro
                 await _followTarget.Walk();
             }
         }
-        
+
+        private async void DoBuffMacro()
+        {
+            if (await _buffTargets.ShouldBuff())
+            {
+                await _buffTargets.Buff();
+            }
+        }
         // Zolian feature!
         private bool DoClickWaterAndBedsIfNeeded()
         {
@@ -1108,11 +1118,67 @@ namespace DArvis.Macro
                 if (didRequireSwitch)
                     Thread.Sleep(SwitchDelay);
 
+                TimeSpan spellCastDuration;
+                DateTime now;
+                if (item.Target.Mode == SpellTargetMode.BuffTargets)
+                {
+                    // Console.WriteLine("COPYING AISLINGMANAGER AISLINGS");
+                    var targets = Client.AislingManager.BuffTargets.Values.ToList(); // Create snapshot to avoid collection modification during enumeration
+                    foreach (var aisling in targets)
+                    {
+                        var isSelfTarget = aisling.Name == client.Name;
+                        if (!isSelfTarget && !aisling.IsVisible || aisling.IsHidden)
+                            continue;
+
+                        if (aisling.BuffExpirationTimes.TryGetValue(spell.Name, out var time))
+                        {
+                            if (DateTime.Now <= time)
+                                continue;
+                        }
+                        
+                        if (!isSelfTarget && !client.Location.IsWithinRange(aisling.X, aisling.Y))
+                            continue;
+                        
+                        // TODO: if macro is walking then it needs to stop walking and wait for us to buff
+
+                        var targetX = aisling.X;
+                        var targetY = aisling.Y;
+                        if (isSelfTarget)
+                        {
+                            targetX = client.Location.X;
+                            targetY = client.Location.Y;
+                        }
+                        client.DoubleClickSlot(spell.Panel, spell.Slot);
+                        ClickAbsoluteCoord(targetX, targetY);
+                        
+                        var expirationTime = DateTime.Now + spell.Duration;
+                        aisling.BuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
+
+                        spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
+                        now = DateTime.Now;
+
+                        SpellCastDuration = spellCastDuration;
+                        SpellCastTimestamp = now;
+                        item.LastUsedTimestamp = now;
+                        
+                        if (spell.Cooldown > TimeSpan.Zero)
+                        {
+                            client.Spellbook.SetCooldownTimestamp(spell.Name, now.Add(spellCastDuration));
+                            return true;
+                        }
+                        
+                        // TODO: we may or may not need this sleep, walking does check if IsSpellCasting
+                        Thread.Sleep(spellCastDuration);
+                        // TODO: it's okay to resume walking now
+                    }
+                    return true;
+                }
+                
                 client.DoubleClickSlot(spell.Panel, spell.Slot);
                 ClickTarget(item.Target);
 
-                var spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
-                var now = DateTime.Now;
+                spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
+                now = DateTime.Now;
 
                 SpellCastDuration = spellCastDuration;
                 SpellCastTimestamp = now;
@@ -1169,6 +1235,20 @@ namespace DArvis.Macro
                 return false;
 
             return true;
+        }
+
+        private void ClickAbsoluteCoord(int x, int y)
+        {
+            var pt = GetAbsoluteTilePoint(x, y);
+
+            // scale for window
+            if (client.Process.WindowScaleX > 0 && client.Process.WindowScaleX != 1)
+                pt.X *= client.Process.WindowScaleX;
+
+            if (client.Process.WindowScaleY > 0 && client.Process.WindowScaleY != 1)
+                pt.Y *= client.Process.WindowScaleY;
+
+            client.ClickAt(pt.X, pt.Y);
         }
 
         private void ClickTarget(SpellTarget target)

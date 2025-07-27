@@ -150,7 +150,7 @@ namespace DArvis.Models
                     Direction = oldDir,
                 };
                 
-                Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
+                // Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
                 Owner.Follower.Location.CurrentMap.Update();
             }
@@ -210,6 +210,16 @@ namespace DArvis.Models
             var deltaY = Math.Abs(Y - other.Y);
 
             return deltaX + deltaY <= maxDistance;
+        }
+        
+        public bool IsWithinRange(int x, int y, int maxX = 10, int maxY = 10)
+        {
+            CheckIfDisposed();
+
+            var deltaX = Math.Abs(X - x);
+            var deltaY = Math.Abs(Y - y);
+
+            return deltaX <= maxX && deltaY <= maxY;
         }
         
         public bool IsWithinRange(MapLocation other, int maxX = 10, int maxY = 10)

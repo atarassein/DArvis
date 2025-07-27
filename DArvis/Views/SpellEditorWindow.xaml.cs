@@ -35,6 +35,7 @@ namespace DArvis.Views
             groupNameTextBox.Text = spell.GroupName;
             manaUpDown.Value = spell.ManaCost;
             linesUpDown.Value = spell.NumberOfLines;
+            durationTextBox.Text = spell.Duration.ToShortEnglish();
             cooldownTextBox.Text = spell.Cooldown.ToShortEnglish();
 
             // conditions
@@ -77,6 +78,7 @@ namespace DArvis.Views
             var groupName = groupNameTextBox.Text.Trim();
             var manaCost = (int)manaUpDown.Value;
             var numberOfLines = (int)linesUpDown.Value;
+            TimeSpan duration;
             TimeSpan cooldown;
 
             // conditions
@@ -114,6 +116,23 @@ namespace DArvis.Views
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(durationTextBox.Text.Trim()))
+                duration = TimeSpan.Zero;
+            else if (double.TryParse(durationTextBox.Text.Trim(), out var durationSeconds) && durationSeconds >= 0)
+                duration = TimeSpan.FromSeconds(durationSeconds);
+            else if (!TimeSpanExtensions.TryParse(durationTextBox.Text.Trim(), out duration) || duration < TimeSpan.Zero)
+            {
+                this.ShowMessageBox("Invalid Duration",
+                    "Duration must be a valid positive timespan value.",
+                    "You may use fractional units of days, hours, minutes, and seconds.\nYou may also leave it blank for zero duration.",
+                    MessageBoxButton.OK,
+                    420, 240);
+
+                durationTextBox.Focus();
+                durationTextBox.SelectAll();
+                return false;
+            }
+            
             if (string.IsNullOrWhiteSpace(cooldownTextBox.Text.Trim()))
                 cooldown = TimeSpan.Zero;
             else if (double.TryParse(cooldownTextBox.Text.Trim(), out var cooldownSeconds) && cooldownSeconds >= 0)
@@ -136,6 +155,7 @@ namespace DArvis.Views
             spell.Class = GetPlayerClass();
             spell.ManaCost = manaCost;
             spell.NumberOfLines = numberOfLines;
+            spell.Duration = duration;
             spell.Cooldown = cooldown;
 
             spell.MinHealthPercent = minHpPercent;

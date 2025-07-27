@@ -16,6 +16,7 @@ namespace DArvis.Metadata
         private int manaCost;
         private bool opensDialog;
         private int numberOfLines;
+        private TimeSpan duration;
         private TimeSpan cooldown;
         private bool canImprove = true;
         private double minHealthPercent;
@@ -69,12 +70,27 @@ namespace DArvis.Metadata
         }
 
         [XmlIgnore]
+        public TimeSpan Duration
+        {
+            get => duration;
+            set => SetProperty(ref duration, value);
+        }
+        
+        [XmlIgnore]
         public TimeSpan Cooldown
         {
             get => cooldown;
             set => SetProperty(ref cooldown, value);
         }
 
+        [XmlAttribute("Duration")]
+        [DefaultValue(0.0)]
+        public double DurationSeconds
+        {
+            get => duration.TotalSeconds;
+            set => Duration = TimeSpan.FromSeconds(value);
+        }
+        
         [XmlAttribute("Cooldown")]
         [DefaultValue(0.0)]
         public double CooldownSeconds
@@ -119,6 +135,7 @@ namespace DArvis.Metadata
             other.ManaCost = ManaCost;
             other.OpensDialog = OpensDialog;
             other.NumberOfLines = NumberOfLines;
+            other.Duration = Duration;
             other.Cooldown = Cooldown;
             other.CanImprove = CanImprove;
             other.MinHealthPercent = MinHealthPercent;
