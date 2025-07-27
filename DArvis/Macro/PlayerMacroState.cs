@@ -1122,7 +1122,7 @@ namespace DArvis.Macro
                 DateTime now;
                 if (item.Target.Mode == SpellTargetMode.BuffTargets)
                 {
-                    Console.WriteLine("COPYING AISLINGMANAGER AISLINGS");
+                    // Console.WriteLine("COPYING AISLINGMANAGER AISLINGS");
                     var targets = Client.AislingManager.BuffTargets.Values.ToList(); // Create snapshot to avoid collection modification during enumeration
                     foreach (var aisling in targets)
                     {
@@ -1137,9 +1137,12 @@ namespace DArvis.Macro
                         
                         if (!client.Location.IsWithinRange(aisling.X, aisling.Y))
                             continue;
-                        
-                        var currentTime = DateTime.Now.ToString("HH:mm:ss");
-                        Console.WriteLine($"[{currentTime}] [{client.Location.X},{client.Location.Y}] -> [{aisling.X},{aisling.Y}]");
+
+                        if (aisling.Name != client.Name)
+                        {
+                            var currentTime = DateTime.Now.ToString("HH:mm:ss");
+                            Console.WriteLine($"[{currentTime}] [{client.Location.X},{client.Location.Y}] -> [{aisling.X},{aisling.Y}]");
+                        }
                         
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
                         ClickAbsoluteCoord(aisling.X, aisling.Y);
