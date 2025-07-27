@@ -22,8 +22,8 @@ A fork of both [EtDA](https://github.com/wren11/ETDA) and [SleepHunter](https://
     ✅ Mapping
     ✅ Whisper Notifications
     ✅ Auto-Following
-    ⌛ Auto-Buffing
-    ⬜ Auto-Debuffing
+    ✅ Auto-Buffing
+    ⌛ Auto-Debuffing
     ⬜ Auto-Healing
     ⬜ Macro Integration
     ⬜ v1.0 Release
