@@ -31,9 +31,12 @@ public class Aisling : INotifyPropertyChanged
         get => _isBuffTarget;
         set
         {
-            _isBuffTarget = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
-            IsBuffTargetChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
+            if (_isBuffTarget != value)
+            {
+                _isBuffTarget = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
+                IsBuffTargetChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsBuffTarget)));
+            }
         }
     }
     

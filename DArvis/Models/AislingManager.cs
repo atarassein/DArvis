@@ -15,10 +15,29 @@ public class AislingManager : INotifyPropertyChanged
     private readonly object _aislingLock = new object();
     public ObservableCollection<Aisling> Aislings => _aislings;
     public ConcurrentDictionary<int, Aisling> BuffTargets { get; } = new();
+    
+    private bool _buffAllVisibleAislings = false;
+    public bool BuffAllVisibleAislings
+    {
+        get => _buffAllVisibleAislings;
+        set
+        {
+            foreach (var aisling in _aislings.Where(a => a.IsBuffTarget != value))
+            {
+                if (value && !aisling.IsVisible)
+                    continue;
+                
+                aisling.IsBuffTarget = value;
+            }
+            _buffAllVisibleAislings = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BuffAllVisibleAislings)));
+        }
+    }
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly Timer _cleanupTimer;
 
+    
     public AislingManager(Player Owner)
     {
         _cleanupTimer = new Timer(RemoveInactiveAislings, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
@@ -78,6 +97,9 @@ public class AislingManager : INotifyPropertyChanged
                     existing.IsHidden = newAisling.IsHidden;
                     existing.LastSeen = newAisling.LastSeen;
                     
+                    if (BuffAllVisibleAislings)
+                        existing.IsBuffTarget = true;
+                    
                     // Only update sort if visibility changed
                     if (visibilityChanged)
                     {
@@ -88,6 +110,10 @@ public class AislingManager : INotifyPropertyChanged
                 {
                     // Add new aisling - this affects sort order
                     _aislings.Add(newAisling);
+                    
+                    if (BuffAllVisibleAislings)
+                        newAisling.IsBuffTarget = true;
+                    
                     UpdateAislings();
                 }
             });
@@ -153,6 +179,8 @@ public class AislingManager : INotifyPropertyChanged
                 if (aisling != null)
                 {
                     aisling.IsVisible = false;
+                    if (BuffAllVisibleAislings)
+                        aisling.IsBuffTarget = false;
                     UpdateAislings();
                 }
             });
@@ -173,6 +201,8 @@ public class AislingManager : INotifyPropertyChanged
             {
                 foreach (var aisling in _aislings)
                 {
+                    if (BuffAllVisibleAislings)
+                        aisling.IsBuffTarget = false;
                     aisling.IsVisible = false;
                 }
 
@@ -209,7 +239,6 @@ public class AislingManager : INotifyPropertyChanged
 
     public void UpdateAislings()
     {
-        // Console.WriteLine("Updating Aislings...");
         Application.Current.Dispatcher.Invoke(() =>
         {
             // Create a sorted list of aislings
