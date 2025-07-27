@@ -1139,9 +1139,7 @@ namespace DArvis.Macro
                         if (!isSelfTarget && !client.Location.IsWithinRange(aisling.X, aisling.Y))
                             continue;
                         
-                        // TODO: NeedToBuff = true
-                        // TODO: check if IsWalking, if so wait to stop
-                        // TODO: ShouldWalk needs to check if NeedToBuff is true, if so then it needs to stop walking
+                        // TODO: if macro is walking then it needs to stop walking and wait for us to buff
 
                         var targetX = aisling.X;
                         var targetY = aisling.Y;
@@ -1169,7 +1167,9 @@ namespace DArvis.Macro
                             return true;
                         }
                         
+                        // TODO: we may or may not need this sleep, walking does check if IsSpellCasting
                         Thread.Sleep(spellCastDuration);
+                        // TODO: it's okay to resume walking now
                     }
                     return true;
                 }

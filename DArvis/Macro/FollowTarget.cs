@@ -52,7 +52,7 @@ public class FollowTarget(PlayerMacroState macro)
     {
         var player = macro.Client;
         var leader = player.Leader;
-        if (player.IsWalking || leader == null || player.IsNearby(leader))
+        if (macro.IsSpellCasting || player.IsWalking || leader == null || player.IsNearby(leader))
         {
             await Task.Delay(100);
             return false;
@@ -183,6 +183,7 @@ public class FollowTarget(PlayerMacroState macro)
 
                 try
                 {
+                    // TODO: if player is casting a spell then stop walking until they're done
                     await GameActions.WalkAsync(player, nextNode.Direction);
 
                     // Wait for the move to complete with a timeout
