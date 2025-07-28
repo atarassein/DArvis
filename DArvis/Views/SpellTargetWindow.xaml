@@ -135,6 +135,7 @@
                       SelectionChanged="targetModeComboBox_SelectionChanged">
                 <settings:UserSetting Key="None" DisplayText="No Target" Value="None"/>
                 <settings:UserSetting Key="BuffTargets" DisplayText="Buff Targets" Value="BuffTargets"/>
+                <settings:UserSetting Key="HostileTargets" DisplayText="Hostile Targets" Value="HostileTargets"/>
                 <settings:UserSetting Key="Self" DisplayText="Self" Value="Self"/>
                 <settings:UserSetting Key="Character" DisplayText="Alternate Character" Value="Character"/>
                 <settings:UserSetting Key="RelativeTile" DisplayText="Relative Tile" Value="RelativeTile"/>

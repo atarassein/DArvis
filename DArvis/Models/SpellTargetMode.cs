@@ -5,6 +5,7 @@ namespace DArvis.Models
     {
         None = 0,
         BuffTargets,
+        HostileTargets,
         Self,
         Character,
         RelativeTile,
