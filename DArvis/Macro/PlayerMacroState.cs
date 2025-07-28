@@ -1174,6 +1174,71 @@ namespace DArvis.Macro
                     return true;
                 }
                 
+                if (item.Target.Mode == SpellTargetMode.HostileTargets)
+                {
+                    var targets = Client.Location.CurrentMap.HostileEntities.Values.ToList();
+                    foreach (var target in targets)
+                    {
+                        if (target.DebuffExpirationTimes.TryGetValue(spell.Name, out var time))
+                        {
+                            if (DateTime.Now <= time)
+                                continue;
+                        }
+
+                        if (client.Leader == null && !client.Location.IsWithinRange(target.X, target.Y))
+                            continue;
+                        
+                        // If we're following a target then there are special rules for casting
+                        if (client.Leader != null)
+                        {
+                            // Don't cast at all if the leader is on a different map
+                            if (client.Location.MapNumber != client.Leader.Location.MapNumber)
+                            {
+                                return false;
+                            }
+
+                            // Don't cast at all if the leader is not within range
+                            if (!client.Location.IsWithinRange(client.Leader.Location))
+                            {
+                                
+                                return false;
+                            }
+
+                            // Otherwise just don't cast if the target is not also within range of the leader
+                            if (!client.Location.IsWithinRange(target.X, target.Y) || !client.Leader.Location.IsWithinRange(target.X, target.Y))
+                            {
+                                continue;
+                            }
+                        }
+                        
+                        // TODO: if macro is walking then it needs to stop walking and wait for us to buff
+
+                        client.DoubleClickSlot(spell.Panel, spell.Slot);
+                        ClickAbsoluteCoord(target.X, target.Y);
+                        
+                        var expirationTime = DateTime.Now + spell.Duration;
+                        target.DebuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
+
+                        spellCastDuration = CalculateLineDuration(numberOfLines) + TimeSpan.FromMilliseconds(100);
+                        now = DateTime.Now;
+
+                        SpellCastDuration = spellCastDuration;
+                        SpellCastTimestamp = now;
+                        item.LastUsedTimestamp = now;
+                        
+                        if (spell.Cooldown > TimeSpan.Zero)
+                        {
+                            client.Spellbook.SetCooldownTimestamp(spell.Name, now.Add(spellCastDuration));
+                            return true;
+                        }
+                        
+                        // TODO: we may or may not need this sleep, walking does check if IsSpellCasting
+                        Thread.Sleep(spellCastDuration);
+                        // TODO: it's okay to resume walking now
+                    }
+                    return true;
+                }
+                
                 client.DoubleClickSlot(spell.Panel, spell.Slot);
                 ClickTarget(item.Target);
 
