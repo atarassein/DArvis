@@ -21,11 +21,11 @@ A fork of both [EtDA](https://github.com/wren11/ETDA) and [SleepHunter](https://
     ✅ Packet Queue Publshing/Consuming
     ✅ Mapping
     ✅ Whisper Notifications
+    ✅ Macro Integration
     ✅ Auto-Following
     ✅ Auto-Buffing
-    ⌛ Auto-Debuffing
-    ⬜ Auto-Healing
-    ⬜ Macro Integration
+    ✅ Auto-Debuffing
+    ⌛ Auto-Healing
     ⬜ v1.0 Release
 
 ## The Shoulders This Project Stands On
