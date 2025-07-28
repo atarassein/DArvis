@@ -126,11 +126,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
         //Console.WriteLine("Entities added: " + packet);
         // var added = ConsoleOutputExtension.ColorText("ENTITY ADDED", ConsoleColor.Green);
         var entities = new EntitiesAdded(packet);
-
-        foreach (var entity in entities.Entities)
-        {
-            Console.WriteLine(entity.Type);
-        }
+        
         packet.Player.Location.CurrentMap.AddEntities(entities.Entities);
         packet.Handled = true;
     }
