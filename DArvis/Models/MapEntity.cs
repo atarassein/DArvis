@@ -33,4 +33,6 @@ public class MapEntity
                                || Type == MapEntityType.Item 
                                || Type == MapEntityType.PassableMonster;
     
+    public bool IsHostile => Type == MapEntityType.Monster 
+                               || Type == MapEntityType.PassableMonster;
 }
