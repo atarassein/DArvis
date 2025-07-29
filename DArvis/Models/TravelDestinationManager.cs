@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Xml.Serialization;
 
 namespace DArvis.Models;
@@ -11,6 +12,11 @@ public class TravelDestinationManager
     public TravelDestination? CurrentDestination { get; set; }
     
     public List<TravelDestination> TravelDestinations { get; }
+    
+    // Route recording properties
+    public bool IsRecording { get; private set; }
+    public TravelDestination? RecordingDestination { get; private set; }
+    private readonly object _recordingLock = new object();
     
     public TravelDestinationManager(Player player)
     {
@@ -90,6 +96,61 @@ public class TravelDestinationManager
         catch (System.Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Failed to save travel destination to XML: {ex.Message}");
+        }
+    }
+    
+    public void StartRecording(string routeName)
+    {
+        lock (_recordingLock)
+        {
+            if (IsRecording) return;
+            
+            RecordingDestination = new TravelDestination
+            {
+                Name = routeName,
+                MapId = Player.Location.MapNumber
+            };
+            
+            IsRecording = true;
+        }
+    }
+    
+    public void StopRecording()
+    {
+        lock (_recordingLock)
+        {
+            if (!IsRecording || RecordingDestination == null) return;
+            
+            IsRecording = false;
+            
+            // Save the recorded route to XML
+            var filename = $"{RecordingDestination.Name}.xml";
+            SaveTravelDestinationToXml(RecordingDestination, filename);
+            
+            // Add to the destinations list
+            TravelDestinations.Add(RecordingDestination);
+            
+            RecordingDestination = null;
+        }
+    }
+    
+    public void AddRecordingPoint(int mapId, int x, int y, Direction direction)
+    {
+        lock (_recordingLock)
+        {
+            if (!IsRecording || RecordingDestination == null) return;
+            
+            // Remove existing point for this map if it exists (only one point per map)
+            RecordingDestination.Points.RemoveAll(p => p.MapId == mapId);
+            
+            // Add the new point
+            RecordingDestination.Points.Add(new RoutePoint
+            {
+                MapId = mapId,
+                X = x,
+                Y = y,
+                Direction = direction
+            });
         }
     }
 }

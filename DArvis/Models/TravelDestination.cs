@@ -33,4 +33,7 @@ public class RoutePoint
     
     [XmlAttribute("y")]
     public int Y { get; set; }
+    
+    [XmlAttribute("dir")]
+    public Direction Direction { get; set; }
 }

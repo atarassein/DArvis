@@ -276,6 +276,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -283,7 +284,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource ObsidianText}" Text="Select a leader to follow:" Margin="5"/>
-                    <ListBox Grid.Row="1" Grid.Column="0" Name="LeaderListBox"
+                    <ListBox Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Name="LeaderListBox"
                              
                              BorderBrush="{StaticResource ObsidianSeparatorColor}"
                              BorderThickness="0,1,0,0"
@@ -294,8 +295,13 @@
                              SelectionChanged="leaderListBox_SelectionChanged"
                              SelectionMode="Single">
                     </ListBox>                    
-                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ObsidianText}" Text="Select a travel destination:" Margin="5"/>
-                    <ListBox Grid.Row="1" Grid.Column="1" Name="DestinationListBox"
+                    <Button Grid.Row="0" Grid.Column="1" Name="RecordRouteButton" 
+                            Content="Record Travel Route" 
+                            Click="RecordRouteButton_Click"
+                            Style="{StaticResource ObsidianButton}"
+                            Margin="5,5,5,2" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource ObsidianText}" Text="Select a travel destination:" Margin="5"/>
+                    <ListBox Grid.Row="2" Grid.Column="1" Name="DestinationListBox"
                              
                              BorderBrush="{StaticResource ObsidianSeparatorColor}"
                              BorderThickness="0,1,0,0"

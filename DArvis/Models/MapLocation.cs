@@ -105,9 +105,11 @@ namespace DArvis.Models
             // When the current map changes the Player object location coordinates are still at their
             // previous values. We can take advantage of the delay between the map change and the 
             // Player position update to drop a breadcrumb at the previous map so followers know where to go.
-            
-            if (Owner.Follower != null && Owner.Follower?.Location?.MapNumber != null
-                                       && mapNumber != Owner.Follower.Location.MapNumber)
+
+            var isRecordingRoute = Owner.TravelDestinationManager.IsRecording;
+            var isLeadingFollower = Owner.Follower != null && Owner.Follower?.Location?.MapNumber != null
+                                                           && mapNumber != Owner.Follower.Location.MapNumber; 
+            if (isRecordingRoute || isLeadingFollower)
             {
                 var oldX = x;
                 var oldY = y;
@@ -150,9 +152,16 @@ namespace DArvis.Models
                     Direction = oldDir,
                 };
                 
+                // If recording a route, add this point to the recording
+                if (Owner.TravelDestinationManager.IsRecording)
+                {
+                    Owner.TravelDestinationManager.AddRecordingPoint(MapNumber, oldX, oldY, oldDir);
+                }
+                
                 // Console.WriteLine($"{Owner.Name} dropped a breadcrumb at ({oldX}, {oldY}) on map {MapName} ({MapNumber})");
                 // Update the follower's map
-                Owner.Follower.Location.CurrentMap.Update();
+                if (isLeadingFollower)
+                    Owner.Follower.Location.CurrentMap.Update();
             }
         }
 

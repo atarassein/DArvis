@@ -90,6 +90,7 @@ public class ServerMapPacketConsumer : PacketConsumer<ServerPacket>
             Width = mapChanged.MapWidth,
             Height = mapChanged.MapHeight
         };
+        Console.WriteLine($"{mapChanged.MapName} ({mapChanged.MapNumber})");
         packet.Player.AislingManager.HideEveryoneForRefresh();
         packet.Player.Location.Attributes = mapAttributes;
         packet.Handled = true;

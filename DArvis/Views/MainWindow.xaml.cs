@@ -1617,6 +1617,128 @@ namespace DArvis.Views
         private void hideSpellQueueButton_Click(object sender, RoutedEventArgs e) => ToggleSpellQueue(false);
         private void metadataEditorButton_Click(object sender, RoutedEventArgs e) => ShowMetadataWindow();
         private void settingsButton_Click(object sender, RoutedEventArgs e) => ShowSettingsWindow();
+        
+        private void RecordRouteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedPlayer = clientListBox.SelectedItem as Player;
+            if (selectedPlayer?.TravelDestinationManager == null)
+            {
+                MessageBox.Show("Please select a player first.", "No Player Selected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var button = sender as Button;
+            if (button == null) return;
+
+            if (selectedPlayer.TravelDestinationManager.IsRecording)
+            {
+                // Stop recording
+                selectedPlayer.TravelDestinationManager.StopRecording();
+                button.Content = "Record Travel Route";
+                MessageBox.Show("Route recording stopped and saved!", "Recording Stopped", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                // Start recording - prompt for route name
+                var routeName = ShowRouteNameDialog();
+                if (!string.IsNullOrWhiteSpace(routeName))
+                {
+                    selectedPlayer.TravelDestinationManager.StartRecording(routeName);
+                    button.Content = "Stop Recording";
+                    MessageBox.Show($"Started recording route: {routeName}\nMove your character through the maps to record waypoints.", "Recording Started", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+        
+        private string ShowRouteNameDialog()
+        {
+            // Create a simple input dialog
+            var dialog = new Window
+            {
+                Title = "Enter Route Name",
+                Width = 300,
+                Height = 150,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStyle = WindowStyle.ToolWindow
+            };
+
+            var grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var label = new Label
+            {
+                Content = "Route Name:",
+                Margin = new Thickness(10),
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            Grid.SetRow(label, 0);
+
+            var textBox = new TextBox
+            {
+                Margin = new Thickness(10, 0, 10, 10),
+                Padding = new Thickness(5),
+                MaxLength = 50
+            };
+            Grid.SetRow(textBox, 1);
+
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(10)
+            };
+
+            var okButton = new Button
+            {
+                Content = "OK",
+                Width = 75,
+                Height = 25,
+                Margin = new Thickness(5, 0, 0, 0),
+                IsDefault = true
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "Cancel",
+                Width = 75,
+                Height = 25,
+                Margin = new Thickness(5, 0, 0, 0),
+                IsCancel = true
+            };
+
+            string result = null;
+
+            okButton.Click += (s, e) =>
+            {
+                result = textBox.Text.Trim();
+                dialog.DialogResult = true;
+            };
+
+            cancelButton.Click += (s, e) =>
+            {
+                dialog.DialogResult = false;
+            };
+
+            buttonPanel.Children.Add(cancelButton);
+            buttonPanel.Children.Add(okButton);
+            Grid.SetRow(buttonPanel, 2);
+
+            grid.Children.Add(label);
+            grid.Children.Add(textBox);
+            grid.Children.Add(buttonPanel);
+
+            dialog.Content = grid;
+
+            // Focus the textbox when dialog opens
+            dialog.Loaded += (s, e) => textBox.Focus();
+
+            var dialogResult = dialog.ShowDialog();
+            return dialogResult == true ? result : null;
+        }
         #endregion
 
         private void clientListBox_ItemDoubleClick(object sender, MouseButtonEventArgs e)
