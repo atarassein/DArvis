@@ -309,7 +309,8 @@
                              ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.TravelDestinationManager.TravelDestinations}"
                              Style="{StaticResource ObsidianListBox}"
                              Margin="0"
-                             SelectionMode="Single">
+                             SelectionMode="Single"
+                             SelectionChanged="DestinationListBox_SelectionChanged">
                     </ListBox>
                 </Grid>
             </TabItem>

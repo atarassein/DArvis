@@ -2073,6 +2073,15 @@ namespace DArvis.Views
             }
         }
         
+        private void DestinationListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedPlayer = clientListBox.SelectedItem as Player;
+            if (selectedPlayer?.TravelDestinationManager == null)
+                return;
+
+            selectedPlayer.TravelDestinationManager.CurrentDestination = DestinationListBox.SelectedItem as TravelDestination;
+        }
+        
         private void SubscribeMacroHandlers(PlayerMacroState state)
         {
             if (state != null)
