@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 using System.IO;
-using System.Threading;
 using System.Xml.Serialization;
 
 namespace DArvis.Models;
@@ -11,7 +10,7 @@ public class TravelDestinationManager
     
     public TravelDestination? CurrentDestination { get; set; }
     
-    public List<TravelDestination> TravelDestinations { get; }
+    public ObservableCollection<TravelDestination> TravelDestinations { get; }
     
     // Route recording properties
     public bool IsRecording { get; private set; }
@@ -21,7 +20,7 @@ public class TravelDestinationManager
     public TravelDestinationManager(Player player)
     {
         Player = player;
-        TravelDestinations = new List<TravelDestination>();
+        TravelDestinations = new ObservableCollection<TravelDestination>();
         TravelDestinations.Add(new TravelDestination{ Name = "<None>" });
         
         // Load travel destinations from XML files
