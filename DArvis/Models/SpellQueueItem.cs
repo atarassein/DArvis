@@ -105,14 +105,15 @@ namespace DArvis.Models
                 if (isDone && !_isDoneNotified)
                 {
                     _isDoneNotified = true;
-                    var sideQuest = App.Current.Services.GetService<ISideQuest>();
+                    // TODO: fix the problem with Player being null
+                    /*var sideQuest = App.Current.Services.GetService<ISideQuest>();
                     var toast = new ToastMessage
                     {
-                        Type = "mention",
-                        Title = $"{Player.Name}",
+                        Type = "notification",
+                        Title = $"{Name}",
                         Content = $"{Name} has reached level {TargetLevel.Value}!",
                     };
-                    sideQuest.ShowBackgroundToast(Player, toast);
+                    sideQuest.ShowBackgroundToast(Player, toast);*/
                 }
                 return isDone;
             }
