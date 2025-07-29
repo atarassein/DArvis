@@ -130,6 +130,11 @@ public class AislingManager : INotifyPropertyChanged
                 if (aisling == null)
                     return;
                 
+                // Update position coordinates first
+                aisling.X = aislingEntity.X;
+                aisling.Y = aislingEntity.Y;
+                aisling.Direction = aislingEntity.Direction;
+                
                 // Position and direction changes don't affect sort order, no need to call UpdateAislings
                 var changed = false;
                 if (aislingEntity.Name == "" && !aisling.IsHidden)
@@ -150,12 +155,10 @@ public class AislingManager : INotifyPropertyChanged
                 
                 aisling.LastSeen = DateTime.UtcNow;
                    
-                if (BuffTargets.TryGetValue(aisling.Serial, out var buffTarget))
+                // Update BuffTargets to point to the same object reference
+                if (aisling.IsBuffTarget)
                 {
-                    buffTarget.X = aislingEntity.X;
-                    buffTarget.Y = aislingEntity.Y;
-                    buffTarget.IsVisible = aisling.IsVisible;
-                    buffTarget.IsHidden = aisling.IsHidden;
+                    BuffTargets.AddOrUpdate(aisling.Serial, aisling, (key, existing) => aisling);
                 }
                 
                 if (changed)

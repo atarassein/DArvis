@@ -277,7 +277,7 @@
     <Spell Name="mor strioch pian gar" Class="Wizard" Mana="400" Lines="2" Cooldown="5" />
     <Spell Name="Mud Fortress" Class="Wizard" Mana="100" />
     <Spell Name="Mud Wall" Class="Wizard" Mana="700" Cooldown="22" />
-    <Spell Name="naomh aite" Class="Priest" Group="naomh aite" Mana="30" Lines="2" />
+    <Spell Name="naomh aite" Class="Priest" Group="naomh aite" Mana="30" Lines="2" Duration="301" />
     <Spell Name="Needle Trap" Class="Rogue" Group="Damage Trap" Mana="10" Lines="3" />
     <Spell Name="nis" Class="All" Mana="30" Lines="1" CanImprove="false" />
     <Spell Name="nuadhaich" Class="Priest" Group="ioc" Mana="1260" Lines="2" />

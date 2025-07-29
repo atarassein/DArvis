@@ -603,9 +603,13 @@ namespace DArvis.Macro
 
         private bool DoSpellMacro()
         {
-            if (IsSpellCasting)
+            if (client.IsWalking || IsSpellCasting)
+            {
+                Console.WriteLine("WALKING OR CASTING, SKIPPING SPELL MACRO");
                 return false;
+            }
 
+            Console.WriteLine("CASTING SPELL MACRO");
             SpellQueueItem nextSpell;
 
             if (ShouldFasSpiorad())
@@ -1129,6 +1133,7 @@ namespace DArvis.Macro
                                 continue;
                         }
                         
+                        //TODO: aisling.X and aisling.Y are not updated! these values are stale
                         if (!isSelfTarget && !client.Location.IsWithinRange(aisling.X, aisling.Y))
                             continue;
                         
@@ -1143,6 +1148,8 @@ namespace DArvis.Macro
                         }
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
                         ClickAbsoluteCoord(targetX, targetY);
+                        
+                        Console.WriteLine($"Casting {spell.Name} on {aisling.Name} at ({targetX}, {targetY})");
                         
                         var expirationTime = DateTime.Now + spell.Duration;
                         aisling.BuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
@@ -1214,7 +1221,7 @@ namespace DArvis.Macro
 
                         client.DoubleClickSlot(spell.Panel, spell.Slot);
                         ClickAbsoluteCoord(target.X, target.Y);
-                        
+                        Console.WriteLine($"Casting {spell.Name} on {target.Name} at ({target.X}, {target.Y})");
                         var expirationTime = DateTime.Now + spell.Duration;
                         target.DebuffExpirationTimes.AddOrUpdate(spell.Name, expirationTime, (_,_) => expirationTime);
 
