@@ -488,14 +488,28 @@
                             <Border Grid.Row="0" Grid.Column="1">
                                 <TextBlock TextWrapping="Wrap" Margin="0,10" Text="" HorizontalAlignment="Center" />
                             </Border>
-                            <Border Grid.Row="1" Grid.Column="0">
+                            <Grid Grid.Row="1" Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <CheckBox Grid.Row="0" Content="All Visible Aislings"
+                                          IsChecked="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.BuffAllVisibleAislings, Mode=TwoWay}"
+                                          Margin="5,2">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource ObsidianCheckBox}">
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
                                 <ListBox 
+                                    Grid.Row="1"
                                     ItemTemplate="{StaticResource BuffTargetsDataTemplate}"
                                     ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.AislingManager.Aislings}"
                                     Style="{StaticResource ObsidianListBox}"
                                 >
                                 </ListBox>
-                            </Border>
+                            </Grid>
                             <Border Grid.Row="1" Grid.Column="1">
                                 <!-- Placeholder -->
                             </Border>

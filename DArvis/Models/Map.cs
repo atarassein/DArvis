@@ -25,6 +25,8 @@ public class Map: UpdatableObject
     public ConcurrentDictionary<int, MapEntity> BlockingEntities;
     public ConcurrentDictionary<int, MapEntity> PassableEntities;
     public ConcurrentDictionary<int, MapEntity> Items;
+
+    public ConcurrentDictionary<int, MapEntity> HostileEntities;
     
     public MapLocationAttributes Attributes;
     public Player Owner;
@@ -39,6 +41,7 @@ public class Map: UpdatableObject
     {
         BlockingEntities = new ConcurrentDictionary<int, MapEntity>();
         PassableEntities = new ConcurrentDictionary<int, MapEntity>();
+        HostileEntities = new ConcurrentDictionary<int, MapEntity>();
         Items = new ConcurrentDictionary<int, MapEntity>();
         
         Owner = player;
@@ -92,7 +95,6 @@ public class Map: UpdatableObject
         if (entity == null || entity.Serial <= 0)
             return false;
 
-        // Use AddOrUpdate for atomic operation
         bool wasAdded = false;
         entities.AddOrUpdate(entity.Serial, 
             entity,
@@ -111,6 +113,11 @@ public class Map: UpdatableObject
     public bool AddEntity(MapEntity entity, bool deferUpdate = false)
     {
         bool shouldUpdate;
+        
+        // Track hostile entities uniquely for spellcasting purposes
+        if (entity.IsHostile)
+            AddEntityToDict(entity, HostileEntities, true);
+        
         if (entity.IsItem)
             shouldUpdate = AddEntityToDict(entity, Items, deferUpdate);
         else if (!entity.IsPassable)
@@ -172,6 +179,7 @@ public class Map: UpdatableObject
             return;
 
         MapEntity entity;
+        HostileEntities.TryRemove(serial, out _);
         if (BlockingEntities.TryRemove(serial, out entity) || PassableEntities.TryRemove(serial, out entity) || Items.TryRemove(serial, out entity))
         {
             Update();

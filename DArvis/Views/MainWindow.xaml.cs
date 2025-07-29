@@ -1449,7 +1449,8 @@ namespace DArvis.Views
                         TargetLevel = spellMacro.TargetLevel > 0 ? spellMacro.TargetLevel : null,
                         CurrentLevel = spellInfo.CurrentLevel,
                         MaximumLevel = spellInfo.MaximumLevel,
-                        IsOnCooldown = spellInfo.IsOnCooldown
+                        IsOnCooldown = spellInfo.IsOnCooldown,
+                        Player = state.Client
                     });
                 }
 

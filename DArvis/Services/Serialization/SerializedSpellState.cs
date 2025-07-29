@@ -46,6 +46,13 @@ namespace DArvis.Services.Serialization
         [DefaultValue(0)]
         public int TargetLevel { get; set; }
 
+        [XmlAttribute("ManaBelowEnabled")]
+        [DefaultValue(false)]
+        public bool ManaBelowEnabled { get; set; }
+        
+        [XmlAttribute("ManaBelowThreshold")]
+        [DefaultValue(0)]
+        public int ManaBelowThreshold { get; set; }
         public override string ToString() => SpellName;
     }
 }

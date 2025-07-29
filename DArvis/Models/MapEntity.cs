@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Windows;
 
 namespace DArvis.Models;
 
@@ -24,7 +26,9 @@ public class MapEntity
     public string Name = "Unknown";
     public int Serial;
     public bool Hidden = false;
-        
+
+    public ConcurrentDictionary<string, DateTime> DebuffExpirationTimes { get; set; } = new();
+
     public MapEntityType Type { get; set; }
 
     public bool IsItem => Type == MapEntityType.Item;
@@ -33,4 +37,6 @@ public class MapEntity
                                || Type == MapEntityType.Item 
                                || Type == MapEntityType.PassableMonster;
     
+    public bool IsHostile => Type == MapEntityType.Monster 
+                               || Type == MapEntityType.PassableMonster;
 }

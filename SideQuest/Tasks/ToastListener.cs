@@ -37,6 +37,9 @@ public static class ToastListener
                         {
                             switch (toast.Type)
                             {
+                                case "notification":
+                                    ShowNotificationToast(toast);
+                                    break;
                                 case "mention":
                                     ShowMentionToast(toast);
                                     break;
@@ -68,6 +71,16 @@ public static class ToastListener
         _cancellationTokenSource.Cancel();
     }
 
+    private static void ShowNotificationToast(ToastMessage toast)
+    {
+        new ToastContentBuilder()
+            .AddArgument("action", "focus")
+            .AddArgument("process", toast.Process ?? "")
+            .AddText(toast.Title)
+            .AddText(toast.Content)
+            .Show();
+    }
+    
     private static void ShowMentionToast(ToastMessage toast)
     {
         new ToastContentBuilder()
