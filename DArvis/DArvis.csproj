@@ -27,22 +27,6 @@
   <ItemGroup>
     <ResourceFiles Include="Resources\**\*" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="DTO\ClientPackets\" />
-    <Folder Include="Resources\routes\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Templates\BuffSpellsDataTemplate.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <XamlRuntime>Wpf</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Update="Templates\TravelDestinationDataTemplate.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <XamlRuntime>Wpf</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
   <Target Name="CopyResourceContents" AfterTargets="Build">
     <Copy
       SourceFiles="@(ResourceFiles)"
