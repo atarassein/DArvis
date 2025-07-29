@@ -271,16 +271,19 @@
                     Margin="-1,-1,0,0"
                     Padding="0">
 
-            <!-- Follow Tab -->
-            <TabItem x:Name="FollowTab" Header="Follow">
+            <!-- Movement Tab -->
+            <TabItem x:Name="MovementTab" Header="Movement">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Select a leader to follow:" Margin="5"/>
-                    <ListBox Name="LeaderListBox"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource ObsidianText}" Text="Select a leader to follow:" Margin="5"/>
+                    <ListBox Grid.Row="1" Grid.Column="0" Name="LeaderListBox"
                              
                              BorderBrush="{StaticResource ObsidianSeparatorColor}"
                              BorderThickness="0,1,0,0"
@@ -289,6 +292,17 @@
                              Style="{StaticResource ObsidianListBox}"
                              Margin="0"
                              SelectionChanged="leaderListBox_SelectionChanged"
+                             SelectionMode="Single">
+                    </ListBox>                    
+                    <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ObsidianText}" Text="Select a travel destination:" Margin="5"/>
+                    <ListBox Grid.Row="1" Grid.Column="1" Name="DestinationListBox"
+                             
+                             BorderBrush="{StaticResource ObsidianSeparatorColor}"
+                             BorderThickness="0,1,0,0"
+                             ItemTemplate="{StaticResource TravelDestinationDataTemplate}"
+                             ItemsSource="{Binding ElementName=clientListBox, Path=SelectedItem.TravelDestinationManager.TravelDestinations}"
+                             Style="{StaticResource ObsidianListBox}"
+                             Margin="0"
                              SelectionMode="Single">
                     </ListBox>
                 </Grid>
@@ -626,17 +640,6 @@
                     </Border>
                 </Grid>
             </TabItem>
-
-            <!-- Packets Tab -->
-            <TabItem Name="debugTab" Header="Debug">
-                <DockPanel>
-                    <Button Name="testButton"
-                            Click="testButton_Click">
-                        Send Notification
-                    </Button>
-                </DockPanel>
-            </TabItem>
-
         </TabControl>
 
         <!-- Spell Queue Placeholder -->

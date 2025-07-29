@@ -26,7 +26,6 @@ namespace DArvis.Macro
         private PlayerMacroStatus playerStatus;
 
         private FollowTarget _followTarget;
-        private BuffTargets _buffTargets;
         private FollowTarget FollowTarget
         {
             get
@@ -142,7 +141,6 @@ namespace DArvis.Macro
             : base(client)
         {
             _followTarget = new FollowTarget(this);
-            _buffTargets = new BuffTargets(this);
         }
 
         public void AddToSpellQueue(SpellQueueItem spell, int index = -1)
@@ -427,7 +425,6 @@ namespace DArvis.Macro
                 currentPanel = client.GameClient.ActivePanel;
 
             DoFollowMacro();
-            DoBuffMacro();
             
             if (UserSettingsManager.Instance.Settings.FlowerBeforeSpellMacros)
             {
@@ -494,14 +491,7 @@ namespace DArvis.Macro
                 await _followTarget.Walk();
             }
         }
-
-        private async void DoBuffMacro()
-        {
-            if (await _buffTargets.ShouldBuff())
-            {
-                await _buffTargets.Buff();
-            }
-        }
+        
         // Zolian feature!
         private bool DoClickWaterAndBedsIfNeeded()
         {

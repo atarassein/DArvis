@@ -26,6 +26,7 @@ namespace DArvis.Models
         private readonly MapLocation location;
         private readonly AislingManager aislingManager;
         private readonly BuffManager buffManager;
+        private readonly TravelDestinationManager travelDestinationManager;
         
         private readonly Stream stream;
         private readonly BinaryReader reader;
@@ -52,6 +53,8 @@ namespace DArvis.Models
 
         public AislingManager AislingManager => aislingManager;
         public BuffManager BuffManager => buffManager;
+        
+        public TravelDestinationManager TravelDestinationManager => travelDestinationManager;
         
         private DateTime lastFlowerTimestamp;
         public DateTime LastWalkCommand;
@@ -247,6 +250,7 @@ namespace DArvis.Models
             location = new MapLocation(this);
             aislingManager = new AislingManager(this);
             buffManager = new BuffManager(this);
+            travelDestinationManager = new TravelDestinationManager(this);
         }
 
         ~Player() => Dispose(false);

@@ -47,6 +47,7 @@
                 <ResourceDictionary Source="Templates\PlayerDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\LeaderDataTemplate.xaml"/>
                 <ResourceDictionary Source="Templates\SpellQueueDataTemplate.xaml"/>
+                <ResourceDictionary Source="Templates\TravelDestinationDataTemplate.xaml"/>
                 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
