@@ -2,6 +2,7 @@
 using System.Windows.Media;
 
 using DArvis.Common;
+using DArvis.Services.SideQuest;
 
 namespace DArvis.Models
 {
@@ -21,6 +22,9 @@ namespace DArvis.Models
         private bool isOnCooldown;
         private bool isWaitingOnHealth;
 
+        private bool _isDoneNotified = false;
+        public Player Player;
+        
         public int Id
         {
             get => id;
@@ -80,7 +84,9 @@ namespace DArvis.Models
             get
             {
                 if (!HasTargetLevel || CurrentLevel >= TargetLevel.Value)
+                {
                     return 100;
+                }
 
                 return currentLevel * 100.0 / targetLevel.Value;
             }
@@ -95,7 +101,20 @@ namespace DArvis.Models
                 if (!targetLevel.HasValue)
                     return false;
 
-                return currentLevel >= targetLevel.Value;
+                var isDone = CurrentLevel >= TargetLevel.Value;
+                if (isDone && !_isDoneNotified)
+                {
+                    _isDoneNotified = true;
+                    var sideQuest = App.Current.Services.GetService<ISideQuest>();
+                    var toast = new ToastMessage
+                    {
+                        Type = "mention",
+                        Title = $"{Player.Name}",
+                        Content = $"{Name} has reached level {TargetLevel.Value}!",
+                    };
+                    sideQuest.ShowBackgroundToast(Player, toast);
+                }
+                return isDone;
             }
         }
 
@@ -123,6 +142,9 @@ namespace DArvis.Models
             set => SetProperty(ref isWaitingOnHealth, value);
         }
 
+        public bool CastIfManaBelowEnabled { get; set; } = false;
+        public int CastIfManaBelow { get; set; } = 0;
+        
         public void CopyTo(SpellQueueItem other) => CopyTo(other, true, false);
 
         public void CopyTo(SpellQueueItem other, bool copyId) => CopyTo(other, copyId, false);

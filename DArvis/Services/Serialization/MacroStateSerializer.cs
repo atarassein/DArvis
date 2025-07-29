@@ -133,7 +133,9 @@ namespace DArvis.Services.Serialization
                     OffsetY = spell.Target.Offset.Y,
                     InnerRadius = spell.Target.InnerRadius,
                     OuterRadius = spell.Target.OuterRadius,
-                    TargetLevel = spell.TargetLevel ?? 0
+                    TargetLevel = spell.TargetLevel ?? 0,
+                    ManaBelowEnabled = spell.CastIfManaBelowEnabled,
+                    ManaBelowThreshold = spell.CastIfManaBelow
                 });
             }
 

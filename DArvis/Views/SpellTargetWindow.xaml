@@ -105,6 +105,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -380,9 +381,37 @@
                        Grid.ColumnSpan="4"
                        Style="{StaticResource ObsidianSeparator}"/>
 
+            <!-- Mana Conditional -->
+            <CheckBox Name="manaBelowCheckBox"
+                      Grid.Row="8"
+                      Grid.ColumnSpan="2"
+                      Content="Cast If Mana Below:"
+                      Style="{StaticResource ObsidianCheckBox}"
+                      IsChecked="False"
+                      FontSize="16"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Margin="8,6,64,4"
+                      Visibility="{Binding ElementName=manaBelowUpDown, Path=Visibility}"
+                      ToolTip="This spell will only be cast if mana is below specified value."/>
+
+            <ctl:NumericUpDown x:Name="manaBelowUpDown"
+                               Grid.Row="8"
+                               Grid.Column="1"
+                               Grid.ColumnSpan="3"
+                               Style="{StaticResource ObsidianNumericUpDown}"
+                               DecoratorText="Mana"
+                               Width="196"
+                               HorizontalAlignment="Right"
+                               Minimum="0"
+                               Maximum="9999"
+                               Margin="0,4"
+                               IsEnabled="{Binding ElementName=manaBelowCheckBox, Path=IsChecked}"/>
+
+            
             <!-- Level Limit -->
             <CheckBox Name="maxLevelCheckBox"
-                      Grid.Row="8"
+                      Grid.Row="9"
                       Grid.ColumnSpan="2"
                       Content="Cast Spell Until Reaches:"
                       Style="{StaticResource ObsidianCheckBox}"
@@ -395,7 +424,7 @@
                       ToolTip="This is the level that macroing for this spell will stop."/>
 
             <ctl:NumericUpDown x:Name="maxLevelUpDown"
-                               Grid.Row="8"
+                               Grid.Row="9"
                                Grid.Column="1"
                                Grid.ColumnSpan="3"
                                Style="{StaticResource ObsidianNumericUpDown}"
@@ -408,7 +437,7 @@
                                IsEnabled="{Binding ElementName=maxLevelCheckBox, Path=IsChecked}"/>
 
             <!-- Add to Queue Button -->
-            <StackPanel Grid.Row="9" Grid.ColumnSpan="4" Orientation="Vertical">
+            <StackPanel Grid.Row="10" Grid.ColumnSpan="4" Orientation="Vertical">
                 <Separator Style="{StaticResource ObsidianSeparator}"/>
 
                 <Button Name="okButton"

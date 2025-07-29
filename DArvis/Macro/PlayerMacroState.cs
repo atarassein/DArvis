@@ -961,7 +961,10 @@ namespace DArvis.Macro
 
             var currentSpell = spellQueue.ElementAt(spellQueueIndex);
 
-            while (currentSpell.IsWaitingOnHealth || currentSpell.IsDone || (skipOnCooldown && currentSpell.IsOnCooldown))
+            while (currentSpell.IsWaitingOnHealth 
+                   || currentSpell.IsDone 
+                   || (skipOnCooldown && currentSpell.IsOnCooldown)
+                   || (currentSpell.CastIfManaBelowEnabled && Client.Stats.CurrentMana > currentSpell.CastIfManaBelow))
                 currentSpell = AdvanceToNextSpell();
 
             // Round robin rotation for next time
@@ -1209,6 +1212,12 @@ namespace DArvis.Macro
                             {
                                 continue;
                             }
+                        }
+                        
+                        if (spell.ManaCost > client.Stats.CurrentMana)
+                        {
+                            IsWaitingOnMana = true;
+                            return false;
                         }
                         
                         // TODO: if macro is walking then it needs to stop walking and wait for us to buff

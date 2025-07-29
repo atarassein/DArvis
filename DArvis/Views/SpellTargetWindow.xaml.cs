@@ -210,6 +210,9 @@ namespace DArvis.Views
             else
                 spellQueueItem.TargetLevel = (int)maxLevelUpDown.Value;
 
+            spellQueueItem.CastIfManaBelowEnabled = manaBelowCheckBox.IsChecked.Value;
+            spellQueueItem.CastIfManaBelow = (int)manaBelowUpDown.Value;
+            
             return true;
         }
 
