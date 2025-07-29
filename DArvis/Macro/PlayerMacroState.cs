@@ -24,20 +24,6 @@ namespace DArvis.Macro
         private List<SpellQueueItem> spellQueue = new();
         private List<FlowerQueueItem> flowerQueue = new();
         private PlayerMacroStatus playerStatus;
-
-        private TravelRoute _travelRoute;
-        private TravelRoute TravelRoute
-        {
-            get
-            {
-                if (_travelRoute == null)
-                {
-                    _travelRoute = new TravelRoute(this);
-                }
-
-                return _travelRoute;
-            }
-        }
         
         private FollowTarget _followTarget;
         private FollowTarget FollowTarget
@@ -437,8 +423,6 @@ namespace DArvis.Macro
 
             if (preserveUserPanel)
                 currentPanel = client.GameClient.ActivePanel;
-
-            DoTravelMacro();
             
             DoFollowMacro();
             
@@ -505,14 +489,6 @@ namespace DArvis.Macro
             if (await _followTarget.ShouldWalk())
             {
                 await _followTarget.Walk();
-            }
-        }
-
-        private async void DoTravelMacro()
-        {
-            if (await TravelRoute.ShouldTravel())
-            {
-                await TravelRoute.Travel();
             }
         }
         

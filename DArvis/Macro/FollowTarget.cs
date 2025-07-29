@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -52,26 +53,67 @@ public class FollowTarget(PlayerMacroState macro)
     {
         var player = macro.Client;
         var leader = player.Leader;
-        if (macro.IsSpellCasting || player.IsWalking || leader == null || player.IsNearby(leader))
+        
+        if (macro.IsSpellCasting || player.IsWalking)
         {
             await Task.Delay(100);
             return false;
         }
 
-        var playerMap = player.Location.MapNumber;
-        var leaderMap = leader.Location.MapNumber;
-
-        if (playerMap == leaderMap)
+        // Check if following a leader
+        if (leader != null && !player.IsNearby(leader))
         {
-            return true;
+            var playerMap = player.Location.MapNumber;
+            var leaderMap = leader.Location.MapNumber;
+
+            if (playerMap == leaderMap)
+            {
+                return true;
+            }
+
+            if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumb) && breadcrumb != null)
+            {
+                return true;
+            }
+
+            Console.WriteLine("Player is lost.");
+            await Task.Delay(100);
+            return false;
         }
 
-        if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumb) && breadcrumb != null)
+        // Check if following a travel route
+        var travelDestination = player.TravelDestinationManager.CurrentDestination;
+        if (travelDestination != null && travelDestination.Points.Count > 0)
         {
-            return true;
+            var playerMap = player.Location.MapNumber;
+            
+            // Find the current waypoint for this map
+            var currentWaypoint = travelDestination.Points.FirstOrDefault(p => p.MapId == playerMap);
+            if (currentWaypoint != null)
+            {
+                // Check if we're already at the waypoint
+                if ((int)player.Location.X == currentWaypoint.X && (int)player.Location.Y == currentWaypoint.Y)
+                {
+                    // At waypoint, check if there's a next waypoint on a different map
+                    var currentIndex = travelDestination.Points.IndexOf(currentWaypoint);
+                    if (currentIndex >= 0 && currentIndex < travelDestination.Points.Count - 1)
+                    {
+                        var nextWaypoint = travelDestination.Points[currentIndex + 1];
+                        if (nextWaypoint.MapId != playerMap)
+                        {
+                            // Next waypoint is on different map, wait for transition
+                            await Task.Delay(100);
+                            return false;
+                        }
+                    }
+                    // Last waypoint reached or next waypoint on same map
+                    await Task.Delay(100);
+                    return false;
+                }
+                return true; // Need to walk to waypoint
+            }
         }
 
-        Console.WriteLine("Player is lost.");
         await Task.Delay(100);
         return false;
     }
@@ -98,7 +140,7 @@ public class FollowTarget(PlayerMacroState macro)
         var player = macro.Client;
         var leader = player.Leader;
 
-        if (player.IsDisposing || leader == null || leader.IsDisposing)
+        if (player.IsDisposing)
         {
             StopWalking();
             return;
@@ -110,14 +152,58 @@ public class FollowTarget(PlayerMacroState macro)
             PathNode? targetNode = null;
             bool isBreadcrumb = false;
             
-            if (player.IsOnSameMapAs(leader))
+            // Check if following a leader
+            if (leader != null && !leader.IsDisposing)
             {
-                targetNode = NodeBehindPlayer(leader);
+                if (player.IsOnSameMapAs(leader))
+                {
+                    targetNode = NodeBehindPlayer(leader);
+                }
+                else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumbNode) && breadcrumbNode != null)
+                {
+                    isBreadcrumb = true;
+                    targetNode = breadcrumbNode;
+                }
+
+                if (isBreadcrumb && targetNode != null)
+                {
+                    _currentPath = PathFinder.FindPath(
+                        player.Location.PathNode,
+                        targetNode,
+                        player.Location.CurrentMap.Terrain,
+                        isBreadcrumb);
+
+                    if (_currentPath == null || _currentPath.Length == 0)
+                    {
+                        if (leader.LastPosition.TryGetValue(playerMap, out var lastPosition) && lastPosition != null)
+                        {
+                            targetNode = lastPosition;
+                            _currentPath = PathFinder.FindPath(
+                                player.Location.PathNode,
+                                targetNode,
+                                player.Location.CurrentMap.Terrain, 
+                                isBreadcrumb);
+                        }
+                    }
+                }
             }
-            else if (leader.Breadcrumbs.TryGetValue(playerMap, out var breadcrumbNode) && breadcrumbNode != null)
+            // Check if following a travel route
+            else
             {
-                isBreadcrumb = true;
-                targetNode = breadcrumbNode;
+                var travelDestination = player.TravelDestinationManager.CurrentDestination;
+                if (travelDestination != null && travelDestination.Points.Count > 0)
+                {
+                    var currentWaypoint = travelDestination.Points.FirstOrDefault(p => p.MapId == playerMap);
+                    if (currentWaypoint != null)
+                    {
+                        isBreadcrumb = true; // Treat route waypoints like breadcrumbs
+                        targetNode = new PathNode
+                        {
+                            Position = new Point(currentWaypoint.X, currentWaypoint.Y),
+                            Direction = currentWaypoint.Direction
+                        };
+                    }
+                }
             }
 
             if (targetNode == null)
@@ -126,23 +212,14 @@ public class FollowTarget(PlayerMacroState macro)
                 return;
             }
 
-            _currentPath = PathFinder.FindPath(
-                player.Location.PathNode,
-                targetNode,
-                player.Location.CurrentMap.Terrain,
-                isBreadcrumb);
-
-            if (isBreadcrumb && (_currentPath == null || _currentPath.Length == 0))
+            // Find path if not already calculated for leader breadcrumb
+            if (_currentPath == null)
             {
-                if (leader.LastPosition.TryGetValue(playerMap, out var lastPosition) && lastPosition != null)
-                {
-                    targetNode = lastPosition;
-                    _currentPath = PathFinder.FindPath(
-                        player.Location.PathNode,
-                        targetNode,
-                        player.Location.CurrentMap.Terrain, 
-                        isBreadcrumb);
-                }
+                _currentPath = PathFinder.FindPath(
+                    player.Location.PathNode,
+                    targetNode,
+                    player.Location.CurrentMap.Terrain,
+                    isBreadcrumb);
             }
             
             if (_currentPath == null || _currentPath.Length == 0)
@@ -163,10 +240,6 @@ public class FollowTarget(PlayerMacroState macro)
                 }
                 
                 var nextNode = _currentPath[_currentPathIndex];
-                
-                //Console.WriteLine($"Walking to step {_currentPathIndex + 1}/{_currentPath.Length}: " +
-                //                $"({player.Location.PathNode.Position.X}, {player.Location.PathNode.Position.Y}) -> " +
-                //                $"[{nextNode.Direction}] -> ({nextNode.Position.X}, {nextNode.Position.Y})");
 
                 // Check if we're already at the target position
                 if ((int)player.Location.X == (int)nextNode.Position.X && (int)player.Location.Y == (int)nextNode.Position.Y)
