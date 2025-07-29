@@ -750,6 +750,7 @@
                           SelectedValuePath="Value"
                           SelectionChanged="spellQueueRotationComboBox_SelectionChanged"
                           Margin="8">
+                    <settings:UserSetting Key="DoNotCast" DisplayText="Do Not Cast" Value="None"/>
                     <settings:UserSetting Key="None" DisplayText="No Rotation" Value="None"/>
                     <settings:UserSetting Key="Singular" DisplayText="Singular Order" Value="Singular"/>
                     <settings:UserSetting Key="RoundRobin" DisplayText="Round Robin" Value="RoundRobin"/>

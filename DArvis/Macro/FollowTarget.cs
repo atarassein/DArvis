@@ -83,7 +83,7 @@ public class FollowTarget(PlayerMacroState macro)
 
         // Check if following a travel route
         var travelDestination = player.TravelDestinationManager.CurrentDestination;
-        if (travelDestination != null && travelDestination.Points.Count > 0)
+        if (travelDestination != null && travelDestination.Name != "<None>" && travelDestination.Points.Count > 0)
         {
             var playerMap = player.Location.MapNumber;
             

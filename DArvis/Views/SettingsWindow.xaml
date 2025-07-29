@@ -770,6 +770,7 @@
                                   SelectedValuePath="Value"
                                   SelectedValue="{Binding Source={x:Static settings:UserSettingsManager.Instance}, Path=Settings.SpellRotationMode}"
                                   Margin="4,6">
+                            <settings:UserSetting Key="DoNotCast" DisplayText="Do Not Cast" Value="None"/>
                             <settings:UserSetting Key="None" DisplayText="No Rotation" Value="None"/>
                             <settings:UserSetting Key="Singular" DisplayText="Singular Order" Value="Singular"/>
                             <settings:UserSetting Key="RoundRobin" DisplayText="Round Robin" Value="RoundRobin"/>
